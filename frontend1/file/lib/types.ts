@@ -1,0 +1,81 @@
+export interface Employee {
+  id: string
+  employeeId: string
+  name: string
+  gender: "Male" | "Female" | "Other"
+  designation: string
+  contactNumber: string
+  email: string
+  address: string
+  department: string
+  joiningDate: string
+  status: "Active" | "Inactive"
+  createdAt: string
+  updatedAt: string
+}
+
+export interface AttendanceRecord {
+  id: string
+  employeeId: string
+  date: string
+  checkIn: string | null
+  checkOut: string | null
+  status: "Present" | "Absent" | "Late" | "Half-Day" | "Leave"
+  remarks: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface User {
+  id: string
+  username: string
+  password: string
+  role: "admin" | "operator"
+  name: string
+  email: string
+}
+
+export interface DailyStats {
+  date: string
+  totalEmployees: number
+  present: number
+  absent: number
+  late: number
+  onLeave: number
+}
+
+export interface AttendanceFilter {
+  startDate?: string
+  endDate?: string
+  employeeId?: string
+  department?: string
+  status?: AttendanceRecord["status"]
+}
+
+export interface ReportData {
+  employee: Employee
+  records: AttendanceRecord[]
+  presentDays: number
+  absentDays: number
+  lateDays: number
+  leaveDays: number
+  attendancePercentage: number
+}
+
+export interface OutingRequest {
+  id: string
+  employeeId: string
+  date: string
+  requestTime: string
+  purpose: "official" | "personal"
+  reason: string
+  willReturn: boolean
+  expectedReturnTime: string | null
+  actualReturnTime: string | null
+  status: "pending" | "approved" | "denied"
+  reviewedBy: string | null
+  reviewedAt: string | null
+  reviewerRemarks: string
+  createdAt: string
+  updatedAt: string
+}
