@@ -206,15 +206,18 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Reports</h1>
-          <p className="text-muted-foreground">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Reports</h1>
+          <p className="text-base text-slate-500">
             Generate and export attendance reports
           </p>
         </div>
-        <Button onClick={exportToCSV} className="gap-2">
+        <Button 
+          onClick={exportToCSV} 
+          className="gap-2 bg-slate-900 hover:bg-slate-800 text-white shadow-sm h-10 px-5 shrink-0 self-start sm:self-auto"
+        >
           <Download className="h-4 w-4" />
           Export CSV
         </Button>
@@ -258,50 +261,58 @@ export default function ReportsPage() {
         </CardContent>
       </Card>
 
-      {/* Summary Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
+      {/* Stats Overview */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 ">
         <Card className="border-0 shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-start justify-between">
-              <p className="text-sm font-medium text-muted-foreground">Total Employees</p>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-100">
-                <Users className="h-5 w-5 text-violet-500" />
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="space-y-1 min-w-0">
+                <p className="text-sm font-medium text-slate-500 truncate">Total Employees</p>
+                <p className="text-2xl font-bold text-slate-900">{overallStats.totalEmployees}</p>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                <Users className="h-6 w-6 text-slate-600" />
               </div>
             </div>
-            <p className="mt-2 text-3xl font-bold text-foreground">{overallStats.totalEmployees}</p>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-start justify-between">
-              <p className="text-sm font-medium text-muted-foreground">Avg Attendance</p>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100">
-                <TrendingUp className="h-5 w-5 text-emerald-500" />
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="space-y-1 min-w-0">
+                <p className="text-sm font-medium text-slate-500 truncate">Avg Attendance</p>
+                <p className="text-2xl font-bold text-emerald-600">{overallStats.avgAttendance}%</p>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                <TrendingUp className="h-6 w-6 text-emerald-600" />
               </div>
             </div>
-            <p className="mt-2 text-3xl font-bold text-foreground">{overallStats.avgAttendance}%</p>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-start justify-between">
-              <p className="text-sm font-medium text-muted-foreground">Total Present Days</p>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-                <FileText className="h-5 w-5 text-blue-500" />
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="space-y-1 min-w-0">
+                <p className="text-sm font-medium text-slate-500 truncate">Total Present Days</p>
+                <p className="text-2xl font-bold text-emerald-600">{overallStats.totalPresent}</p>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                <FileText className="h-6 w-6 text-emerald-600" />
               </div>
             </div>
-            <p className="mt-2 text-3xl font-bold text-foreground">{overallStats.totalPresent}</p>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-start justify-between">
-              <p className="text-sm font-medium text-muted-foreground">Total Absent Days</p>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
-                <FileText className="h-5 w-5 text-red-500" />
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="space-y-1 min-w-0">
+                <p className="text-sm font-medium text-slate-500 truncate">Total Absent Days</p>
+                <p className="text-2xl font-bold text-rose-600">{overallStats.totalAbsent}</p>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-rose-50 flex items-center justify-center shrink-0">
+                <FileText className="h-6 w-6 text-rose-600" />
               </div>
             </div>
-            <p className="mt-2 text-3xl font-bold text-foreground">{overallStats.totalAbsent}</p>
           </CardContent>
         </Card>
       </div>
@@ -318,8 +329,8 @@ export default function ReportsPage() {
           <Card className="border-0 shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-100">
-                  <Users className="h-4 w-4 text-violet-500" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 shrink-0">
+                  <Users className="h-4 w-4 text-slate-700" />
                 </div>
                 Employee Attendance Report
               </CardTitle>
@@ -409,8 +420,8 @@ export default function ReportsPage() {
           <Card className="border-0 shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
-                  <FileText className="h-4 w-4 text-blue-500" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 shrink-0">
+                  <FileText className="h-4 w-4 text-blue-600" />
                 </div>
                 Department-wise Attendance
               </CardTitle>
@@ -445,8 +456,8 @@ export default function ReportsPage() {
           <Card className="border-0 shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100">
-                  <TrendingUp className="h-4 w-4 text-emerald-500" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 shrink-0">
+                  <TrendingUp className="h-4 w-4 text-emerald-600" />
                 </div>
                 Attendance Trend
               </CardTitle>
