@@ -188,79 +188,159 @@ export default function DashboardPage() {
       {/* Charts Row */}
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Weekly Attendance Chart */}
-        <Card className="border-0 shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                <TrendingUp className="h-4 w-4 text-primary" />
-              </div>
-              Weekly Attendance
-            </CardTitle>
-            <CardDescription>Attendance trend for the last 7 days</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={weeklyData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis dataKey="day" className="text-muted-foreground" tick={{ fill: 'currentColor' }} />
-                  <YAxis className="text-muted-foreground" tick={{ fill: 'currentColor' }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                    }}
-                  />
-                  <Bar dataKey="present" fill="var(--chart-1)" name="Present" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="absent" fill="var(--chart-2)" name="Absent" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+       <Card className="border-0 shadow-sm">
+  <CardHeader>
+    <CardTitle className="flex items-center gap-2 text-base">
+      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+        <TrendingUp className="h-4 w-4 text-primary" />
+      </div>
+      Weekly Attendance
+    </CardTitle>
+    <CardDescription>
+      Attendance trend for the last 7 days
+    </CardDescription>
+  </CardHeader>
+
+  <CardContent>
+    <div className="h-[320px] w-full overflow-visible">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={weeklyData} barGap={8} barCategoryGap="25%">
+
+          <CartesianGrid strokeDasharray="3 3" opacity={0.4} />
+
+          <XAxis
+            dataKey="day"
+            tick={{ fontSize: 12 }}
+            axisLine={false}
+            tickLine={false}
+          />
+
+          <YAxis
+            tick={{ fontSize: 12 }}
+            axisLine={false}
+            tickLine={false}
+          />
+
+          {/* ✅ CLEAN TOOLTIP (FIXED OVERLAP + BETTER DESIGN) */}
+          <Tooltip
+            cursor={{ fill: "rgba(0,0,0,0.04)" }}
+            content={({ active, payload, label }: any) => {
+              if (!active || !payload?.length) return null
+
+              return (
+                <div className="rounded-lg border bg-card p-3 shadow-xl min-w-[140px]">
+                  <p className="mb-2 font-semibold text-foreground">
+                    {label}
+                  </p>
+
+                  {payload.map((entry: any, i: number) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between text-sm"
+                    >
+                      <span style={{ color: entry.fill }}>
+                        {entry.name}
+                      </span>
+                      <span className="font-medium text-foreground">
+                        {entry.value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )
+            }}
+          />
+
+          {/* Bars */}
+          <Bar
+            dataKey="present"
+            name="Present"
+            fill="var(--chart-1)"
+            radius={[6, 6, 0, 0]}
+            maxBarSize={45}
+          />
+
+          <Bar
+            dataKey="absent"
+            name="Absent"
+            fill="var(--chart-2)"
+            radius={[6, 6, 0, 0]}
+            maxBarSize={45}
+          />
+
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  </CardContent>
+</Card>
 
         {/* Today's Distribution */}
         <Card className="border-0 shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100">
-                <Users className="h-4 w-4 text-emerald-500" />
-              </div>
-              Today&apos;s Distribution
-            </CardTitle>
-            <CardDescription>Attendance breakdown for today</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={2}
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+  <CardHeader>
+    <CardTitle className="flex items-center gap-2 text-base">
+      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100">
+        <Users className="h-4 w-4 text-emerald-500" />
+      </div>
+      Today’s Distribution
+    </CardTitle>
+    <CardDescription>
+      Attendance breakdown for today
+    </CardDescription>
+  </CardHeader>
+
+  <CardContent>
+    <div className="h-[320px] w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+
+          <Pie
+            data={pieData}
+            cx="50%"
+            cy="50%"
+            innerRadius={70}
+            outerRadius={110}
+            paddingAngle={4}
+            dataKey="value"
+            labelLine={false}
+            label={({ name, percent }) =>
+              `${name} ${(percent * 100).toFixed(0)}%`
+            }
+          >
+            {pieData.map((entry, index) => (
+              <Cell key={index} fill={entry.color} />
+            ))}
+          </Pie>
+
+          {/* ✅ FIXED TOOLTIP (NO OVERLAP + CLEAN DESIGN) */}
+          <Tooltip
+            content={({ active, payload }: any) => {
+              if (!active || !payload?.length) return null
+
+              return (
+                <div className="rounded-lg border bg-card p-3 shadow-xl">
+                  {payload.map((entry: any, i: number) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between gap-6 text-sm"
+                    >
+                      <span style={{ color: entry.payload.fill }}>
+                        {entry.name}
+                      </span>
+                      <span className="font-medium">
+                        {entry.value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )
+            }}
+          />
+
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
+  </CardContent>
+</Card>
       </div>
 
       {/* Recent Activity */}
