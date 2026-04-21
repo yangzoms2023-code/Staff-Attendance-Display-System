@@ -37,31 +37,40 @@ export default function DashboardPage() {
   }, [])
 
   const loadData = () => {
-    const emps = dataStore.getEmployees()
-    const dailyStats = dataStore.getDailyStats(today)
-    const todayAttendance = dataStore.getAttendanceByDate(today)
-    const todayOutings = dataStore.getTodayOutingRequests()
-    
-    setEmployees(emps)
-    setStats(dailyStats)
-    setRecentAttendance(todayAttendance)
-    setOutingRequests(todayOutings)
-    
-    // Calculate weekly data
-    const weekly: { day: string; present: number; absent: number }[] = []
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date()
-      date.setDate(date.getDate() - i)
-      const dateStr = date.toISOString().split("T")[0]
-      const dayStats = dataStore.getDailyStats(dateStr)
-      weekly.push({
-        day: date.toLocaleDateString("en-US", { weekday: "short" }),
-        present: dayStats.present,
-        absent: dayStats.absent,
-      })
-    }
-    setWeeklyData(weekly)
+  const emps = dataStore.getEmployees()
+  const dailyStats = dataStore.getDailyStats(today)
+  const todayAttendance = dataStore.getAttendanceByDate(today)
+  const todayOutings = dataStore.getTodayOutingRequests()
+
+  setEmployees(emps)
+  setStats(dailyStats)
+  setRecentAttendance(todayAttendance)
+  setOutingRequests(todayOutings)
+
+  // Calculate WEEKDAY ONLY (Mon - Fri)
+  const weekly: { day: string; present: number; absent: number }[] = []
+
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date()
+    date.setDate(date.getDate() - i)
+
+    const dayOfWeek = date.getDay()
+
+    // skip Saturday & Sunday
+    if (dayOfWeek === 0 || dayOfWeek === 6) continue
+
+    const dateStr = date.toISOString().split("T")[0]
+    const dayStats = dataStore.getDailyStats(dateStr)
+
+    weekly.push({
+      day: date.toLocaleDateString("en-US", { weekday: "short" }),
+      present: dayStats.present,
+      absent: dayStats.absent,
+    })
   }
+
+  setWeeklyData(weekly)
+} // ✅ THIS WAS MISSING (IMPORTANT FIX)
 
   const getEmployeeName = (employeeId: string) => {
     const emp = employees.find(e => e.id === employeeId)
