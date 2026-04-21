@@ -188,7 +188,7 @@ export default function DashboardPage() {
       {/* Charts Row */}
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Weekly Attendance Chart */}
-       <Card className="border-0 shadow-sm">
+     <Card className="border-0 shadow-sm">
   <CardHeader>
     <CardTitle className="flex items-center gap-2 text-base">
       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
