@@ -192,8 +192,8 @@ export default function EmployeesPage() {
         </div>
         <Button 
           onClick={handleAdd} 
-          className="gap-2 bg-slate-900 hover:bg-slate-800 text-white shadow-sm h-10 px-5 shrink-0 self-start sm:self-auto"
-        >
+          className="gap-2 bg-[#0b2e4f] text-white shadow-sm h-10 px-5 shrink-0 self-start sm:self-auto border-2 border-transparent hover:bg-white hover:text-[#0b2e4f] hover:border-[#0b2e4f] transition-colors"
+        > 
           <Plus className="h-4 w-4" />
           Add Employee
         </Button>
