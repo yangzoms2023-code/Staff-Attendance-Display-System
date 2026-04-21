@@ -37,40 +37,41 @@ export default function DashboardPage() {
   }, [])
 
   const loadData = () => {
-  const emps = dataStore.getEmployees()
-  const dailyStats = dataStore.getDailyStats(today)
-  const todayAttendance = dataStore.getAttendanceByDate(today)
-  const todayOutings = dataStore.getTodayOutingRequests()
+    const emps = dataStore.getEmployees()
+    const dailyStats = dataStore.getDailyStats(today)
+    const todayAttendance = dataStore.getAttendanceByDate(today)
+    const todayOutings = dataStore.getTodayOutingRequests()
 
-  setEmployees(emps)
-  setStats(dailyStats)
-  setRecentAttendance(todayAttendance)
-  setOutingRequests(todayOutings)
+    setEmployees(emps)
+    setStats(dailyStats)
+    setRecentAttendance(todayAttendance)
+    setOutingRequests(todayOutings)
 
-  // Calculate WEEKDAY ONLY (Mon - Fri)
-  const weekly: { day: string; present: number; absent: number }[] = []
+    // Calculate WEEKDAY ONLY (Mon - Fri)
+    const weekly: { day: string; present: number; absent: number }[] = []
 
-  for (let i = 6; i >= 0; i--) {
-    const date = new Date()
-    date.setDate(date.getDate() - i)
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date()
+      date.setDate(date.getDate() - i)
 
-    const dayOfWeek = date.getDay()
+      const dayOfWeek = date.getDay()
 
-    // skip Saturday & Sunday
-    if (dayOfWeek === 0 || dayOfWeek === 6) continue
+      // skip Saturday & Sunday
+      if (dayOfWeek === 0 || dayOfWeek === 6) continue
 
-    const dateStr = date.toISOString().split("T")[0]
-    const dayStats = dataStore.getDailyStats(dateStr)
+      const dateStr = date.toISOString().split("T")[0]
+      const dayStats = dataStore.getDailyStats(dateStr)
 
-    weekly.push({
-      day: date.toLocaleDateString("en-US", { weekday: "short" }),
-      present: dayStats.present,
-      absent: dayStats.absent,
-    })
+      weekly.push({
+        day: date.toLocaleDateString("en-US", { weekday: "short" }),
+        present: dayStats.present,
+        absent: dayStats.absent,
+      })
+    }
+
+    setWeeklyData(weekly)
   }
 
-  setWeeklyData(weekly)
-} // ✅ THIS WAS MISSING (IMPORTANT FIX)
 
   const getEmployeeName = (employeeId: string) => {
     const emp = employees.find(e => e.id === employeeId)
@@ -103,42 +104,26 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatsCard
-          icon={<Users className="h-5 w-5" />}
+          icon={<Users className="h-6 w-6 text-slate-600" />}
           label="Total Employees"
-          value={stats?.totalEmployees ?? 0}
-          trend={{ value: 8.5, isPositive: true }}
-          trendLabel="Up from yesterday"
-          iconBgColor="bg-violet-100"
-          iconColor="text-violet-500"
+          value={employees.length}
         />
         <StatsCard
-          icon={<UserCheck className="h-5 w-5" />}
+          icon={<UserCheck className="h-6 w-6 text-emerald-600" />}
           label="Present Today"
           value={stats?.present ?? 0}
-          trend={{ value: 1.3, isPositive: true }}
-          trendLabel="Up from past week"
-          iconBgColor="bg-amber-100"
-          iconColor="text-amber-500"
         />
         <StatsCard
-          icon={<UserX className="h-5 w-5" />}
+          icon={<UserX className="h-6 w-6 text-rose-600" />}
           label="Absent Today"
           value={stats?.absent ?? 0}
-          trend={{ value: 1.8, isPositive: true }}
-          trendLabel="Up from yesterday"
-          iconBgColor="bg-orange-100"
-          iconColor="text-orange-500"
         />
         <StatsCard
-          icon={<Clock className="h-5 w-5" />}
+          icon={<Clock className="h-6 w-6 text-amber-600" />}
           label="Late Arrivals"
           value={stats?.late ?? 0}
-          trend={{ value: 4.3, isPositive: false }}
-          trendLabel="Down from yesterday"
-          iconBgColor="bg-emerald-100"
-          iconColor="text-emerald-500"
         />
       </div>
 
@@ -403,47 +388,27 @@ export default function DashboardPage() {
     </div>
   )
 }
-
 function StatsCard({
   icon,
   label,
   value,
-  trend,
-  trendLabel,
-  iconBgColor,
-  iconColor,
 }: {
   icon: React.ReactNode
   label: string
   value: number
-  trend?: { value: number; isPositive: boolean }
-  trendLabel?: string
-  iconBgColor: string
-  iconColor: string
 }) {
   return (
     <Card className="border-0 shadow-sm">
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between">
-          <p className="text-sm font-medium text-muted-foreground">{label}</p>
-          <div className={cn("flex h-10 w-10 items-center justify-center rounded-full", iconBgColor)}>
-            <div className={iconColor}>{icon}</div>
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between gap-2">
+          <div className="space-y-1 min-w-0">
+            <p className="text-sm font-medium text-slate-500 truncate">{label}</p>
+            <p className="text-2xl font-bold text-slate-900">{value}</p>
+          </div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 shrink-0">
+            {icon}
           </div>
         </div>
-        <p className="mt-2 text-3xl font-bold text-foreground">{value.toLocaleString()}</p>
-        {trend && (
-          <div className="mt-3 flex items-center gap-1.5">
-            {trend.isPositive ? (
-              <TrendingUp className="h-4 w-4 text-emerald-500" />
-            ) : (
-              <TrendingUp className="h-4 w-4 rotate-180 text-red-500" />
-            )}
-            <span className={cn("text-sm font-medium", trend.isPositive ? "text-emerald-500" : "text-red-500")}>
-              {trend.value}%
-            </span>
-            <span className="text-sm text-muted-foreground">{trendLabel}</span>
-          </div>
-        )}
       </CardContent>
     </Card>
   )

@@ -154,66 +154,75 @@ export default function RequestsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Outing Requests</h1>
-          <p className="text-muted-foreground">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Outing Requests</h1>
+          <p className="text-base text-slate-500">
             Review and manage staff outing requests
           </p>
         </div>
-        <Button onClick={loadData} variant="outline" size="icon">
+        <Button 
+          onClick={loadData} 
+          className="gap-2 bg-slate-900 hover:bg-slate-800 text-white shadow-sm h-10 px-5 shrink-0 self-start sm:self-auto"
+        >
           <RefreshCw className="h-4 w-4" />
+          Refresh
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      {/* Stats Overview */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 ">
         <Card className="border-0 shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-start justify-between">
-              <p className="text-sm font-medium text-muted-foreground">Pending Requests</p>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">
-                <Clock className="h-5 w-5 text-amber-500" />
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="space-y-1 min-w-0">
+                <p className="text-sm font-medium text-slate-500 truncate">Pending Requests</p>
+                <p className="text-2xl font-bold text-slate-900">{pendingRequests.length}</p>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                <Clock className="h-6 w-6 text-slate-600" />
               </div>
             </div>
-            <p className="mt-2 text-3xl font-bold text-foreground">{pendingRequests.length}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Awaiting review</p>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-start justify-between">
-              <p className="text-sm font-medium text-muted-foreground">Today&apos;s Requests</p>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-100">
-                <Calendar className="h-5 w-5 text-violet-500" />
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="space-y-1 min-w-0">
+                <p className="text-sm font-medium text-slate-500 truncate">Today&apos;s Requests</p>
+                <p className="text-2xl font-bold text-slate-900">{todayRequests.length}</p>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                <Calendar className="h-6 w-6 text-blue-600" />
               </div>
             </div>
-            <p className="mt-2 text-3xl font-bold text-foreground">{todayRequests.length}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Total requests today</p>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-start justify-between">
-              <p className="text-sm font-medium text-muted-foreground">Currently Out</p>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100">
-                <ArrowLeftRight className="h-5 w-5 text-orange-500" />
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="space-y-1 min-w-0">
+                <p className="text-sm font-medium text-slate-500 truncate">Currently Out</p>
+                <p className="text-2xl font-bold text-amber-600">{outOnApproved.length}</p>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
+                <ArrowLeftRight className="h-6 w-6 text-amber-600" />
               </div>
             </div>
-            <p className="mt-2 text-3xl font-bold text-foreground">{outOnApproved.length}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Staff out of office</p>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-start justify-between">
-              <p className="text-sm font-medium text-muted-foreground">Approved Today</p>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100">
-                <Check className="h-5 w-5 text-emerald-500" />
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="space-y-1 min-w-0">
+                <p className="text-sm font-medium text-slate-500 truncate">Approved Today</p>
+                <p className="text-2xl font-bold text-emerald-600">{todayRequests.filter(r => r.status === "approved").length}</p>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                <Check className="h-6 w-6 text-emerald-600" />
               </div>
             </div>
-            <p className="mt-2 text-3xl font-bold text-foreground">{todayRequests.filter(r => r.status === "approved").length}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Approved outing requests</p>
           </CardContent>
         </Card>
       </div>
