@@ -12,11 +12,14 @@ export const metadata: Metadata = {
   title: 'Thimphu Dzongkhag Attendance System',
   description: 'Attendance Management System for ThimphuDzongkhag Administration',
 
+  
   icons: {
-    icon: '/icon.png',
-    shortcut: '/icon.png',
-    apple: '/icon.png',
-  },
+  icon: [
+    { url: '/icon.png', sizes: '512x512', type: 'image/png' },
+  ],
+  shortcut: '/icon.png',
+  apple: '/icon.png',
+}
 }
 
 export const viewport: Viewport = {
