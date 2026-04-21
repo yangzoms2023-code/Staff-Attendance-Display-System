@@ -93,8 +93,8 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* Stats Cards - Compact Horizontal Layout */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           icon={<Users className="h-5 w-5" />}
           label="Total Employees"
@@ -139,7 +139,7 @@ export default function DashboardPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100">
                   <DoorOpen className="h-5 w-5 text-amber-600" />
                 </div>
                 <div>
@@ -165,7 +165,7 @@ export default function DashboardPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100">
                   <ArrowLeftRight className="h-5 w-5 text-emerald-600" />
                 </div>
                 <div>
@@ -191,7 +191,7 @@ export default function DashboardPage() {
         <Card className="border-0 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
                 <TrendingUp className="h-4 w-4 text-primary" />
               </div>
               Weekly Attendance
@@ -224,7 +224,7 @@ export default function DashboardPage() {
         <Card className="border-0 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100">
                 <Users className="h-4 w-4 text-emerald-500" />
               </div>
               Today&apos;s Distribution
@@ -267,7 +267,7 @@ export default function DashboardPage() {
       <Card className="border-0 shadow-sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
               <Clock className="h-4 w-4 text-blue-500" />
             </div>
             Recent Check-ins
@@ -285,7 +285,7 @@ export default function DashboardPage() {
                   className="flex items-center justify-between rounded-lg border border-border bg-card p-3"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-sm font-semibold">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-sm font-semibold">
                       {getEmployeeName(record.employeeId).charAt(0)}
                     </div>
                     <div>
@@ -334,27 +334,29 @@ function StatsCard({
 }) {
   return (
     <Card className="border-0 shadow-sm">
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between">
-          <p className="text-sm font-medium text-muted-foreground">{label}</p>
-          <div className={cn("flex h-10 w-10 items-center justify-center rounded-full", iconBgColor)}>
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="space-y-1 min-w-0">
+            <p className="text-sm font-medium text-muted-foreground truncate">{label}</p>
+            <p className="text-2xl font-bold text-foreground">{value.toLocaleString()}</p>
+            {trend && (
+              <div className="flex items-center gap-1">
+                {trend.isPositive ? (
+                  <TrendingUp className="h-3 w-3 text-emerald-500" />
+                ) : (
+                  <TrendingUp className="h-3 w-3 rotate-180 text-red-500" />
+                )}
+                <span className={cn("text-xs font-medium", trend.isPositive ? "text-emerald-500" : "text-red-500")}>
+                  {trend.value}%
+                </span>
+                <span className="text-xs text-muted-foreground truncate">{trendLabel}</span>
+              </div>
+            )}
+          </div>
+          <div className={cn("flex h-10 w-10 items-center justify-center rounded-full shrink-0", iconBgColor)}>
             <div className={iconColor}>{icon}</div>
           </div>
         </div>
-        <p className="mt-2 text-3xl font-bold text-foreground">{value.toLocaleString()}</p>
-        {trend && (
-          <div className="mt-3 flex items-center gap-1.5">
-            {trend.isPositive ? (
-              <TrendingUp className="h-4 w-4 text-emerald-500" />
-            ) : (
-              <TrendingUp className="h-4 w-4 rotate-180 text-red-500" />
-            )}
-            <span className={cn("text-sm font-medium", trend.isPositive ? "text-emerald-500" : "text-red-500")}>
-              {trend.value}%
-            </span>
-            <span className="text-sm text-muted-foreground">{trendLabel}</span>
-          </div>
-        )}
       </CardContent>
     </Card>
   )
