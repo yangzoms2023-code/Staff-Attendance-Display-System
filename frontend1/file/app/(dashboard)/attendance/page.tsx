@@ -41,6 +41,7 @@ export default function AttendancePage() {
     loadAttendance()
   }, [selectedDate])
 
+
   const loadData = () => {
     const emps = dataStore.getEmployees().filter(e => e.status === "Active")
     setEmployees(emps)
