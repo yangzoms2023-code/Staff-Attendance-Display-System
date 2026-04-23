@@ -4,27 +4,9 @@ import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import {Dialog, DialogContent,DialogDescription,DialogFooter,DialogHeader, DialogTitle,}from"@/components/ui/dialog"
+import {Select, SelectContent, SelectItem,SelectTrigger,SelectValue,} from "@/components/ui/select"
+import {DropdownMenu,DropdownMenuContent,DropdownMenuItem,DropdownMenuTrigger,} from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { FieldGroup, Field, FieldLabel } from "@/components/ui/field"
 import { dataStore, DEPARTMENTS, DESIGNATIONS } from "@/lib/data-store"
@@ -167,8 +149,8 @@ export default function EmployeesPage() {
         </div>
         <Button 
           onClick={handleAdd} 
-          className="gap-2 bg-slate-900 hover:bg-slate-800 text-white shadow-sm h-9 sm:h-10 px-4 sm:px-5 shrink-0 self-start sm:self-auto w-full sm:w-auto"
-        >
+          className="gap-2 bg-[#0b2e4f] text-white shadow-sm h-10 px-5 shrink-0 self-start sm:self-auto border-2 border-transparent hover:bg-white hover:text-[#0b2e4f] hover:border-[#0b2e4f] transition-colors"
+        > 
           <Plus className="h-4 w-4" />
           Add Employee
         </Button>
@@ -240,7 +222,6 @@ export default function EmployeesPage() {
         </Card>
       </div>
 
-{/*Filter ui*/} 
 {/* Filters Section */}
 <Card className="border border-slate-200 shadow-none bg-white mb-6">
   <CardContent className="p-3 sm:p-4">
@@ -313,9 +294,9 @@ export default function EmployeesPage() {
 
           {/* Table Body */}
           {filteredEmployees.length === 0 ? (
-            <div className="h-32 flex flex-col items-center justify-center text-slate-400 border border-slate-200 rounded-b-lg mt-[-1px]">
+            <div className="h-32 flex flex-col items-center justify-center text-slate-400 border border-slate-200 rounded-b-lg mt-[-1px] bg-white">
               <Users className="h-8 w-8 mb-2 opacity-50" />
-              <p className="text-sm font-medium">No employees found</p>
+              <p className="text-sm font-medium text-black">No employees found</p>
               <p className="text-xs mt-1">Try adjusting your search or filters</p>
             </div>
           ) : (

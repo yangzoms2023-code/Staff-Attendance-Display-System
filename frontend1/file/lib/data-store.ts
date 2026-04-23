@@ -47,6 +47,16 @@ const DEFAULT_USERS: User[] = [
     role: "operator",
     name: "Front Desk Operator",
     email: "operator@thimphu.gov.bt"
+  },
+  {
+    id: "102",
+    username: "pema.wangmo",
+    password: "1234",
+    role: "employee",
+    name: "Pema Wangmoo",
+    email: "pema.wangmo@thimphu.gov.bt",
+    employeeId: "TDA002",
+    department: "Finance"
   }
 ]
 

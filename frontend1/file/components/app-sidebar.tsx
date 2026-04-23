@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import Image from "next/image"
 import {
   Sidebar,
   SidebarContent,
@@ -77,8 +78,8 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-3 px-2 py-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sidebar-primary">
-            <Building2 className="h-6 w-6 text-sidebar-primary-foreground" />
+          <div className="flex h-15 w-12 items-center justify-center rounded-lg ">
+            <Image src="/icon.png" alt="Logo" width={60} height={60} className="object-contain items-center justify-center"/> 
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-semibold text-sidebar-foreground">Thimphu Dzongkhag</span>

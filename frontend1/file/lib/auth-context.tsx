@@ -1,3 +1,4 @@
+// lib/auth-context.tsx
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
@@ -6,7 +7,7 @@ import { dataStore } from "./data-store"
 
 interface AuthContextType {
   user: User | null
-  login: (username: string, password: string) => boolean
+  login: (username: string, password: string, role?: "admin" | "employee" | "operator") => boolean
   logout: () => void
   isLoading: boolean
 }
@@ -29,9 +30,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false)
   }, [])
 
-  const login = (username: string, password: string): boolean => {
+  const login = (username: string, password: string, role?: "admin" | "employee" | "operator"): boolean => {
     const validUser = dataStore.validateUser(username, password)
+    
     if (validUser) {
+      // If role is specified, check if it matches
+      if (role && validUser.role !== role) {
+        console.log(`Role mismatch: expected ${role}, got ${validUser.role}`)
+        return false
+      }
+      
       setUser(validUser)
       localStorage.setItem("tda_current_user", JSON.stringify(validUser))
       return true

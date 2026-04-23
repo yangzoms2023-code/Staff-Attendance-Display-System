@@ -232,7 +232,7 @@ export default function SettingsPage() {
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={isSaving} className="min-w-[120px]">
+        <Button onClick={handleSave} disabled={isSaving} className="min-w-[120px] bg-[#0B2E4F] text-white hover:bg-white hover:text-[#0B2E4F] border border-[#0B2E4F] shadow-sm">
           {isSaving ? "Saving..." : "Save Settings"}
         </Button>
       </div>
