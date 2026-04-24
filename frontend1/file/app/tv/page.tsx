@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { dataStore } from "@/lib/data-store"
 import type { Employee, AttendanceRecord, OutingRequest } from "@/lib/types"
+import { BackgroundPattern } from '@/components/background-pattern'
 
 export default function TVDashboard() {
   const [employees, setEmployees] = useState<Employee[]>([])
@@ -103,73 +104,47 @@ export default function TVDashboard() {
 
     return { inOffice, onDuty, outOfOffice, total: filteredEmployees.length }
   }
-
-  const stats = getStaffStats()
-
-  // Decorative cloud/wave SVG component
-  const DecorativeWave = ({ flip = false }: { flip?: boolean }) => (
-    <svg 
-      width="60" 
-      height="30" 
-      viewBox="0 0 60 30" 
-      fill="none" 
-      className={flip ? "scale-x-[-1]" : ""}
-    >
-      <path 
-        d="M5 15C8 10 12 10 15 15C18 20 22 20 25 15C28 10 32 10 35 15C38 20 42 20 45 15C48 10 52 10 55 15" 
-        stroke="#94a3b8" 
-        strokeWidth="2" 
-        fill="none"
-        strokeLinecap="round"
-      />
-      <path 
-        d="M5 22C8 17 12 17 15 22C18 27 22 27 25 22C28 17 32 17 35 22C38 27 42 27 45 22C48 17 52 17 55 22" 
-        stroke="#94a3b8" 
-        strokeWidth="1.5" 
-        fill="none"
-        strokeLinecap="round"
-      />
-    </svg>
-  )
-
+  
   return (
     <div className="flex min-h-screen flex-col bg-[#fafafa]">
+      <BackgroundPattern />
       {/* Header - Dark Navy */}
-      <header className="bg-[#0B2E4F] px-8 py-5">
+      <header className="px-10 py-3 bg-transparent bg-white/50 backdrop-blur-sm border-b border-border">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Staff Information Display System</h1>
-            <p className="text-sm text-slate-300">Thimphu Dzongkhag Administration</p>
-          </div>
+          {/* Left Section */}
           <div className="flex items-center gap-4">
-            <span className="text-lg font-medium text-white">{formatDate(currentTime)}</span>
-            <div className="h-6 w-px bg-slate-500" />
-            <span className="text-lg font-bold tabular-nums text-white">{formatTime(currentTime)}</span>
+            {/* Logo */}
+            <img
+              src="/icon.png" alt="Logo" className="h-18 w-18 object-contain item-center"
+            />
+            {/* Text */}
+            <div>
+              <h1 className="text-xl font-bold text-[#0B2E4F]">
+                Staff Information Display
+              </h1>
+              <p className="text-sm text-slate-800 font-semibold">
+                Thimphu Dzongkhag Administration
+              </p>
+            </div>
           </div>
+          {/* Right Section */}
+          <div className="flex items-center gap-4">
+            <span className="text-lg font-semibold text-[#0B2E4F]">
+              {formatDate(currentTime)}
+            </span>
+            <div className="h-6 w-px bg-slate-500" />
+              <span className="text-lg font-semibold tabular-nums text-[#0B2E4F]">
+                {formatTime(currentTime)}
+              </span>
+            </div>
         </div>
       </header>
 
       {/* Department Title Section */}
-      <div className="flex items-center justify-center gap-4 py-6">
-        <DecorativeWave />
+      <div className="flex items-center justify-center gap-4 pt-10 pb-6">
         <div className="flex items-center gap-3">
-          {selectedDepartment !== "All" ? (
-            <h2 className="text-2xl font-bold text-[#0B2E4F]">{selectedDepartment.toUpperCase()}</h2>
-          ) : (
-            <select
-              value={selectedDepartment}
-              onChange={(e) => setSelectedDepartment(e.target.value)}
-              className="border-0 bg-transparent text-2xl font-bold text-[#0B2E4F] focus:outline-none cursor-pointer"
-            >
-              {departments.map(dept => (
-                <option key={dept} value={dept}>
-                  {dept === "All" ? "ALL DEPARTMENTS" : dept.toUpperCase()}
-                </option>
-              ))}
-            </select>
-          )}
+          <h2 className="text-xl font-bold text-[#0B2E4F]">ALL DEPARTMENT</h2>
         </div>
-        <DecorativeWave flip />
       </div>
 
       {/* Department Filter Tabs */}
@@ -191,13 +166,12 @@ export default function TVDashboard() {
 
       {/* Staff Table */}
       <div className="flex-1 px-8 pb-4">
-        <div className="overflow-hidden rounded-lg bg-white shadow-sm">
+        <div className="overflow-hidden rounded-lg bg-white shadow-sm item-center">
           <table className="w-full">
             <thead>
               <tr className="bg-[#0B2E4F] text-white">
                 <th className="px-4 py-3 text-left text-sm font-semibold">Sl No.</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold">Name of Official</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold">Designation</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold">Contact Number</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold">Check In</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold">Check OUT</th>
@@ -227,8 +201,13 @@ export default function TVDashboard() {
                       : "Stepped out"
                   }
                 } else if (status === "Present" || status === "Late") {
-                  displayStatus = "In Office"
-                  remarks = status === "Late" ? "Late arrival" : "On time"
+                    if (record?.checkOut) {
+                      displayStatus = "Out of Office"
+                      remarks = "Checked out"
+                    } else {
+                      displayStatus = "In Office"
+                      remarks = status === "Late" ? "Late arrival" : "On time"
+                    }
                 } else if (status === "Leave") {
                   displayStatus = "Out of Office"
                   remarks = "On leave"
@@ -245,16 +224,15 @@ export default function TVDashboard() {
                     key={employee.id} 
                     className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}
                   >
-                    <td className="px-4 py-3 text-sm font-medium text-slate-700">{index + 1}</td>
-                    <td className="px-4 py-3 text-sm font-medium text-slate-900">{employee.name}</td>
-                    <td className="px-4 py-3 text-sm text-slate-600">{employee.designation}</td>
-                    <td className="px-4 py-3 text-sm text-slate-600">{employee.contactNumber}</td>
-                    <td className="px-4 py-3 text-sm text-slate-600">{checkInTime}</td>
-                    <td className="px-4 py-3 text-sm text-slate-600">{checkOutTime}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-slate-700 item-center">{index + 1}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-slate-900 item-center">{employee.name}</td>
+                    <td className="px-4 py-3 text-sm text-slate-600 item-center">{employee.contactNumber}</td>
+                    <td className="px-4 py-3 text-sm text-slate-600 item-center">{checkInTime}</td>
+                    <td className="px-4 py-3 text-sm text-slate-600 item-center">{checkOutTime}</td>
                     <td className="px-4 py-3">
                       <StatusBadge status={displayStatus} />
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-600">{remarks}</td>
+                    <td className="px-4 py-3 text-sm text-slate-600 item-center">{remarks}</td>
                   </tr>
                 )
               })}
@@ -268,25 +246,23 @@ export default function TVDashboard() {
             </tbody>
           </table>
         </div>
+        
       </div>
 
       {/* Footer - Dark Navy with Stats */}
-      <footer className="bg-[#0B2E4F] px-8 py-4">
-        <div className="flex items-center justify-center gap-8">
-          <span className="text-lg font-bold text-white">
-            TOTAL STAFF: {stats.total}
-          </span>
-          <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-            <span className="text-emerald-400">{stats.inOffice} In Office</span>
+      <footer className="mt-auto bg-[#0B2E4F] py-2">
+        <div className="flex justify-center items-center gap-6">
+          <div className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+            <span className="text-xs text-white">Present</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-            <span className="text-amber-400">{stats.onDuty} On Duty</span>
+          <div className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+            <span className="text-xs text-white">On Leave</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
-            <span className="text-red-400">{stats.outOfOffice} Out of Office</span>
+          <div className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-rose-500" />
+            <span className="text-xs text-white">Out of Office</span>
           </div>
         </div>
       </footer>

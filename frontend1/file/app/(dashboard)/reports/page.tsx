@@ -233,7 +233,8 @@ export default function ReportsPage() {
         </div>
         <Button 
           onClick={exportToCSV} 
-          className="gap-2 bg-[#0B2E4F] text-white hover:bg-white hover:text-[#0B2E4F] border border-[#0B2E4F] shadow-sm h-9 sm:h-10 px-4 sm:px-5 shrink-0 self-start sm:self-auto w-full sm:w-auto"
+          className="gap-2 bg-[#0B2E4F] text-white hover:bg-white hover:text-[#0B2E4F] border border-[#0B2E4F] shadow-
+          sm h-9 sm:h-10 px-4 sm:px-5 shrink-0 self-start sm:self-auto w-full sm:w-auto"
         >
           <Download className="h-4 w-4" />
           Export CSV
@@ -287,7 +288,8 @@ export default function ReportsPage() {
                 <p className="text-xs sm:text-sm font-medium text-slate-500 truncate">Total Employees</p>
                 <p className="text-xl sm:text-2xl font-bold text-slate-900">{overallStats.totalEmployees}</p>
               </div>
-              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-slate-100 flex items-center justify-center 
+              shrink-0">
                 <Users className="h-4 w-4 sm:h-6 sm:w-6 text-slate-600" />
               </div>
             </div>
@@ -300,7 +302,8 @@ export default function ReportsPage() {
                 <p className="text-xs sm:text-sm font-medium text-slate-500 truncate">Avg Attendance</p>
                 <p className="text-xl sm:text-2xl font-bold text-emerald-600">{overallStats.avgAttendance}%</p>
               </div>
-              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-emerald-50 flex items-center justify-center 
+              shrink-0">
                 <TrendingUp className="h-4 w-4 sm:h-6 sm:w-6 text-emerald-600" />
               </div>
             </div>
@@ -313,7 +316,8 @@ export default function ReportsPage() {
                 <p className="text-xs sm:text-sm font-medium text-slate-500 truncate">Total Present Days</p>
                 <p className="text-xl sm:text-2xl font-bold text-emerald-600">{overallStats.totalPresent}</p>
               </div>
-              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-emerald-50 flex items-center justify-center 
+              shrink-0">
                 <FileText className="h-4 w-4 sm:h-6 sm:w-6 text-emerald-600" />
               </div>
             </div>
@@ -326,7 +330,8 @@ export default function ReportsPage() {
                 <p className="text-xs sm:text-sm font-medium text-slate-500 truncate">Total Absent Days</p>
                 <p className="text-xl sm:text-2xl font-bold text-rose-600">{overallStats.totalAbsent}</p>
               </div>
-              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-rose-50 flex items-center justify-center shrink-0">
+              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-rose-50 flex items-center justify-center shrink-
+              0">
                 <FileText className="h-4 w-4 sm:h-6 sm:w-6 text-rose-600" />
               </div>
             </div>
@@ -337,9 +342,12 @@ export default function ReportsPage() {
       {/* Tabs for different report views */}
       <Tabs defaultValue="employee" className="space-y-4">
         <TabsList className="bg-slate-100 p-1 rounded-lg">
-          <TabsTrigger value="employee" className="text-sm data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">By Employee</TabsTrigger>
-          <TabsTrigger value="department" className="text-sm data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">By Department</TabsTrigger>
-          <TabsTrigger value="trend" className="text-sm data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Attendance Trend</TabsTrigger>
+          <TabsTrigger value="employee" className="text-sm data-[state=active]:bg-white data-[state=active]:text-
+          slate-900 data-[state=active]:shadow-sm">By Employee</TabsTrigger>
+          <TabsTrigger value="department" className="text-sm data-[state=active]:bg-white data-[state=active]:text-
+          slate-900 data-[state=active]:shadow-sm">By Department</TabsTrigger>
+          <TabsTrigger value="trend" className="text-sm data-[state=active]:bg-white data-[state=active]:text-slate-
+          900 data-[state=active]:shadow-sm">Attendance Trend</TabsTrigger>
         </TabsList>
 
         <TabsContent value="employee" className="space-y-4">
@@ -347,7 +355,8 @@ export default function ReportsPage() {
           <div className="w-full overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
             <div className="min-w-[900px] sm:min-w-full">
               {/* Table Header */}
-              <div className="grid grid-cols-[80px_1.5fr_1.2fr_0.8fr_0.8fr_0.8fr_0.8fr_1fr] gap-3 border-b border-slate-200 bg-[#0B2E4F] rounded-t-lg px-4">
+              <div className="grid grid-cols-[80px_1.5fr_1.2fr_0.8fr_0.8fr_0.8fr_0.8fr_1fr] gap-3 border-b border-
+              slate-200 bg-[#0B2E4F] rounded-t-lg px-4">
                 <div className="py-3 text-xs font-semibold text-white uppercase tracking-wider">
                   ID
                 </div>
@@ -376,7 +385,8 @@ export default function ReportsPage() {
 
               {/* Table Body */}
               {reportData.length === 0 ? (
-                <div className="h-32 flex flex-col items-center justify-center text-slate-400 border border-slate-200 rounded-b-lg mt-[-1px] bg-white">
+                <div className="h-32 flex flex-col items-center justify-center text-slate-400 border border-slate-200 
+                rounded-b-lg mt-[-1px] bg-white">
                   <Users className="h-8 w-8 mb-2 opacity-50" />
                   <p className="text-sm font-medium">No data available</p>
                   <p className="text-xs mt-1">Try adjusting your filters</p>
@@ -386,46 +396,53 @@ export default function ReportsPage() {
                   <div 
                     key={report.employee.id}
                     className={cn(
-                      "grid grid-cols-[80px_1.5fr_1.2fr_0.8fr_0.8fr_0.8fr_0.8fr_1fr] gap-3 items-center border-l border-r border-b border-slate-200 transition-colors px-4",
+                      "grid grid-cols-[80px_1.5fr_1.2fr_0.8fr_0.8fr_0.8fr_0.8fr_1fr] gap-3 items-center border-l                      border-r border-b border-slate-200 transition-colors px-4",
                       index % 2 === 0 ? "bg-[#FDFDFD]" : "bg-[#F6F6F6]",
                       index === 0 && "border-t",
                       index === reportData.length - 1 && "rounded-b-lg"
                     )}
                   >
                     <div className="py-3">
-                      <span className="inline-flex items-center px-2 py-0.5 text-xs font-mono font-medium text-slate-700">
+                      <span className="inline-flex items-center px-2 py-0.5 text-xs text-slate-900 rounded font-medium text-slate-
+                      700">
                         {report.employee.employeeId}
                       </span>
                     </div>
 
                     <div className="py-3 min-w-0">
-  <p className="text-xs sm:text-sm text-slate-700 truncate">{report.employee.name}</p>
-</div>
+                      <p className="text-xs sm:text-sm text-slate-700 truncate">{report.employee.name}</p>
+                    </div>
 
                     <div className="py-3">
-                      <span className="text-xs sm:text-sm text-slate-700 truncate block">{report.employee.department}</span>
+                      <span className="text-xs sm:text-sm text-slate-700 truncate block">{report.employee.department} 
+                        
+                      </span>
                     </div>
 
                     <div className="py-3 text-center">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-emerald-50 text-xs font-medium text-emerald-700">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-emerald-50 text-xs font-medium 
+                      text-emerald-700">
                         {report.presentDays}
                       </span>
                     </div>
 
                     <div className="py-3 text-center">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-amber-50 text-xs font-medium text-amber-700">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-amber-50 text-xs font-medium 
+                      text-amber-700">
                         {report.lateDays}
                       </span>
                     </div>
 
                     <div className="py-3 text-center">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-red-50 text-xs font-medium text-red-700">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-red-50 text-xs font-medium 
+                      text-red-700">
                         {report.absentDays}
                       </span>
                     </div>
 
                     <div className="py-3 text-center">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-blue-50 text-xs font-medium text-blue-700">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-blue-50 text-xs font-medium    
+                      text-blue-700">
                         {report.leaveDays}
                       </span>
                     </div>
@@ -435,7 +452,7 @@ export default function ReportsPage() {
                         className={cn(
                           "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold",
                           report.attendancePercentage >= 90 && "bg-emerald-50 text-emerald-700",
-                          report.attendancePercentage >= 70 && report.attendancePercentage < 90 && "bg-amber-50 text-amber-700",
+                          report.attendancePercentage >= 70 && report.attendancePercentage < 90 && "bg-amber-50 text-                            amber-700",
                           report.attendancePercentage < 70 && "bg-red-50 text-red-700"
                         )}
                       >

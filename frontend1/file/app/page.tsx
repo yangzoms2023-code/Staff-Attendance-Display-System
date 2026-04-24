@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -12,6 +11,7 @@ import { useAuth } from "@/lib/auth-context"
 import { Building2, Lock, User, AlertCircle, Monitor, Users, Shield, UserCheck } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { dataStore } from "@/lib/data-store"
 
 export default function LoginPage() {
   const [username, setUsername] = useState("")
@@ -27,38 +27,44 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!authLoading && user) {
-      router.push("/dashboard")
+      // Redirect based on user role
+      if (user.role === "employee") {
+        router.push("/staff")
+      } else {
+        router.push("/dashboard")
+      }
     }
   }, [user, authLoading, router])
 
-  // In your login page, update handleEmployeeSubmit:
-const handleEmployeeSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
-  setError("")
-  setIsLoading(true)
-
-  const success = login(employeeId, pin, "employee")
-  
-  if (!success) {
-    setError("Invalid employee credentials")
+  const handleEmployeeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError("")
+    setIsLoading(true)
+    
+    // Add debug logs
+    console.log("Attempting login with:", { employeeId, pin })
+    const users = dataStore.getUsers()
+    console.log("Available users:", users)
+    
+    const success = login(employeeId, pin, "employee")
+    console.log("Login success:", success)
+    
+    if (!success) {
+      setError("Invalid employee credentials")
+    }
+    setIsLoading(false)
   }
-  setIsLoading(false)
-}
 
-// And handleAdminSubmit:
-const handleAdminSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
-  setError("")
-  setIsLoading(true)
-
-  const success = login(username, password, "admin")
-  
-  if (!success) {
-    setError("Invalid admin credentials")
+  const handleAdminSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError("")
+    setIsLoading(true)
+    const success = login(username, password, "admin")
+    if (!success) {
+      setError("Invalid admin credentials")
+    }
+    setIsLoading(false)
   }
-  setIsLoading(false)
-}
-  
 
   if (authLoading) {
     return (
@@ -76,7 +82,8 @@ const handleAdminSubmit = async (e: React.FormEvent) => {
         style={{ backgroundImage: "url('/images/bg-pattern.png')" }}
       />
       {/* Header */}
-      <header className="flex items-center justify-between bg-white/80 backdrop-blur-sm px-6 py-4 border-b border-slate-200">
+      <header className="flex items-center justify-between bg-white/80 backdrop-blur-sm px-6 py-4 border-b border-
+      slate-200">
         <div className="flex items-center gap-3">
           <div className="flex h-16 w-16 items-center justify-center">
             <Image src="/icon.png" alt="Logo" width={100} height={100} className="object-contain"/>
@@ -97,7 +104,6 @@ const handleAdminSubmit = async (e: React.FormEvent) => {
       </header>
 
       {/* Main Content */}
-  {/* Main Content */}
       <main className="relative z-10 flex flex-1 items-center justify-center p-4">
         <Card className="w-full max-w-md border border-white/20 shadow-2xl bg-white/95 backdrop-blur-sm">
           <CardHeader className="space-y-1 pb-2 pt-4">
@@ -114,13 +120,16 @@ const handleAdminSubmit = async (e: React.FormEvent) => {
 
           {/* Role Tabs */}
           <div className="px-6">
-            <Tabs defaultValue="employee" className="w-full" onValueChange={(value) => setActiveRole(value as "admin" | "employee")}>
+            <Tabs defaultValue="employee" className="w-full" onValueChange={(value) => setActiveRole(value as "admin" |
+              "employee")}>
               <TabsList className="grid w-full grid-cols-2 bg-slate-100 h-9">
-                <TabsTrigger value="employee" className="data-[state=active]:bg-white data-[state=active]:text-[#0B2E4F] gap-1 text-xs">
+                <TabsTrigger value="employee" className="data-[state=active]:bg-white data-[state=active]:text-
+                [#0B2E4F] gap-1 text-xs">
                   <UserCheck className="h-3 w-3" />
                   Employee Login
                 </TabsTrigger>
-                <TabsTrigger value="admin" className="data-[state=active]:bg-white data-[state=active]:text-[#0B2E4F] gap-1 text-xs">
+                <TabsTrigger value="admin" className="data-[state=active]:bg-white data-[state=active]:text-[#0B2E4F] 
+                gap-1 text-xs">
                   <Shield className="h-3 w-3" />
                   Admin Login
                 </TabsTrigger>
@@ -181,13 +190,16 @@ const handleAdminSubmit = async (e: React.FormEvent) => {
                           id="remember-employee"
                           checked={rememberMe}
                           onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                          className="h-3 w-3 border-slate-300 data-[state=checked]:bg-[#0B2E4F] data-[state=checked]:border-[#0B2E4F]"
+                          className="h-3 w-3 border-slate-300 data-[state=checked]:bg-[#0B2E4F] data-
+                          [state=checked]:border-[#0B2E4F]"
                         />
-                        <Label htmlFor="remember-employee" className="text-xs font-normal text-slate-600 cursor-pointer">
+                        <Label htmlFor="remember-employee" className="text-xs font-normal text-slate-600 cursor-
+                        pointer">
                           Remember me
                         </Label>
                       </div>
-                      <Link href="/forgot-pin" className="text-xs text-slate-600 hover:text-[#0B2E4F] transition-colors">
+                      <Link href="/forgot-pin" className="text-xs text-slate-600 hover:text-[#0B2E4F] transition-
+                      colors">
                         Forgot PIN?
                       </Link>
                     </div>
@@ -200,7 +212,8 @@ const handleAdminSubmit = async (e: React.FormEvent) => {
                   >
                     {isLoading ? (
                       <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" 
+                        />
                         Signing in...
                       </div>
                     ) : (
@@ -265,13 +278,15 @@ const handleAdminSubmit = async (e: React.FormEvent) => {
                           id="remember-admin"
                           checked={rememberMe}
                           onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                          className="h-3 w-3 border-slate-300 data-[state=checked]:bg-[#0B2E4F] data-[state=checked]:border-[#0B2E4F]"
+                          className="h-3 w-3 border-slate-300 data-[state=checked]:bg-[#0B2E4F] data-
+                          [state=checked]:border-[#0B2E4F]"
                         />
                         <Label htmlFor="remember-admin" className="text-xs font-normal text-slate-600 cursor-pointer">
                           Remember me
                         </Label>
                       </div>
-                      <Link href="/forgot-password" className="text-xs text-slate-600 hover:text-[#0B2E4F] transition-colors">
+                      <Link href="/forgot-password" className="text-xs text-slate-600 hover:text-[#0B2E4F] transition-
+                      colors">
                         Forgot password?
                       </Link>
                     </div>
@@ -284,7 +299,8 @@ const handleAdminSubmit = async (e: React.FormEvent) => {
                   >
                     {isLoading ? (
                       <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" 
+                        />
                         Signing in...
                       </div>
                     ) : (

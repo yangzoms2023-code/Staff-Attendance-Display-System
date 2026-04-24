@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+
 import {
   Dialog,
   DialogContent,
@@ -357,13 +359,6 @@ export default function AttendancePage() {
                               Quick Check In
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              onClick={() => openMarkDialog(employee, record)}
-                              className="gap-2 text-sm"
-                            >
-                              <Eye className="h-3.5 w-3.5" />
-                              Mark Attendance
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
                               onClick={() => handleMarkAttendance(employee.id, "Absent")}
                               className="gap-2 text-sm text-red-600"
                             >
@@ -408,86 +403,114 @@ export default function AttendancePage() {
       </div>
 
       {/* Mark Attendance Dialog */}
-      <Dialog open={isMarkDialogOpen} onOpenChange={setIsMarkDialogOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-md p-4 sm:p-6">
-          <DialogHeader className="border-b border-slate-100 pb-3 sm:pb-4">
-            <DialogTitle className="text-base sm:text-lg font-semibold text-slate-900">
-              Mark Attendance
-            </DialogTitle>
-            <DialogDescription className="text-xs sm:text-sm text-slate-500">
-              {selectedEmployee?.name} - {new Date(selectedDate).toLocaleDateString()}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="py-4 space-y-4">
-            <div>
-              <label className="text-sm font-medium text-slate-700 mb-2 block">Status</label>
-              <Select value={markStatus} onValueChange={(value) => setMarkStatus(value as AttendanceRecord["status"])}>
-                <SelectTrigger className="h-9 sm:h-10 border-slate-200">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Present">Present</SelectItem>
-                  <SelectItem value="Late">Late</SelectItem>
-                  <SelectItem value="Absent">Absent</SelectItem>
-                  <SelectItem value="Leave">Leave</SelectItem>
-                  <SelectItem value="Half-Day">Half-Day</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+<Dialog open={isMarkDialogOpen} onOpenChange={setIsMarkDialogOpen}>
+  <DialogContent className="max-w-md p-6">
+    {/* Header */}
+    <DialogHeader className="border-b border-slate-200 pb-4">
+      <DialogTitle className="text-lg font-semibold text-slate-900">
+        Mark Attendance
+      </DialogTitle>
+      <DialogDescription className="text-sm text-slate-500">
+        {selectedEmployee?.name} • {new Date(selectedDate).toLocaleDateString()}
+      </DialogDescription>
+    </DialogHeader>
 
-            {(markStatus === "Present" || markStatus === "Late" || markStatus === "Half-Day") && (
-              <>
-                <div>
-                  <label className="text-sm font-medium text-slate-700 mb-2 block">Check In Time</label>
-                  <Input
-                    type="time"
-                    value={checkInTime}
-                    onChange={(e) => setCheckInTime(e.target.value)}
-                    placeholder="--:--"
-                    className="h-9 sm:h-10 border-slate-200"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-slate-700 mb-2 block">Check Out Time</label>
-                  <Input
-                    type="time"
-                    value={checkOutTime}
-                    onChange={(e) => setCheckOutTime(e.target.value)}
-                    placeholder="--:--"
-                    className="h-9 sm:h-10 border-slate-200"
-                  />
-                </div>
-              </>
-            )}
-          </div>
-          
-          <DialogFooter className="border-t border-slate-100 pt-3 sm:pt-4 gap-2 flex-col sm:flex-row">
-            <Button 
-              variant="outline" 
-              onClick={() => setIsMarkDialogOpen(false)}
-              className="h-9 sm:h-10 border-slate-200 text-slate-700 hover:bg-slate-50 w-full sm:w-auto"
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={() => {
-                if (selectedEmployee) {
-                  handleMarkAttendance(
-                    selectedEmployee.id,
-                    markStatus,
-                    checkInTime || undefined,
-                    checkOutTime || undefined
-                  )
-                }
-              }}
-              className="h-9 sm:h-10 bg-slate-900 hover:bg-slate-800 text-white w-full sm:w-auto"
-            >
-              Save Attendance
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+    {/* Body */}
+    <div className="py-6 space-y-6">
+      {/* Status Selector */}
+      <div>
+        <label className="text-sm font-medium text-slate-700 mb-2 block">
+          Status
+        </label>
+        <Select
+          value={markStatus}
+          onValueChange={(value) =>
+            setMarkStatus(value as AttendanceRecord["status"])
+          }
+        >
+          <SelectTrigger className="h-10 border-slate-300 rounded-md focus:ring-2 focus:ring-slate-400">
+            <SelectValue placeholder="Select status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Present">Present</SelectItem>
+            <SelectItem value="Late">Late</SelectItem>
+            <SelectItem value="Absent">Absent</SelectItem>
+            <SelectItem value="Leave">Leave</SelectItem>
+            <SelectItem value="Half-Day">Half-Day</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Time Inputs */}
+{(markStatus === "Present" ||
+  markStatus === "Late" ||
+  markStatus === "Half-Day") && (
+  <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-4">
+    <h4 className="text-sm font-semibold text-slate-800">
+      Attendance Timing
+    </h4>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div>
+        <label className="text-sm font-medium text-slate-700 mb-2 block">
+          Check In Time
+        </label>
+        <Input
+          type="time"
+          value={checkInTime}
+          onChange={(e) => setCheckInTime(e.target.value)}
+          className="h-10 border-slate-300 rounded-md focus:ring-2 focus:ring-slate-400"
+        />
+      </div>
+      <div>
+        <label className="text-sm font-medium text-slate-700 mb-2 block">
+          Check Out Time
+        </label>
+        <Input
+          type="time"
+          value={checkOutTime}
+          onChange={(e) => setCheckOutTime(e.target.value)}
+          className="h-10 border-slate-300 rounded-md focus:ring-2 focus:ring-slate-400"
+        />
+      </div>
+    </div>
+    {/* Optional live preview */}
+    {(checkInTime || checkOutTime) && (
+      <p className="text-xs text-slate-500">
+        Selected: {checkInTime || "--:--"} – {checkOutTime || "--:--"}
+      </p>
+    )}
+  </div>
+)}
+
+    </div>
+
+    {/* Footer */}
+    <DialogFooter className="border-t border-slate-200 pt-4 flex-col sm:flex-row gap-3">
+      <Button
+        variant="outline"
+        onClick={() => setIsMarkDialogOpen(false)}
+        className="gap-2 bg-[#ba0f0f] text-white shadow-sm h-10 px-5 shrink-0 self-start sm:self-auto border-2 border-transparent hover:bg-white hover:text-[#ba0f0f] hover:border-[#ba0f0f] transition-colors"
+      >
+        Cancel
+      </Button>
+      <Button
+        onClick={() => {
+          if (selectedEmployee) {
+            handleMarkAttendance(
+              selectedEmployee.id,
+              markStatus,
+              checkInTime || undefined,
+              checkOutTime || undefined
+            )
+          }
+        }}
+        className="gap-2 bg-[#0b2e4f] text-white shadow-sm h-10 px-5 shrink-0 self-start sm:self-auto border-2 border-transparent hover:bg-white hover:text-[#0b2e4f] hover:border-[#0b2e4f] transition-colors"
+      >
+        Save Attendance
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
     </div>
   )
 }

@@ -4,9 +4,27 @@ import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import {Dialog, DialogContent,DialogDescription,DialogFooter,DialogHeader, DialogTitle,}from"@/components/ui/dialog"
-import {Select, SelectContent, SelectItem,SelectTrigger,SelectValue,} from "@/components/ui/select"
-import {DropdownMenu,DropdownMenuContent,DropdownMenuItem,DropdownMenuTrigger,} from "@/components/ui/dropdown-menu"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { FieldGroup, Field, FieldLabel } from "@/components/ui/field"
 import { dataStore, DEPARTMENTS, DESIGNATIONS } from "@/lib/data-store"
@@ -180,7 +198,8 @@ export default function EmployeesPage() {
                   {employees.filter(e => e.status === "Active").length}
                 </p>
               </div>
-              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-emerald-50 flex items-center justify-center 
+              shrink-0">
                 <UserCircle className="h-4 w-4 sm:h-6 sm:w-6 text-emerald-600" />
               </div>
             </div>
@@ -195,7 +214,8 @@ export default function EmployeesPage() {
                   {new Set(employees.map(e => e.department)).size}
                 </p>
               </div>
-              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-blue-50 flex items-center justify-center shrink-
+              0">
                 <Building2 className="h-4 w-4 sm:h-6 sm:w-6 text-blue-600" />
               </div>
             </div>
@@ -222,171 +242,153 @@ export default function EmployeesPage() {
         </Card>
       </div>
 
-{/* Filters Section */}
-<Card className="border border-slate-200 shadow-none bg-white mb-6">
-  <CardContent className="p-3 sm:p-4">
-    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-      <div className="relative flex-1 min-w-0">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-        <Input
-          placeholder="Search by name, ID, email, or phone..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 h-9 sm:h-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400 w-full text-sm"
-        />
-      </div>
-      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 shrink-0">
-        <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-          <SelectTrigger className="w-full sm:w-[160px] h-9 sm:h-10 border-slate-200">
-            <Building2 className="h-4 w-4 mr-2 text-slate-500 shrink-0" />
-            <SelectValue placeholder="All Departments" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Departments</SelectItem>
-            {DEPARTMENTS.map((dept) => (
-              <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[140px] h-9 sm:h-10 border-slate-200">
-            <UserCircle className="h-4 w-4 mr-2 text-slate-500 shrink-0" />
-            <SelectValue placeholder="All Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="Active">Active</SelectItem>
-            <SelectItem value="Inactive">Inactive</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
-  </CardContent>
-</Card>
-
-      {/* Employee Table - Mobile responsive with horizontal scroll */}
-      <div className="w-full overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
-        <div className="min-w-[1000px] sm:min-w-full">
-          {/* Table Header */}
-          <div className="grid grid-cols-[100px_180px_250px_150px_120px_90px_50px] gap-2 border-b border-slate-200 bg-[#0B2E4F] rounded-t-lg">
-            <div className="py-2 sm:py-3 px-2 sm:px-3 text-xs font-semibold text-white uppercase tracking-wider">
-              ID
-            </div>
-            <div className="py-2 sm:py-3 px-2 sm:px-3 text-xs font-semibold text-white uppercase tracking-wider">
-              Name
-            </div>
-            <div className="py-2 sm:py-3 px-2 sm:px-3 text-xs font-semibold text-white uppercase tracking-wider">
-              Email
-            </div>
-            <div className="py-2 sm:py-3 px-2 sm:px-3 text-xs font-semibold text-white uppercase tracking-wider">
-              Department
-            </div>
-            <div className="py-2 sm:py-3 px-2 sm:px-3 text-xs font-semibold text-white uppercase tracking-wider">
-              Contact
-            </div>
-            <div className="py-2 sm:py-3 px-2 sm:px-3 text-xs font-semibold text-white uppercase tracking-wider">
-              Status
-            </div>
-            <div className="py-2 sm:py-3 px-2 sm:px-3 text-xs font-semibold text-white uppercase tracking-wider text-center">
-              Actions
-            </div>
-          </div>
-
-          {/* Table Body */}
-          {filteredEmployees.length === 0 ? (
-            <div className="h-32 flex flex-col items-center justify-center text-slate-400 border border-slate-200 rounded-b-lg mt-[-1px] bg-white">
-              <Users className="h-8 w-8 mb-2 opacity-50" />
-              <p className="text-sm font-medium text-black">No employees found</p>
-              <p className="text-xs mt-1">Try adjusting your search or filters</p>
-            </div>
-          ) : (
-            filteredEmployees.map((employee, index) => (
-              <div 
-                key={employee.id}
-                className={cn(
-                  "grid grid-cols-[100px_180px_250px_150px_120px_90px_50px] gap-2 items-center border-l border-r border-b border-slate-200 transition-colors",
-                  index % 2 === 0 ? "bg-[#FDFDFD]" : "bg-[#F6F6F6]",
-                  index === 0 && "border-t",
-                  index === filteredEmployees.length - 1 && "rounded-b-lg"
-                )}
-              >
-                <div className="py-2 sm:py-3 px-2 sm:px-3">
-                  <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 text-xs font-mono font-medium text-slate-700">
-                    {employee.employeeId}
-                  </span>
-                </div>
-                
-                <div className="py-2 sm:py-3 px-2 sm:px-3 min-w-0">
-                  <p className="text-xs sm:text-sm text-slate-700 truncate">{employee.name}</p>
-                </div>
-
-                <div className="py-2 sm:py-3 px-2 sm:px-3">
-                  <span className="text-xs sm:text-sm text-slate-700 truncate block">{employee.email}</span>
-                </div>
-
-                <div className="py-2 sm:py-3 px-2 sm:px-3">
-                  <span className="text-xs sm:text-sm text-slate-700 truncate block">{employee.department}</span>
-                </div>
-
-                <div className="py-2 sm:py-3 px-2 sm:px-3">
-                  <div className="flex items-center gap-1 sm:gap-1.5">
-                    <Phone className="h-3 w-3 text-slate-400 shrink-0" />
-                    <span className="text-xs sm:text-sm text-slate-700 font-mono whitespace-nowrap">{employee.contactNumber}</span>
-                  </div>
-                </div>
-
-                <div className="py-2 sm:py-3 px-2 sm:px-3">
-                  <Badge
-                    variant={employee.status === "Active" ? "default" : "secondary"}
-                    className={cn(
-                      "px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-medium border-0 whitespace-nowrap",
-                      employee.status === "Active" 
-                        ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100" 
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                    )}
-                  >
-                    <span className={cn(
-                      "mr-1 h-1 w-1 rounded-full inline-block",
-                      employee.status === "Active" ? "bg-emerald-500" : "bg-slate-400"
-                    )} />
-                    {employee.status}
-                  </Badge>
-                </div>
-
-                <div className="py-2 sm:py-3 px-2 sm:px-3">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-7 w-7 sm:h-8 sm:w-8 text-slate-400 hover:text-slate-600 hover:bg-slate-100"
-                      >
-                        <MoreHorizontal className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-40">
-                      <DropdownMenuItem 
-                        onClick={() => handleEdit(employee)}
-                        className="gap-2 text-sm"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleDelete(employee)}
-                        className="gap-2 text-sm text-red-600 focus:text-red-600 focus:bg-red-50"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-            ))
-          )}
+      {/*Filter ui*/} 
+      {/* Filters Section */}
+      <Card className="border border-slate-200 shadow-none bg-white mb-6">
+      <CardContent className="p-3 sm:p-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div className="relative flex-1 min-w-0">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Input
+              placeholder="Search by name, ID, email, or phone..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-9 sm:h-10 border-slate-200 focus:border-slate-400 focus:ring-slate-400 w-full text-sm"
+            />
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 shrink-0">
+          <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+              <SelectTrigger className="w-full sm:w-[160px] h-9 sm:h-10 border-slate-200">
+                <Building2 className="h-4 w-4 mr-2 text-slate-500 shrink-0" />
+                <SelectValue placeholder="All Departments" />
+              </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Departments</SelectItem>
+              {DEPARTMENTS.map((dept) => (
+                <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-[140px] h-9 sm:h-10 border-slate-200">
+              <UserCircle className="h-4 w-4 mr-2 text-slate-500 shrink-0" />
+              <SelectValue placeholder="All Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="Active">Active</SelectItem>
+              <SelectItem value="Inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
+    </CardContent>
+  </Card>
+
+  {/* Employee Table - Fully Responsive */}
+<div className="w-full">
+  {/* Table Header */}
+  <div className="grid grid-cols-4 md:grid-cols-[100px_1fr_1.5fr_120px_120px_100px_100px] gap-0 border-b border-slate-200 bg-[#0B2E4F] rounded-t-lg text-white text-xs font-semibold uppercase tracking-wider">
+    <div className="py-3 px-3 text-center">ID</div>
+    <div className="py-3 px-3 text-center">Name</div>
+    <div className="hidden md:block py-3 px-3 text-center">Email</div>
+    <div className="py-3 px-3 text-center">Department</div>
+    <div className="hidden md:block py-3 px-3 text-center">Contact</div>
+    <div className="py-3 px-3 text-center">Status</div>
+    <div className="py-3 px-3 text-center">Actions</div>
+  </div>
+
+  {/* Table Body */}
+  {filteredEmployees.length === 0 ? (
+    <div className="h-32 flex flex-col items-center justify-center text-slate-400 border border-slate-200 rounded-b-lg">
+      <Users className="h-8 w-8 mb-2 opacity-50" />
+      <p className="text-sm font-medium">No employees found</p>
+      <p className="text-xs">Try adjusting your filters</p>
+    </div>
+  ) : (
+    filteredEmployees.map((employee, index) => (
+      <div
+        key={employee.id}
+        className={cn(
+          "grid grid-cols-4 md:grid-cols-[100px_1fr_1.5fr_120px_120px_100px_100px] gap-0 items-center border-l border-r border-b border-slate-200",
+          index % 2 === 0 ? "bg-[#FDFDFD]" : "bg-[#F6F6F6]",
+          index === filteredEmployees.length - 1 && "rounded-b-lg"
+        )}
+      >
+        {/* ID */}
+        <div className="py-3 px-3 text-xs text-slate-900 font-medium truncate text-center">
+          {employee.employeeId}
+        </div>
+
+        {/* Name */}
+        <div className="py-3 px-3 text-sm text-slate-700 truncate text-center">
+          {employee.name}
+        </div>
+
+        {/* Email (hidden on mobile) */}
+        <div className="hidden md:block py-3 px-3 text-sm truncate text-center text-slate-600">
+          {employee.email}
+        </div>
+
+        {/* Department */}
+        <div className="py-3 px-3 text-sm text-slate-700 truncate text-center">
+          {employee.department}
+        </div>
+
+        {/* Contact (hidden on mobile) */}
+        <div className="hidden md:block py-3 px-3 text-sm truncate text-center">
+          <div className="flex items-center justify-center gap-1.5">
+            <Phone className="h-3 w-3 text-slate-400 shrink-0" />
+            <span>{employee.contactNumber}</span>
+          </div>
+        </div>
+
+        {/* Status */}
+        <div className="py-3 px-3 flex justify-center">
+          <Badge
+            className={cn(
+              "text-xs px-2 py-0.5 border-0",
+              employee.status === "Active"
+                ? "bg-emerald-50 text-emerald-700"
+                : "bg-slate-100 text-slate-600"
+            )}
+          >
+            {employee.status}
+          </Badge>
+        </div>
+
+        {/* Actions */}
+        <div className="py-3 px-3 flex justify-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleEdit(employee)}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleDelete(employee)}
+                className="text-red-600"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+    ))
+  )}
+</div>
+      
 
       {/* Add/Edit Dialog - Mobile responsive */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -510,13 +512,13 @@ export default function EmployeesPage() {
             <Button 
               variant="outline" 
               onClick={() => setIsDialogOpen(false)}
-              className="h-9 sm:h-10 border-slate-200 text-slate-700 hover:bg-slate-50 w-full sm:w-auto"
+              className="gap-2 bg-[#ba0f0f] text-white shadow-sm h-10 px-5 shrink-0 self-start sm:self-auto border-2 border-transparent hover:bg-white hover:text-[#ba0f0f] hover:border-[#ba0f0f] transition-colors"
             >
               Cancel
             </Button>
             <Button 
               onClick={handleSave}
-              className="h-9 sm:h-10 bg-slate-900 hover:bg-slate-800 text-white w-full sm:w-auto"
+              className="gap-2 bg-[#0b2e4f] text-white shadow-sm h-10 px-5 shrink-0 self-start sm:self-auto border-2 border-transparent hover:bg-white hover:text-[#0b2e4f] hover:border-[#0b2e4f] transition-colors"
             >
               {editingEmployee ? "Save Changes" : "Add Employee"}
             </Button>

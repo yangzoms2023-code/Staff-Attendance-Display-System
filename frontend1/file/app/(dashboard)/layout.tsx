@@ -5,11 +5,7 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/s
 import { AppSidebar } from "@/components/app-sidebar"
 import { useAuth } from "@/lib/auth-context"
 import { Separator } from "@/components/ui/separator"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
+import {Breadcrumb,BreadcrumbItem,BreadcrumbList,BreadcrumbPage,
 } from "@/components/ui/breadcrumb"
 
 export default function DashboardLayout({

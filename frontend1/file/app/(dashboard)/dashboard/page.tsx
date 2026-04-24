@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { dataStore } from "@/lib/data-store"
@@ -20,7 +19,7 @@ import {
   PieChart,
   Pie,
   Cell,
-} from "recharts"
+  } from "recharts"
 
 export default function DashboardPage() {
   const [employees, setEmployees] = useState<Employee[]>([])
@@ -68,7 +67,6 @@ export default function DashboardPage() {
         absent: dayStats.absent,
       })
     }
-
     setWeeklyData(weekly)
   }
 
@@ -359,7 +357,8 @@ export default function DashboardPage() {
                   className="flex items-center justify-between rounded-lg border border-border bg-card p-3"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-sm font-semibold">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-sm font-
+                    semibold">
                       {getEmployeeName(record.employeeId).charAt(0)}
                     </div>
                     <div>
