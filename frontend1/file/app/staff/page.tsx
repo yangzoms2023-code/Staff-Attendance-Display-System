@@ -284,15 +284,15 @@ export default function StaffDashboard() {
       />
       
       <div className="relative z-10">
-        {/* Header - White background */}
-        <header className="flex items-center justify-between bg-white shadow-sm px-4 sm:px-6 md:px-10 py-3 border-b border-slate-200 sticky top-0 z-50">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center">
-              <Image src="/icon.png" alt="Logo" width={48} height={48} className="object-contain w-full h-full"/>
+        {/* Header - White background like the image */}
+        <header className="flex items-center justify-between bg-white shadow-sm px-6 md:px-10 py-3 border-b border-slate-200 sticky top-0 z-50">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center">
+              <Image src="/icon.png" alt="Logo" width={48} height={48} className="object-contain"/>
             </div>
-            <div className="hidden xs:block">
-              <h1 className="text-base sm:text-lg font-semibold text-[#0B2E4F]">Staff Portal</h1>
-              <p className="text-[10px] sm:text-xs font-medium text-[#0B2E4F]">Thimphu Dzongkhag Administration</p>
+            <div>
+              <h1 className="text-lg font-semibold text-slate-800">Staff Portal</h1>
+              <p className="text-xs text-slate-500">Thimphu Dzongkhag Administration</p>
             </div>
           </div>
           
@@ -304,7 +304,7 @@ export default function StaffDashboard() {
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0B2E4F] text-white text-sm font-semibold">
                     {employee.name.charAt(0)}
                   </div>
-                  <span className="font-medium text-slate-700 hidden sm:inline">{employee.name.split(' ')[0]}</span>
+                  <span className="font-medium text-slate-700">{employee.name.split(' ')[0]}</span>
                   <ChevronDown className="h-4 w-4 text-slate-500" />
                 </Button>
               </DropdownMenuTrigger>
@@ -312,7 +312,7 @@ export default function StaffDashboard() {
                 <div className="p-3 border-b">
                   <p className="font-semibold text-slate-900">{employee.name}</p>
                   <p className="text-sm text-slate-500">{employee.designation}</p>
-                  <p className="text-xs text-slate-400 mt-1 truncate">{employee.email}</p>
+                  <p className="text-xs text-slate-400 mt-1">{employee.email}</p>
                 </div>
                 <DropdownMenuItem 
                   className="gap-2 cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] focus:text-white transition-colors"
@@ -341,17 +341,20 @@ export default function StaffDashboard() {
             </SheetTrigger>
             <SheetContent side="left" className="w-[280px] sm:w-[350px] p-0">
               <div className="flex flex-col h-full bg-white">
+                {/* Sidebar Header */}
                 <div className="border-b border-slate-200 p-4">
                   <Link href="/staff" onClick={closeMobileMenu} className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg">
                       <Image src="/icon.png" alt="Logo" width={40} height={40} className="object-contain"/>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-sm font-semibold text-[#0B2E4F]">Thimphu Dzongkhag</span>
-                      <span className="text-xs text-[#0B2E4F]">Attendance System</span>
+                      <span className="text-sm font-semibold text-slate-800">Thimphu Dzongkhag</span>
+                      <span className="text-xs text-slate-500">Attendance System</span>
                     </div>
-                  </Link> 
+                  </Link>
                 </div>
+
+                {/* Navigation */}
                 <div className="flex-1 py-4">
                   <div className="px-3 mb-2">
                     <p className="text-xs font-semibold text-slate-400 px-3 py-2">Navigation</p>
@@ -375,6 +378,7 @@ export default function StaffDashboard() {
                       </Link>
                     )
                   })}
+                  
                   <div className="px-3 mt-4 mb-2">
                     <p className="text-xs font-semibold text-slate-400 px-3 py-2">Quick Access</p>
                   </div>
@@ -388,6 +392,8 @@ export default function StaffDashboard() {
                     <span className="text-sm">TV Display</span>
                   </Link>
                 </div>
+
+                {/* User Footer */}
                 <div className="border-t border-slate-200 p-4">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0B2E4F]">
@@ -415,83 +421,33 @@ export default function StaffDashboard() {
           </Sheet>
         </header>
 
-        {/* Main Content */}
-        <main className="px-4 sm:px-6 md:px-10 lg:px-14 py-4 sm:py-6 md:py-8 max-w-7xl mx-auto">
-          
-          {/* Welcome Banner - Fully Responsive */}
-          <div className="bg-gradient-to-r from-[#0B2E4F] to-[#1a456b] rounded-lg p-4 sm:p-5 md:p-7 mb-6 sm:mb-8 text-white shadow-xl">
-            {/* Mobile Layout (xs to sm) */}
-            <div className="block sm:hidden">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-white text-xl font-bold shadow-lg shrink-0">
-                  {employee.name.charAt(0)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-base font-bold truncate">Welcome back, {employee.name.split(' ')[0]}!</h2>
-                  <p className="text-white/80 text-xs truncate">{employee.designation}</p>
-                  <p className="text-white/60 text-[10px] truncate">ID: {employee.employeeId}</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between pt-2 border-t border-white/10">
-                <div className="flex items-center gap-2">
-                  <span className="text-[8px] uppercase font-bold text-white/60 tracking-widest">Status</span>
-                  {attendance?.status && getStatusBadge(attendance.status)}
-                </div>
-                {currentOuting && (
-                  <Badge className="bg-purple-500/30 text-white border-purple-500/50 text-[10px] px-2 py-0.5">
-                    Out
-                  </Badge>
-                )}
-              </div>
-            </div>
-
-            {/* Tablet Layout (sm to md) */}
-            <div className="hidden sm:block md:hidden">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/20 text-white text-2xl font-bold shadow-lg shrink-0">
-                    {employee.name.charAt(0)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h2 className="text-lg font-bold truncate">Welcome back, {employee.name.split(' ')[0]}!</h2>
-                    <p className="text-white/80 text-sm truncate">{employee.designation} • {employee.department}</p>
-                    <p className="text-white/60 text-xs truncate">ID: {employee.employeeId}</p>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end gap-2 shrink-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] uppercase font-bold text-white/60 tracking-widest">Status</span>
-                    {attendance?.status && getStatusBadge(attendance.status)}
-                  </div>
-                  {currentOuting && (
-                    <Badge className="bg-purple-500/30 text-white border-purple-500/50 text-xs px-2 py-0.5">
-                      Currently Out
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Desktop Layout (md and above) */}
-            <div className="hidden md:flex md:items-center md:justify-between md:gap-6">
+        {/* Main Content - Increased padding on left and right */}
+        <main className="px-6 md:px-10 lg:px-14 py-8 max-w-7xl mx-auto">
+          {/* Welcome Banner - Responsive Status */}
+          <div className="bg-gradient-to-r from-[#0B2E4F] to-[#1a456b] rounded-lg p-5 md:p-7 mb-8 text-white shadow-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/20 text-white text-3xl font-bold shadow-lg">
+                <div className="flex h-14 w-14 md:h-20 md:w-20 items-center justify-center rounded-full bg-white/20 text-white text-2xl md:text-3xl font-bold shadow-lg shrink-0">
                   {employee.name.charAt(0)}
                 </div>
                 <div>
-                  <h2 className="text-3xl font-bold">Welcome back, {employee.name.split(' ')[0]}!</h2>
-                  <p className="text-white/80 text-lg mt-1">{employee.designation} • {employee.department}</p>
+                  <h2 className="text-xl md:text-3xl font-bold">Welcome back, {employee.name.split(' ')[0]}!</h2>
+                  <p className="text-white/80 text-base md:text-lg mt-1">{employee.designation} • {employee.department}</p>
                   <p className="text-white/60 text-sm mt-1">ID: {employee.employeeId}</p>
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-3">
+              
+              {/* Responsive Status Section */}
+              <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-white/10 sm:border-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] uppercase font-bold text-white/60 tracking-widest">Current Status</span>
+                  <span className="text-[10px] uppercase font-bold text-white/60 tracking-widest hidden sm:inline">Current Status</span>
+                  <span className="text-[8px] uppercase font-bold text-white/60 tracking-widest sm:hidden">Status</span>
                   {attendance?.status && getStatusBadge(attendance.status)}
                 </div>
                 {currentOuting && (
-                  <Badge className="bg-purple-500/30 text-white border-purple-500/50 backdrop-blur-sm hover:bg-purple-500/40 transition-all shadow-sm">
-                    Currently Out
+                  <Badge className="bg-purple-500/30 text-white border-purple-500/50 backdrop-blur-sm hover:bg-purple-500/40 transition-all shadow-sm text-xs px-2 py-0.5 sm:px-3 sm:py-1">
+                    <span className="hidden sm:inline">Currently Out</span>
+                    <span className="sm:hidden">Out</span>
                   </Badge>
                 )}
               </div>
@@ -499,30 +455,30 @@ export default function StaffDashboard() {
           </div>
           
           {/* Quick Actions Grid */}
-          <div className="mb-8 sm:mb-10">
-            <h3 className="text-base font-semibold text-slate-900 mb-3 sm:mb-4">Quick Actions</h3>
-            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 w-full">
+          <div className="mb-10">
+            <h3 className="text-base font-semibold text-slate-900 mb-4">Quick Actions</h3>
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 w-full">
               {/* Check In */}
               <Card className={cn(
                 "border-none transition-all shadow-sm",
                 attendance?.checkIn ? "bg-slate-50/50" : "bg-white ring-1 ring-emerald-100 shadow-emerald-100/50"
               )}>
-                <CardContent className="p-2 sm:p-3">
-                  <div className="flex items-center justify-between gap-2 sm:gap-3">
-                    <div className="flex items-center gap-2 sm:gap-3">
+                <CardContent className="p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
                       <div className={cn(
-                        "w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center",
+                        "w-10 h-10 rounded-xl flex items-center justify-center",
                         attendance?.checkIn ? "bg-slate-200 text-slate-500" : "bg-emerald-500 text-white shadow-md"
                       )}>
-                        <LogIn className="h-4 w-4 sm:h-5 sm:w-5" />
+                        <LogIn className="h-5 w-5" />
                       </div>
                       <div>
-                        <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight">Clock In</p>
-                        <p className="text-xs sm:text-sm font-bold text-slate-900 leading-none">{attendance?.checkIn || "Ready"}</p>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Clock In</p>
+                        <p className="text-sm font-bold text-slate-900 leading-none">{attendance?.checkIn || "Ready"}</p>
                       </div>
                     </div>
                     <Button size="sm" onClick={handleCheckIn} disabled={!!attendance?.checkIn}
-                      className={cn("h-7 sm:h-8 px-3 sm:px-4 rounded-lg font-bold text-xs sm:text-sm transition-all", 
+                      className={cn("h-8 px-4 rounded-lg font-bold transition-all", 
                         attendance?.checkIn ? "bg-slate-200 text-slate-400" : "bg-emerald-600 hover:bg-emerald-700 text-white"
                       )}>
                       {attendance?.checkIn ? "Done" : "In"}
@@ -536,23 +492,22 @@ export default function StaffDashboard() {
                 "border-none transition-all shadow-sm",
                 !attendance?.checkIn || attendance?.checkOut ? "bg-slate-50/50" : "bg-white ring-1 ring-rose-100 shadow-rose-100/50"
               )}>
-                <CardContent className="p-2 sm:p-3">
-                  <div className="flex items-center justify-between gap-2 sm:gap-3">
-                    <div className="flex items-center gap-2 sm:gap-3">
+                <CardContent className="p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
                       <div className={cn(
-                        "w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center",
+                        "w-10 h-10 rounded-xl flex items-center justify-center",
                         !attendance?.checkIn || attendance?.checkOut ? "bg-slate-200 text-slate-500" : "bg-rose-500 text-white shadow-md"
                       )}>
-                        <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
+                        <LogOut className="h-5 w-5" />
                       </div>
                       <div>
-                        <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight">Clock Out</p>
-                        <p className="text-xs sm:text-sm font-bold text-slate-900 leading-none">{attendance?.checkOut || "Not Yet"}</p>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Clock Out</p>
+                        <p className="text-sm font-bold text-slate-900 leading-none">{attendance?.checkOut || "Not Yet"}</p>
                       </div>
                     </div>
                     <Button size="sm" variant={!attendance?.checkIn || attendance?.checkOut ? "secondary" : "destructive"}
-                      onClick={handleCheckOut} disabled={!attendance?.checkIn || !!attendance?.checkOut} 
-                      className="h-7 sm:h-8 px-3 sm:px-4 rounded-lg font-bold text-xs sm:text-sm">
+                      onClick={handleCheckOut} disabled={!attendance?.checkIn || !!attendance?.checkOut} className="h-8 px-4 rounded-lg font-bold">
                       Out
                     </Button>
                   </div>
@@ -564,22 +519,22 @@ export default function StaffDashboard() {
                 "border-none transition-all shadow-sm",
                 !attendance?.checkIn || !!currentOuting || !!pendingOuting ? "bg-slate-50/50" : "bg-white ring-1 ring-blue-100 shadow-blue-100/50"
               )}>
-                <CardContent className="p-2 sm:p-3">
-                  <div className="flex items-center justify-between gap-2 sm:gap-3">
-                    <div className="flex items-center gap-2 sm:gap-3">
+                <CardContent className="p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
                       <div className={cn(
-                        "w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center",
+                        "w-10 h-10 rounded-xl flex items-center justify-center",
                         !attendance?.checkIn || !!currentOuting || !!pendingOuting ? "bg-slate-200 text-slate-500" : "bg-blue-500 text-white shadow-md"
                       )}>
-                        <DoorOpen className="h-4 w-4 sm:h-5 sm:w-5" />
+                        <DoorOpen className="h-5 w-5" />
                       </div>
                       <div>
-                        <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight">Outing</p>
-                        <p className="text-xs sm:text-sm font-bold text-slate-900 leading-none">{pendingOuting ? "Wait" : currentOuting ? "Away" : "None"}</p>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Outing</p>
+                        <p className="text-sm font-bold text-slate-900 leading-none">{pendingOuting ? "Wait" : currentOuting ? "Away" : "None"}</p>
                       </div>
                     </div>
                     <Button size="sm" onClick={() => setRequestDialogOpen(true)} disabled={!attendance?.checkIn || !!currentOuting || !!pendingOuting}
-                      className={cn("h-7 sm:h-8 px-3 sm:px-4 rounded-lg font-bold text-xs sm:text-sm", currentOuting || pendingOuting ? "bg-slate-200 text-slate-400" : "bg-blue-600 hover:bg-blue-700 text-white")}>
+                      className={cn("h-8 px-4 rounded-lg font-bold", currentOuting || pendingOuting ? "bg-slate-200 text-slate-400" : "bg-blue-600 hover:bg-blue-700 text-white")}>
                       Go
                     </Button>
                   </div>
@@ -591,22 +546,22 @@ export default function StaffDashboard() {
                 "border-none transition-all shadow-sm",
                 !currentOuting ? "bg-slate-50/50" : "bg-white ring-1 ring-indigo-100 shadow-indigo-100/50"
               )}>
-                <CardContent className="p-2 sm:p-3">
-                  <div className="flex items-center justify-between gap-2 sm:gap-3">
-                    <div className="flex items-center gap-2 sm:gap-3">
+                <CardContent className="p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
                       <div className={cn(
-                        "w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center",
+                        "w-10 h-10 rounded-xl flex items-center justify-center",
                         !currentOuting ? "bg-slate-200 text-slate-500" : "bg-indigo-600 text-white shadow-md"
                       )}>
-                        <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+                        <CheckCircle className="h-5 w-5" />
                       </div>
                       <div>
-                        <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight">Return</p>
-                        <p className="text-xs sm:text-sm font-bold text-slate-900 leading-none">{currentOuting ? "Check In" : "Ready"}</p>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Return</p>
+                        <p className="text-sm font-bold text-slate-900 leading-none">{currentOuting ? "Check In" : "Ready"}</p>
                       </div>
                     </div>
                     <Button size="sm" onClick={() => currentOuting && handleMarkReturn(currentOuting.id)} disabled={!currentOuting}
-                      className={cn("h-7 sm:h-8 px-3 sm:px-4 rounded-lg font-bold text-xs sm:text-sm", !currentOuting ? "bg-slate-200 text-slate-400" : "bg-indigo-700 text-white")}>
+                      className={cn("h-8 px-4 rounded-lg font-bold", !currentOuting ? "bg-slate-200 text-slate-400" : "bg-indigo-700 text-white")}>
                       Back
                     </Button>
                   </div>
@@ -615,37 +570,35 @@ export default function StaffDashboard() {
             </div>
           </div>
 
-          {/* History Section */}
+          {/* History Section - Updated with Employee Table Styling */}
           <div>
-            <h3 className="text-base font-semibold text-slate-900 mb-3 sm:mb-4">History & Records</h3>
+            <h3 className="text-base font-semibold text-slate-900 mb-4">History & Records</h3>
             
             <Tabs defaultValue="attendance" className="space-y-4">
-              <TabsList className="bg-white border flex flex-wrap h-auto p-1">
+              <TabsList className="bg-white border">
                 <TabsTrigger 
                   value="attendance" 
-                  className="gap-1 sm:gap-2 data-[state=active]:bg-[#0B2E4F] data-[state=active]:text-white data-[state=inactive]:bg-white data-[state=inactive]:text-slate-700 hover:data-[state=inactive]:bg-slate-50 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-1.5"
+                  className="gap-2 data-[state=active]:bg-[#0B2E4F] data-[state=active]:text-white data-[state=inactive]:bg-white data-[state=inactive]:text-slate-700 hover:data-[state=inactive]:bg-slate-50"
                 >
-                  <CalendarDays className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden xs:inline">Attendance History</span>
-                  <span className="xs:hidden">Attendance</span>
+                  <CalendarDays className="h-4 w-4" />
+                  Attendance History
                 </TabsTrigger>
                 <TabsTrigger 
                   value="outings" 
-                  className="gap-1 sm:gap-2 data-[state=active]:bg-[#0B2E4F] data-[state=active]:text-white data-[state=inactive]:bg-white data-[state=inactive]:text-slate-700 hover:data-[state=inactive]:bg-slate-50 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-1.5"
+                  className="gap-2 data-[state=active]:bg-[#0B2E4F] data-[state=active]:text-white data-[state=inactive]:bg-white data-[state=inactive]:text-slate-700 hover:data-[state=inactive]:bg-slate-50"
                 >
-                  <History className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden xs:inline">Outing Requests</span>
-                  <span className="xs:hidden">Outings</span>
+                  <History className="h-4 w-4" />
+                  Outing Requests
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value="attendance">
                 <Card className="border-0 shadow-md bg-white/95 backdrop-blur-sm">
-                  <CardHeader className="p-4 sm:p-6">
-                    <CardTitle className="text-base sm:text-lg">Recent Attendance</CardTitle>
-                    <CardDescription className="text-xs sm:text-sm">Your attendance records for the last 30 days</CardDescription>
+                  <CardHeader>
+                    <CardTitle>Recent Attendance</CardTitle>
+                    <CardDescription>Your attendance records for the last 30 days</CardDescription>
                   </CardHeader>
-                  <CardContent className="p-4 sm:p-6 pt-0">
+                  <CardContent>
                     {attendanceHistory.length === 0 ? (
                       <div className="h-32 flex flex-col items-center justify-center text-slate-400 border border-slate-200 rounded-lg">
                         <CalendarDays className="h-8 w-8 mb-2 opacity-50" />
@@ -654,15 +607,18 @@ export default function StaffDashboard() {
                       </div>
                     ) : (
                       <div className="w-full overflow-x-auto">
-                        <div className="min-w-[500px]">
+                        <div className="min-w-[700px]">
+                          {/* Table Header */}
                           <div className="grid grid-cols-6 gap-0 border-b border-slate-200 bg-[#0B2E4F] rounded-t-lg text-white text-xs font-semibold uppercase tracking-wider">
-                            <div className="py-2 sm:py-3 px-2 sm:px-3 text-center">Date</div>
-                            <div className="py-2 sm:py-3 px-2 sm:px-3 text-center">Day</div>
-                            <div className="py-2 sm:py-3 px-2 sm:px-3 text-center">Status</div>
-                            <div className="py-2 sm:py-3 px-2 sm:px-3 text-center">Check In</div>
-                            <div className="py-2 sm:py-3 px-2 sm:px-3 text-center">Check Out</div>
-                            <div className="py-2 sm:py-3 px-2 sm:px-3 text-center">Remarks</div>
+                            <div className="py-3 px-4 text-center">Date</div>
+                            <div className="py-3 px-4 text-center">Day</div>
+                            <div className="py-3 px-4 text-center">Status</div>
+                            <div className="py-3 px-4 text-center">Check In</div>
+                            <div className="py-3 px-4 text-center">Check Out</div>
+                            <div className="py-3 px-4 text-center">Remarks</div>
                           </div>
+
+                          {/* Table Body */}
                           {attendanceHistory.map((record, index) => (
                             <div
                               key={record.id}
@@ -672,22 +628,22 @@ export default function StaffDashboard() {
                                 index === attendanceHistory.length - 1 && "rounded-b-lg"
                               )}
                             >
-                              <div className="py-2 sm:py-3 px-1 sm:px-3 text-[11px] sm:text-sm text-slate-700 text-center truncate">
-                                {new Date(record.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                              <div className="py-3 px-4 text-sm text-slate-700 text-center">
+                                {new Date(record.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                               </div>
-                              <div className="py-2 sm:py-3 px-1 sm:px-3 text-[11px] sm:text-sm text-slate-700 text-center">
+                              <div className="py-3 px-4 text-sm text-slate-700 text-center">
                                 {new Date(record.date).toLocaleDateString("en-US", { weekday: "short" })}
                               </div>
-                              <div className="py-2 sm:py-3 px-1 sm:px-3 flex justify-center">
+                              <div className="py-3 px-4 flex justify-center">
                                 {getStatusBadge(record.status)}
                               </div>
-                              <div className="py-2 sm:py-3 px-1 sm:px-3 text-[11px] sm:text-sm font-mono text-slate-700 text-center">
+                              <div className="py-3 px-4 text-sm font-mono text-slate-700 text-center">
                                 {record.checkIn || "-"}
                               </div>
-                              <div className="py-2 sm:py-3 px-1 sm:px-3 text-[11px] sm:text-sm font-mono text-slate-700 text-center">
+                              <div className="py-3 px-4 text-sm font-mono text-slate-700 text-center">
                                 {record.checkOut || "-"}
                               </div>
-                              <div className="py-2 sm:py-3 px-1 sm:px-3 text-[11px] sm:text-sm text-slate-500 truncate text-center" title={record.remarks || ""}>
+                              <div className="py-3 px-4 text-sm text-slate-500 truncate text-center" title={record.remarks || ""}>
                                 {record.remarks || "-"}
                               </div>
                             </div>
@@ -701,11 +657,11 @@ export default function StaffDashboard() {
 
               <TabsContent value="outings">
                 <Card className="border-0 shadow-md bg-white/95 backdrop-blur-sm">
-                  <CardHeader className="p-4 sm:p-6">
-                    <CardTitle className="text-base sm:text-lg">Outing Request History</CardTitle>
-                    <CardDescription className="text-xs sm:text-sm">Your outing permission requests and their status</CardDescription>
+                  <CardHeader>
+                    <CardTitle>Outing Request History</CardTitle>
+                    <CardDescription>Your outing permission requests and their status</CardDescription>
                   </CardHeader>
-                  <CardContent className="p-4 sm:p-6 pt-0">
+                  <CardContent>
                     {outingRequests.length === 0 ? (
                       <div className="h-32 flex flex-col items-center justify-center text-slate-400 border border-slate-200 rounded-lg">
                         <DoorOpen className="h-8 w-8 mb-2 opacity-50" />
@@ -714,16 +670,19 @@ export default function StaffDashboard() {
                       </div>
                     ) : (
                       <div className="w-full overflow-x-auto">
-                        <div className="min-w-[800px]">
+                        <div className="min-w-[900px]">
+                          {/* Table Header */}
                           <div className="grid grid-cols-7 gap-0 border-b border-slate-200 bg-[#0B2E4F] rounded-t-lg text-white text-xs font-semibold uppercase tracking-wider">
-                            <div className="py-2 sm:py-3 px-2 sm:px-3 text-center">Date</div>
-                            <div className="py-2 sm:py-3 px-2 sm:px-3 text-center">Req Time</div>
-                            <div className="py-2 sm:py-3 px-2 sm:px-3 text-center">Purpose</div>
-                            <div className="py-2 sm:py-3 px-2 sm:px-3 text-center">Reason</div>
-                            <div className="py-2 sm:py-3 px-2 sm:px-3 text-center">Return Status</div>
-                            <div className="py-2 sm:py-3 px-2 sm:px-3 text-center">Status</div>
-                            <div className="py-2 sm:py-3 px-2 sm:px-3 text-center">Action</div>
+                            <div className="py-3 px-4 text-center">Date</div>
+                            <div className="py-3 px-4 text-center">Req Time</div>
+                            <div className="py-3 px-4 text-center">Purpose</div>
+                            <div className="py-3 px-4 text-center">Reason</div>
+                            <div className="py-3 px-4 text-center">Return Status</div>
+                            <div className="py-3 px-4 text-center">Status</div>
+                            <div className="py-3 px-4 text-center">Action</div>
                           </div>
+
+                          {/* Table Body */}
                           {outingRequests.map((request, index) => (
                             <div
                               key={request.id}
@@ -733,46 +692,46 @@ export default function StaffDashboard() {
                                 index === outingRequests.length - 1 && "rounded-b-lg"
                               )}
                             >
-                              <div className="py-2 sm:py-3 px-1 sm:px-3 text-[11px] sm:text-sm text-slate-700 text-center">
-                                {new Date(request.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                              <div className="py-3 px-4 text-sm text-slate-700 text-center">
+                                {new Date(request.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                               </div>
-                              <div className="py-2 sm:py-3 px-1 sm:px-3 text-[11px] sm:text-sm font-mono text-slate-700 text-center">
+                              <div className="py-3 px-4 text-sm font-mono text-slate-700 text-center">
                                 {request.requestTime}
                               </div>
-                              <div className="py-2 sm:py-3 px-1 sm:px-3 flex justify-center">
-                                <Badge className={request.purpose === "official" ? "bg-blue-100 text-blue-800 text-[10px] sm:text-xs" : "bg-purple-100 text-purple-800 text-[10px] sm:text-xs"}>
+                              <div className="py-3 px-4 flex justify-center">
+                                <Badge className={request.purpose === "official" ? "bg-blue-100 text-blue-800" : "bg-purple-100 text-purple-800"}>
                                   {request.purpose === "official" ? "Official" : "Personal"}
                                 </Badge>
                               </div>
-                              <div className="py-2 sm:py-3 px-1 sm:px-3 text-[11px] sm:text-sm text-slate-700 truncate text-center" title={request.reason}>
-                                {request.reason.length > 15 ? request.reason.substring(0, 15) + "..." : request.reason}
+                              <div className="py-3 px-4 text-sm text-slate-700 truncate text-center" title={request.reason}>
+                                {request.reason.length > 20 ? request.reason.substring(0, 20) + "..." : request.reason}
                               </div>
-                              <div className="py-2 sm:py-3 px-1 sm:px-3 text-center">
+                              <div className="py-3 px-4 text-center">
                                 {request.willReturn ? (
                                   request.actualReturnTime ? (
-                                    <span className="text-[10px] sm:text-xs text-green-600 flex items-center justify-center gap-1">
-                                      <CheckCircle className="h-2 w-2 sm:h-3 sm:w-3" />
+                                    <span className="text-xs text-green-600 flex items-center justify-center gap-1">
+                                      <CheckCircle className="h-3 w-3" />
                                       Returned
                                     </span>
                                   ) : (
-                                    <span className="text-[10px] sm:text-xs text-yellow-600">Expected: {request.expectedReturnTime}</span>
+                                    <span className="text-xs text-yellow-600">Expected: {request.expectedReturnTime}</span>
                                   )
                                 ) : (
-                                  <span className="text-[10px] sm:text-xs text-slate-400">No return</span>
+                                  <span className="text-xs text-slate-400">No return</span>
                                 )}
                               </div>
-                              <div className="py-2 sm:py-3 px-1 sm:px-3 flex justify-center">
+                              <div className="py-3 px-4 flex justify-center">
                                 {getOutingStatusBadge(request.status)}
                               </div>
-                              <div className="py-2 sm:py-3 px-1 sm:px-3 flex justify-center">
+                              <div className="py-3 px-4 flex justify-center">
                                 {request.status === "approved" && !request.actualReturnTime && request.date === today && (
                                   <Button 
                                     size="sm" 
                                     variant="outline" 
-                                    className="h-6 sm:h-7 text-[10px] sm:text-xs border-emerald-200 text-emerald-600 hover:bg-emerald-50 px-2 sm:px-3"
+                                    className="h-7 text-xs border-emerald-200 text-emerald-600 hover:bg-emerald-50"
                                     onClick={() => handleMarkReturn(request.id)}
                                   >
-                                    <CheckCircle className="h-2 w-2 sm:h-3 sm:w-3 mr-1" />
+                                    <CheckCircle className="h-3 w-3 mr-1" />
                                     Return
                                   </Button>
                                 )}
