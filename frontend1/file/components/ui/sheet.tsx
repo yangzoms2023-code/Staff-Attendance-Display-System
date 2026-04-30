@@ -52,6 +52,14 @@ function SheetContent({
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: 'top' | 'right' | 'bottom' | 'left'
 }) {
+  // Check if children already contain SheetTitle and SheetDescription
+  const hasTitle = React.Children.toArray(children).some(
+    (child: any) => child?.type === SheetTitle || child?.type?.displayName === 'SheetTitle'
+  )
+  const hasDescription = React.Children.toArray(children).some(
+    (child: any) => child?.type === SheetDescription || child?.type?.displayName === 'SheetDescription'
+  )
+
   return (
     <SheetPortal>
       <SheetOverlay />
@@ -113,6 +121,7 @@ function SheetTitle({
     />
   )
 }
+SheetTitle.displayName = 'SheetTitle'
 
 function SheetDescription({
   className,
@@ -126,6 +135,7 @@ function SheetDescription({
     />
   )
 }
+SheetDescription.displayName = 'SheetDescription'
 
 export {
   Sheet,

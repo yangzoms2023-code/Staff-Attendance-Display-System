@@ -233,8 +233,9 @@ export default function ReportsPage() {
         </div>
         <Button 
           onClick={exportToCSV} 
-          className="gap-2 bg-[#0B2E4F] text-white hover:bg-white hover:text-[#0B2E4F] border border-[#0B2E4F] shadow-
-          sm h-9 sm:h-10 px-4 sm:px-5 shrink-0 self-start sm:self-auto w-full sm:w-auto"
+          className="gap-2 bg-[#0B2E4F] text-white hover:bg-white hover:text-[#0B2E4F] border border-[#0B2E4F] 
+          shadow-
+          sm h-9 sm:h-10 px-4 sm:px-5 shrink-0 self-start sm:self-auto w-full sm:w-auto transition-colors"
         >
           <Download className="h-4 w-4" />
           Export CSV
@@ -252,7 +253,7 @@ export default function ReportsPage() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-[160px] h-9 border-slate-200"
+                className="w-[160px] h-9 border-slate-200 focus:border-[#0B2E4F] focus:ring-[#0B2E4F]"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -261,17 +262,31 @@ export default function ReportsPage() {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-[160px] h-9 border-slate-200"
+                className="w-[160px] h-9 border-slate-200 focus:border-[#0B2E4F] focus:ring-[#0B2E4F]"
               />
             </div>
             <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-              <SelectTrigger className="w-[180px] h-9 border-slate-200">
+              <SelectTrigger className="w-[180px] h-9 border-slate-200 focus:border-[#0B2E4F]">
                 <SelectValue placeholder="Department" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Departments</SelectItem>
+                <SelectItem 
+                  value="all"
+                  className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] focus:text-white 
+                  transition-colors"
+                >
+                  All Departments
+                </SelectItem>
                 {DEPARTMENTS.map((dept) => (
-                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                  <SelectItem 
+                    key={dept} 
+                    value={dept}
+                    className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] focus:text-
+                    white 
+                    transition-colors"
+                  >
+                    {dept}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -330,7 +345,8 @@ export default function ReportsPage() {
                 <p className="text-xs sm:text-sm font-medium text-slate-500 truncate">Total Absent Days</p>
                 <p className="text-xl sm:text-2xl font-bold text-rose-600">{overallStats.totalAbsent}</p>
               </div>
-              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-rose-50 flex items-center justify-center shrink-
+              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-rose-50 flex items-center justify-center 
+              shrink-
               0">
                 <FileText className="h-4 w-4 sm:h-6 sm:w-6 text-rose-600" />
               </div>
@@ -396,15 +412,15 @@ export default function ReportsPage() {
                   <div 
                     key={report.employee.id}
                     className={cn(
-                      "grid grid-cols-[80px_1.5fr_1.2fr_0.8fr_0.8fr_0.8fr_0.8fr_1fr] gap-3 items-center border-l                      border-r border-b border-slate-200 transition-colors px-4",
+                      "grid grid-cols-[80px_1.5fr_1.2fr_0.8fr_0.8fr_0.8fr_0.8fr_1fr] gap-3 items-center border-l border-r border-b border-slate-200 transition-colors px-4",
                       index % 2 === 0 ? "bg-[#FDFDFD]" : "bg-[#F6F6F6]",
                       index === 0 && "border-t",
                       index === reportData.length - 1 && "rounded-b-lg"
                     )}
                   >
                     <div className="py-3">
-                      <span className="inline-flex items-center px-2 py-0.5 text-xs text-slate-900 rounded font-medium text-slate-
-                      700">
+                      <span className="inline-flex items-center px-2 py-0.5 text-xs text-slate-900 rounded font-
+                      medium">
                         {report.employee.employeeId}
                       </span>
                     </div>
@@ -414,8 +430,8 @@ export default function ReportsPage() {
                     </div>
 
                     <div className="py-3">
-                      <span className="text-xs sm:text-sm text-slate-700 truncate block">{report.employee.department} 
-                        
+                      <span className="text-xs sm:text-sm text-slate-700 truncate block">{report.employee.department}
+
                       </span>
                     </div>
 
@@ -441,7 +457,7 @@ export default function ReportsPage() {
                     </div>
 
                     <div className="py-3 text-center">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-blue-50 text-xs font-medium    
+                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-blue-50 text-xs font-medium 
                       text-blue-700">
                         {report.leaveDays}
                       </span>
@@ -452,7 +468,7 @@ export default function ReportsPage() {
                         className={cn(
                           "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold",
                           report.attendancePercentage >= 90 && "bg-emerald-50 text-emerald-700",
-                          report.attendancePercentage >= 70 && report.attendancePercentage < 90 && "bg-amber-50 text-                            amber-700",
+                          report.attendancePercentage >= 70 && report.attendancePercentage < 90 && "bg-amber-50 text-amber-700",
                           report.attendancePercentage < 70 && "bg-red-50 text-red-700"
                         )}
                       >

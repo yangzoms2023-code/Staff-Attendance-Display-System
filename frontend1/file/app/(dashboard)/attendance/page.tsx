@@ -90,7 +90,8 @@ export default function AttendancePage() {
 
   const handleQuickCheckIn = (employeeId: string) => {
     const now = new Date()
-    const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
+    const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, 
+      "0")}`
     const isLate = now.getHours() >= 9 && now.getMinutes() > 30
     handleMarkAttendance(employeeId, isLate ? "Late" : "Present", timeStr)
   }
@@ -100,7 +101,8 @@ export default function AttendancePage() {
     if (!record) return
     
     const now = new Date()
-    const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
+    const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, 
+      "0")}`
     
     dataStore.markAttendance({
       ...record,
@@ -160,7 +162,8 @@ export default function AttendancePage() {
 
   const getStatusBadge = (record?: AttendanceRecord) => {
     if (!record) {
-      return <Badge variant="secondary" className="bg-slate-100 text-slate-600 border-0">Not Recorded</Badge>
+      return <Badge variant="secondary" className="bg-slate-100 text-slate-600 border-0">Not 
+      Recorded</Badge>
     }
     
     const statusColors: Record<string, string> = {
@@ -172,7 +175,8 @@ export default function AttendancePage() {
     }
     
     return (
-      <Badge variant="secondary" className={cn("px-2 py-0.5 text-xs font-medium border-0", statusColors[record.status])}>
+      <Badge variant="secondary" className={cn("px-2 py-0.5 text-xs font-medium border-0", 
+      statusColors[record.status])}>
         <span className={cn(
           "mr-1.5 h-1.5 w-1.5 rounded-full inline-block",
           record.status === "Present" ? "bg-emerald-500" :
@@ -199,11 +203,16 @@ export default function AttendancePage() {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
-        <StatCard label="Total" value={stats.total} icon={<Users className="h-4 w-4 sm:h-5 sm:w-5" />} iconBgColor="bg-violet-100" iconColor="text-violet-600" />
-        <StatCard label="Present" value={stats.present} icon={<UserCheck className="h-4 w-4 sm:h-5 sm:w-5" />} iconBgColor="bg-emerald-100" iconColor="text-emerald-600" />
-        <StatCard label="Absent" value={stats.absent} icon={<UserX className="h-4 w-4 sm:h-5 sm:w-5" />} iconBgColor="bg-red-100" iconColor="text-red-600" />
-        <StatCard label="Late" value={stats.late} icon={<Clock className="h-4 w-4 sm:h-5 sm:w-5" />} iconBgColor="bg-amber-100" iconColor="text-amber-600" />
-        <StatCard label="On Leave" value={stats.leave} icon={<CalendarCheck className="h-4 w-4 sm:h-5 sm:w-5" />} iconBgColor="bg-blue-100" iconColor="text-blue-600" />
+        <StatCard label="Total" value={stats.total} icon={<Users className="h-4 w-4 sm:h-5 sm:w-5" />} 
+        iconBgColor="bg-violet-100" iconColor="text-violet-600" />
+        <StatCard label="Present" value={stats.present} icon={<UserCheck className="h-4 w-4 sm:h-5 
+        sm:w-5" />} iconBgColor="bg-emerald-100" iconColor="text-emerald-600" />
+        <StatCard label="Absent" value={stats.absent} icon={<UserX className="h-4 w-4 sm:h-5 sm:w-5" 
+        />} iconBgColor="bg-red-100" iconColor="text-red-600" />
+        <StatCard label="Late" value={stats.late} icon={<Clock className="h-4 w-4 sm:h-5 sm:w-5" />} 
+        iconBgColor="bg-amber-100" iconColor="text-amber-600" />
+        <StatCard label="On Leave" value={stats.leave} icon={<CalendarCheck className="h-4 w-4 sm:h-5 
+        sm:w-5" />} iconBgColor="bg-blue-100" iconColor="text-blue-600" />
       </div>
 
       {/* Date Navigation and Filters */}
@@ -212,22 +221,34 @@ export default function AttendancePage() {
           <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
             {/* Date Navigation */}
             <div className="flex items-center gap-2 shrink-0">
-              <Button variant="outline" size="icon" onClick={() => changeDate(-1)} className="h-9 w-9 border-slate-200">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={() => changeDate(-1)} 
+                className="h-9 w-9 border-slate-200 hover:bg-[#0B2E4F] hover:text-white transition-
+                colors"
+              >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <Input
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-[160px] h-9 border-slate-200"
+                className="w-[160px] h-9 border-slate-200 focus:border-[#0B2E4F] focus:ring-[#0B2E4F]"
               />
-              <Button variant="outline" size="icon" onClick={() => changeDate(1)} className="h-9 w-9 border-slate-200">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={() => changeDate(1)} 
+                className="h-9 w-9 border-slate-200 hover:bg-[#0B2E4F] hover:text-white transition-
+                colors"
+              >
                 <ChevronRight className="h-4 w-4" />
               </Button>
               <Button
                 variant="outline"
                 onClick={() => setSelectedDate(new Date().toISOString().split("T")[0])}
-                className="h-9 border-slate-200"
+                className="h-9 border-slate-200 hover:bg-[#0B2E4F] hover:text-white transition-colors"
               >
                 Today
               </Button>
@@ -243,17 +264,32 @@ export default function AttendancePage() {
                   placeholder="Search employee..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 w-full sm:w-[200px] h-9 border-slate-200"
+                  className="pl-10 w-full sm:w-[200px] h-9 border-slate-200 focus:border-[#0B2E4F] 
+                  focus:ring-[#0B2E4F]"
                 />
               </div>
               <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-                <SelectTrigger className="w-full sm:w-[180px] h-9 border-slate-200">
+                <SelectTrigger className="w-full sm:w-[180px] h-9 border-slate-200 focus:border-
+                [#0B2E4F]">
                   <SelectValue placeholder="Department" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Departments</SelectItem>
+                  <SelectItem 
+                    value="all"
+                    className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] 
+                    focus:text-white transition-colors"
+                  >
+                    All Departments
+                  </SelectItem>
                   {DEPARTMENTS.map((dept) => (
-                    <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                    <SelectItem 
+                      key={dept} 
+                      value={dept}
+                      className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] 
+                      focus:text-white transition-colors"
+                    >
+                      {dept}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -266,7 +302,8 @@ export default function AttendancePage() {
       <div className="w-full overflow-x-auto">
         <div className="min-w-[800px]">
           {/* Table Header */}
-          <div className="grid grid-cols-[100px_1.5fr_1.2fr_1fr_0.8fr_0.8fr_0.5fr] gap-4 border-b border-slate-200 bg-[#0B2E4F] rounded-t-lg px-4">
+          <div className="grid grid-cols-[100px_1.5fr_1.2fr_1fr_0.8fr_0.8fr_0.5fr] gap-4 border-b 
+          border-slate-200 bg-[#0B2E4F] rounded-t-lg px-4">
             <div className="py-3 text-xs font-semibold text-white uppercase tracking-wider">
               ID
             </div>
@@ -285,14 +322,17 @@ export default function AttendancePage() {
             <div className="py-3 text-xs font-semibold text-white uppercase tracking-wider">
               Check Out
             </div>
-            <div className="py-3 text-xs font-semibold text-white uppercase tracking-wider text-center">
+            <div className="py-3 text-xs font-semibold text-white uppercase tracking-wider text-
+            center">
               Actions
             </div>
           </div>
 
           {/* Table Body */}
           {filteredEmployees.length === 0 ? (
-            <div className="h-32 flex flex-col items-center justify-center text-slate-400 border border-slate-200 rounded-b-lg mt-[-1px] bg-white">
+            <div className="h-32 flex flex-col items-center justify-center text-slate-400 border 
+            border-slate-200 
+            rounded-b-lg mt-[-1px] bg-white">
               <Users className="h-8 w-8 mb-2 opacity-50" />
               <p className="text-sm font-medium">No employees found</p>
               <p className="text-xs mt-1">Try adjusting your search or filters</p>
@@ -312,7 +352,8 @@ export default function AttendancePage() {
                   )}
                 >
                   <div className="py-3">
-                    <span className="inline-flex items-center px-2 py-0.5 text-xs font-mono font-medium text-slate-700">
+                    <span className="inline-flex items-center px-2 py-0.5 text-xs font-mono font-
+                    medium text-slate-700">
                       {employee.employeeId}
                     </span>
                   </div>
@@ -322,7 +363,9 @@ export default function AttendancePage() {
                   </div>
 
                   <div className="py-3">
-                    <span className="text-sm text-slate-700 truncate block">{employee.department}</span>
+                    <span className="text-sm text-slate-700 truncate block">{employee.department}
+
+                    </span>
                   </div>
 
                   <div className="py-3">
@@ -334,7 +377,9 @@ export default function AttendancePage() {
                   </div>
 
                   <div className="py-3">
-                    <span className="text-sm text-slate-700 font-mono">{record?.checkOut || "-"}</span>
+                    <span className="text-sm text-slate-700 font-mono">{record?.checkOut || "-"}
+
+                    </span>
                   </div>
 
                   <div className="py-3">
@@ -343,31 +388,36 @@ export default function AttendancePage() {
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="h-8 w-8 text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                          className="h-8 w-8 text-slate-400 hover:text-white hover:bg-[#0B2E4F] 
+                          transition-colors"
                         >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-40">
+                      <DropdownMenuContent align="end" className="w-40 p-1">
                         {(!record || record.status === "Absent") && (
                           <>
                             <DropdownMenuItem 
                               onClick={() => handleQuickCheckIn(employee.id)}
-                              className="gap-2 text-sm"
+                              className="gap-2 text-sm cursor-pointer hover:bg-[#0B2E4F] hover:text-
+                              white focus:bg-[#0B2E4F] focus:text-white transition-colors"
                             >
-                              <UserCheck className="h-3.5 w-3.5 text-emerald-600" />
+                              <UserCheck className="h-3.5 w-3.5" />
                               Quick Check In
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={() => handleMarkAttendance(employee.id, "Absent")}
-                              className="gap-2 text-sm text-red-600"
+                              className="gap-2 text-sm text-red-600 cursor-pointer hover:bg-red-50 
+                              hover:text-red-700 focus:bg-red-50 focus:text-red-700 transition-colors"
                             >
                               <UserX className="h-3.5 w-3.5" />
                               Mark Absent
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={() => handleMarkAttendance(employee.id, "Leave")}
-                              className="gap-2 text-sm text-blue-600"
+                              className="gap-2 text-sm text-blue-600 cursor-pointer hover:bg-blue-50 
+                              hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 transition-
+                              colors"
                             >
                               <CalendarCheck className="h-3.5 w-3.5" />
                               Mark Leave
@@ -377,7 +427,8 @@ export default function AttendancePage() {
                         {record?.checkIn && !record?.checkOut && (
                           <DropdownMenuItem 
                             onClick={() => handleQuickCheckOut(employee.id)}
-                            className="gap-2 text-sm"
+                            className="gap-2 text-sm cursor-pointer hover:bg-[#0B2E4F] hover:text-
+                            white focus:bg-[#0B2E4F] focus:text-white transition-colors"
                           >
                             <UserX className="h-3.5 w-3.5" />
                             Quick Check Out
@@ -386,7 +437,8 @@ export default function AttendancePage() {
                         {record && record.status !== "Absent" && (
                           <DropdownMenuItem 
                             onClick={() => openMarkDialog(employee, record)}
-                            className="gap-2 text-sm"
+                            className="gap-2 text-sm cursor-pointer hover:bg-[#0B2E4F] hover:text-
+                            white focus:bg-[#0B2E4F] focus:text-white transition-colors"
                           >
                             <Pencil className="h-3.5 w-3.5" />
                             Edit Attendance
@@ -403,114 +455,150 @@ export default function AttendancePage() {
       </div>
 
       {/* Mark Attendance Dialog */}
-<Dialog open={isMarkDialogOpen} onOpenChange={setIsMarkDialogOpen}>
-  <DialogContent className="max-w-md p-6">
-    {/* Header */}
-    <DialogHeader className="border-b border-slate-200 pb-4">
-      <DialogTitle className="text-lg font-semibold text-slate-900">
-        Mark Attendance
-      </DialogTitle>
-      <DialogDescription className="text-sm text-slate-500">
-        {selectedEmployee?.name} • {new Date(selectedDate).toLocaleDateString()}
-      </DialogDescription>
-    </DialogHeader>
+      <Dialog open={isMarkDialogOpen} onOpenChange={setIsMarkDialogOpen}>
+        <DialogContent className="max-w-md p-6">
+          {/* Header */}
+          <DialogHeader className="border-b border-slate-200 pb-4">
+            <DialogTitle className="text-lg font-semibold text-slate-900">
+              Mark Attendance
+            </DialogTitle>
+            <DialogDescription className="text-sm text-slate-500">
+              {selectedEmployee?.name} • {new Date(selectedDate).toLocaleDateString()}
+            </DialogDescription>
+          </DialogHeader>
 
-    {/* Body */}
-    <div className="py-6 space-y-6">
-      {/* Status Selector */}
-      <div>
-        <label className="text-sm font-medium text-slate-700 mb-2 block">
-          Status
-        </label>
-        <Select
-          value={markStatus}
-          onValueChange={(value) =>
-            setMarkStatus(value as AttendanceRecord["status"])
-          }
-        >
-          <SelectTrigger className="h-10 border-slate-300 rounded-md focus:ring-2 focus:ring-slate-400">
-            <SelectValue placeholder="Select status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Present">Present</SelectItem>
-            <SelectItem value="Late">Late</SelectItem>
-            <SelectItem value="Absent">Absent</SelectItem>
-            <SelectItem value="Leave">Leave</SelectItem>
-            <SelectItem value="Half-Day">Half-Day</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+          {/* Body */}
+          <div className="py-6 space-y-6">
+            {/* Status Selector */}
+            <div>
+              <label className="text-sm font-medium text-slate-700 mb-2 block">
+                Status
+              </label>
+              <Select
+                value={markStatus}
+                onValueChange={(value) =>
+                  setMarkStatus(value as AttendanceRecord["status"])
+                }
+              >
+                <SelectTrigger className="h-10 border-slate-300 rounded-md focus:ring-2 focus:ring-
+                [#0B2E4F] focus:border-[#0B2E4F]">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem 
+                    value="Present"
+                    className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] 
+                    focus:text-white transition-colors"
+                  >
+                    Present
+                  </SelectItem>
+                  <SelectItem 
+                    value="Late"
+                    className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] 
+                    focus:text-white transition-colors"
+                  >
+                    Late
+                  </SelectItem>
+                  <SelectItem 
+                    value="Absent"
+                    className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] 
+                    focus:text-white transition-colors"
+                  >
+                    Absent
+                  </SelectItem>
+                  <SelectItem 
+                    value="Leave"
+                    className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] 
+                    focus:text-white transition-colors"
+                  >
+                    Leave
+                  </SelectItem>
+                  <SelectItem 
+                    value="Half-Day"
+                    className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] 
+                    focus:text-white transition-colors"
+                  >
+                    Half-Day
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-      {/* Time Inputs */}
-{(markStatus === "Present" ||
-  markStatus === "Late" ||
-  markStatus === "Half-Day") && (
-  <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-4">
-    <h4 className="text-sm font-semibold text-slate-800">
-      Attendance Timing
-    </h4>
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-      <div>
-        <label className="text-sm font-medium text-slate-700 mb-2 block">
-          Check In Time
-        </label>
-        <Input
-          type="time"
-          value={checkInTime}
-          onChange={(e) => setCheckInTime(e.target.value)}
-          className="h-10 border-slate-300 rounded-md focus:ring-2 focus:ring-slate-400"
-        />
-      </div>
-      <div>
-        <label className="text-sm font-medium text-slate-700 mb-2 block">
-          Check Out Time
-        </label>
-        <Input
-          type="time"
-          value={checkOutTime}
-          onChange={(e) => setCheckOutTime(e.target.value)}
-          className="h-10 border-slate-300 rounded-md focus:ring-2 focus:ring-slate-400"
-        />
-      </div>
-    </div>
-    {/* Optional live preview */}
-    {(checkInTime || checkOutTime) && (
-      <p className="text-xs text-slate-500">
-        Selected: {checkInTime || "--:--"} – {checkOutTime || "--:--"}
-      </p>
-    )}
-  </div>
-)}
+            {/* Time Inputs */}
+            {(markStatus === "Present" ||
+              markStatus === "Late" ||
+              markStatus === "Half-Day") && (
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-4">
+                <h4 className="text-sm font-semibold text-slate-800">
+                  Attendance Timing
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 mb-2 block">
+                      Check In Time
+                    </label>
+                    <Input
+                      type="time"
+                      value={checkInTime}
+                      onChange={(e) => setCheckInTime(e.target.value)}
+                      className="h-10 border-slate-300 rounded-md focus:ring-2 focus:ring-[#0B2E4F] 
+                      focus:border-[#0B2E4F]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 mb-2 block">
+                      Check Out Time
+                    </label>
+                    <Input
+                      type="time"
+                      value={checkOutTime}
+                      onChange={(e) => setCheckOutTime(e.target.value)}
+                      className="h-10 border-slate-300 rounded-md focus:ring-2 focus:ring-[#0B2E4F] 
+                      focus:border-[#0B2E4F]"
+                    />
+                  </div>
+                </div>
+                {/* Optional live preview */}
+                {(checkInTime || checkOutTime) && (
+                  <p className="text-xs text-slate-500">
+                    Selected: {checkInTime || "--:--"} – {checkOutTime || "--:--"}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
 
-    </div>
-
-    {/* Footer */}
-    <DialogFooter className="border-t border-slate-200 pt-4 flex-col sm:flex-row gap-3">
-      <Button
-        variant="outline"
-        onClick={() => setIsMarkDialogOpen(false)}
-        className="gap-2 bg-[#ba0f0f] text-white shadow-sm h-10 px-5 shrink-0 self-start sm:self-auto border-2 border-transparent hover:bg-white hover:text-[#ba0f0f] hover:border-[#ba0f0f] transition-colors"
-      >
-        Cancel
-      </Button>
-      <Button
-        onClick={() => {
-          if (selectedEmployee) {
-            handleMarkAttendance(
-              selectedEmployee.id,
-              markStatus,
-              checkInTime || undefined,
-              checkOutTime || undefined
-            )
-          }
-        }}
-        className="gap-2 bg-[#0b2e4f] text-white shadow-sm h-10 px-5 shrink-0 self-start sm:self-auto border-2 border-transparent hover:bg-white hover:text-[#0b2e4f] hover:border-[#0b2e4f] transition-colors"
-      >
-        Save Attendance
-      </Button>
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
+          {/* Footer */}
+          <DialogFooter className="border-t border-slate-200 pt-4 flex-col sm:flex-row gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setIsMarkDialogOpen(false)}
+              className="gap-2 bg-[#ba0f0f] text-white shadow-sm h-10 px-5 shrink-0 self-start 
+              sm:self-auto border-2 border-transparent hover:bg-white hover:text-[#ba0f0f] 
+              hover:border-[#ba0f0f] transition-colors"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (selectedEmployee) {
+                  handleMarkAttendance(
+                    selectedEmployee.id,
+                    markStatus,
+                    checkInTime || undefined,
+                    checkOutTime || undefined
+                  )
+                }
+              }}
+              className="gap-2 bg-[#0b2e4f] text-white shadow-sm h-10 px-5 shrink-0 self-start 
+              sm:self-auto border-2 border-transparent hover:bg-white hover:text-[#0b2e4f] 
+              hover:border-[#0b2e4f] transition-colors"
+            >
+              Save Attendance
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
@@ -531,7 +619,8 @@ function StatCard({ label, value, iconBgColor, iconColor, icon }: {
             <p className="text-xl sm:text-2xl font-bold text-slate-900">{value.toLocaleString()}</p>
           </div>
           {icon && (
-            <div className={cn("h-8 w-8 sm:h-10 sm:w-10 rounded-full flex items-center justify-center shrink-0", iconBgColor)}>
+            <div className={cn("h-8 w-8 sm:h-10 sm:w-10 rounded-full flex items-center justify-center shrink-0", 
+            iconBgColor)}>
               <div className={cn("h-4 w-4 sm:h-5 sm:w-5", iconColor)}>{icon}</div>
             </div>
           )}

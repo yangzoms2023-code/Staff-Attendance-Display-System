@@ -91,10 +91,12 @@ export function AppSidebar() {
         <Link href="/dashboard" onClick={closeMobileMenu}>
           <div className="flex items-center gap-3 px-2 py-2">
             <div className="flex h-15 w-12 items-center justify-center rounded-lg">
-              <Image src="/icon.png" alt="Logo" width={60} height={60} className="object-contain items-center justify-center"/> 
+              <Image src="/icon.png" alt="Logo" width={60} height={60} className="object-contain 
+              items-center justify-center"/> 
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-sidebar-foreground">Thimphu Dzongkhag</span>
+              <span className="text-sm font-semibold text-sidebar-foreground">Thimphu 
+                Dzongkhag</span>
               <span className="text-xs text-sidebar-foreground/70">Attendance System</span>
             </div>
           </div>
@@ -143,12 +145,14 @@ export function AppSidebar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton className="w-full">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-accent">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-
+                  accent">
                     <User2 className="h-4 w-4 text-sidebar-accent-foreground" />
                   </div>
                   <div className="flex flex-col items-start">
                     <span className="text-sm font-medium">{user?.name}</span>
-                    <span className="text-xs text-sidebar-foreground/70 capitalize">{user?.role}</span>
+                    <span className="text-xs text-sidebar-foreground/70 capitalize">{user?.role}
+                    </span>
                   </div>
                   <ChevronUp className="ml-auto h-4 w-4" />
                 </SidebarMenuButton>
@@ -157,14 +161,22 @@ export function AppSidebar() {
                 side="top"
                 className="w-(--radix-popper-anchor-width)"
               >
-                <DropdownMenuItem asChild>
+                <DropdownMenuItem 
+                  asChild 
+                  className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] 
+                  focus:text-white transition-colors"
+                >
                   <Link href="/settings" onClick={closeMobileMenu}>
                     <Settings className="mr-2 h-4 w-4" />
                     Settings
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => { logout(); closeMobileMenu(); }} className="text-destructive focus:text-destructive">
+                <DropdownMenuItem 
+                  onClick={() => { logout(); closeMobileMenu(); }} 
+                  className="text-destructive focus:text-destructive cursor-pointer hover:bg-
+                  [#0B2E4F] hover:text-white focus:bg-[#0B2E4F] focus:text-white transition-colors"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign Out
                 </DropdownMenuItem>
@@ -186,36 +198,43 @@ export function AppSidebar() {
       </div>
 
       {/* Mobile Header with Hamburger - Same styling as desktop sidebar */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-sidebar border-b border-sidebar-border">
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-sidebar border-b border-sidebar-
+      border">
         <div className="flex items-center justify-between px-4 h-16">
           <Link href="/dashboard" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg">
               <Image src="/icon.png" alt="Logo" width={32} height={32} className="object-contain"/>
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-sidebar-foreground">Thimphu Dzongkhag</span>
+              <span className="text-sm font-semibold text-sidebar-foreground">Thimphu 
+                Dzongkhag</span>
               <span className="text-xs text-sidebar-foreground/70">Attendance System</span>
             </div>
           </Link>
           
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent">
-                <Menu className="h-5 w-5" />
+              <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-
+              [#0B2E4F] hover:text-white transition-colors group">
+                <Menu className="h-5 w-5 group-hover:text-white transition-colors" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[280px] sm:w-[350px] p-0 bg-sidebar border-r border-sidebar-border">
+            <SheetContent side="left" className="w-[280px] sm:w-[350px] p-0 bg-sidebar border-r 
+            border-sidebar-border">
               <div className="flex flex-col h-full">
                 {/* Mobile Sidebar Header - Same as desktop */}
                 <div className="border-b border-sidebar-border p-4">
                   <Link href="/dashboard" onClick={closeMobileMenu}>
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg">
-                        <Image src="/icon.png" alt="Logo" width={40} height={40} className="object-contain"/>
+                        <Image src="/icon.png" alt="Logo" width={40} height={40} className="object-
+                        contain"/>
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-sm font-semibold text-sidebar-foreground">Thimphu Dzongkhag</span>
-                        <span className="text-xs text-sidebar-foreground/70">Attendance System</span>
+                        <span className="text-sm font-semibold text-sidebar-foreground">Thimphu 
+                          Dzongkhag</span>
+                        <span className="text-xs text-sidebar-foreground/70">Attendance 
+                        System</span>
                       </div>
                     </div>
                   </Link>
@@ -231,10 +250,11 @@ export function AppSidebar() {
                         key={item.url}
                         href={item.url}
                         onClick={closeMobileMenu}
-                        className={`flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg transition-colors ${
+                        className={`flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg transition-
+                          colors ${
                           isActive 
                             ? "bg-sidebar-accent text-sidebar-accent-foreground" 
-                            : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                            : "text-sidebar-foreground hover:bg-[#0B2E4F] hover:text-white"
                         }`}
                       >
                         <Icon className="h-4 w-4" />
@@ -248,7 +268,8 @@ export function AppSidebar() {
                     href="/tv"
                     target="_blank"
                     onClick={closeMobileMenu}
-                    className="flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
+                    className="flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg text-sidebar-
+                    foreground hover:bg-[#0B2E4F] hover:text-white transition-colors"
                   >
                     <Monitor className="h-4 w-4" />
                     <span className="text-sm">TV Display</span>
@@ -257,8 +278,10 @@ export function AppSidebar() {
 
                 {/* User Info & Logout - Same as desktop footer */}
                 <div className="border-t border-sidebar-border p-4">
-                  <div className="flex items-center gap-3 mb-3 p-2 rounded-lg bg-sidebar-accent/50">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sidebar-accent">
+                  <div className="flex items-center gap-3 mb-3 p-2 rounded-lg bg-sidebar-
+                  accent/50">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-
+                    sidebar-accent">
                       <User2 className="h-5 w-5 text-sidebar-accent-foreground" />
                     </div>
                     <div className="flex-1">
@@ -268,7 +291,8 @@ export function AppSidebar() {
                   </div>
                   <Button 
                     variant="ghost" 
-                    className="w-full justify-start text-sidebar-foreground hover:text-destructive hover:bg-sidebar-accent/50"
+                    className="w-full justify-start text-sidebar-foreground hover:bg-[#0B2E4F] 
+                    hover:text-white transition-colors"
                     onClick={() => {
                       logout()
                       closeMobileMenu()

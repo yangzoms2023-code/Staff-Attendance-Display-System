@@ -136,7 +136,8 @@ export default function DashboardPage() {
                 </div>
                 <div>
                   <p className="font-semibold text-foreground">
-                    {pendingOutingRequests.length} Pending Outing Request{pendingOutingRequests.length > 1 ? "s" : ""}
+                    {pendingOutingRequests.length} Pending Outing Request{pendingOutingRequests.length 
+                    > 1 ? "s" : ""}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     Staff members are waiting for approval to go out
@@ -157,7 +158,8 @@ export default function DashboardPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-
+                100">
                   <ArrowLeftRight className="h-5 w-5 text-emerald-600" />
                 </div>
                 <div>
@@ -349,20 +351,25 @@ export default function DashboardPage() {
         <CardContent>
           <div className="space-y-3">
             {recentAttendance.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">No attendance records for today</p>
+              <p className="text-center text-muted-foreground py-8">No attendance records for 
+              today</p>
             ) : (
               recentAttendance.slice(0, 10).map((record) => (
                 <div
                   key={record.id}
-                  className="flex items-center justify-between rounded-lg border border-border bg-card p-3"
+                  className="flex items-center justify-between rounded-lg border border-border bg-card 
+                  p-3"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-sm font-
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted 
+                    text-sm font-
                     semibold">
                       {getEmployeeName(record.employeeId).charAt(0)}
                     </div>
                     <div>
-                      <p className="font-medium text-foreground">{getEmployeeName(record.employeeId)}</p>
+                      <p className="font-medium text-foreground">{getEmployeeName(record.employeeId)}
+
+                      </p>
                       <p className="text-sm text-muted-foreground">
                         {record.checkIn ? `Check-in: ${record.checkIn}` : "Not checked in"}
                         {record.checkOut && ` | Check-out: ${record.checkOut}`}
@@ -404,7 +411,8 @@ function StatsCard({
             <p className="text-sm font-medium text-slate-500 truncate">{label}</p>
             <p className="text-2xl font-bold text-slate-900">{value}</p>
           </div>
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 shrink-0">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 shrink-
+          0">
             {icon}
           </div>
         </div>

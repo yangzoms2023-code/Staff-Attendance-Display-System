@@ -203,18 +203,20 @@ export default function RequestsPage() {
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-8 w-8 text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                        className="h-8 w-8 text-slate-400 hover:text-white hover:bg-[#0B2E4F] transition-
+                        colors"
                       >
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-44">
+                    <DropdownMenuContent align="end" className="w-44 p-1">
                       <DropdownMenuItem 
                         onClick={() => {
                           setSelectedRequest(request)
                           setViewDetailsOpen(true)
                         }}
-                        className="gap-2 text-sm"
+                        className="gap-2 text-sm cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-
+                        [#0B2E4F] focus:text-white transition-colors"
                       >
                         <Eye className="h-3.5 w-3.5" />
                         View
@@ -224,17 +226,19 @@ export default function RequestsPage() {
                         <>
                           <DropdownMenuItem 
                             onClick={() => handleApprove(request)}
-                            className="gap-2 text-sm text-emerald-600 focus:text-emerald-600 focus:bg-emerald-50"
+                            className="gap-2 text-sm text-emerald-600 cursor-pointer hover:bg-emerald-50 
+                            hover:text-emerald-700 transition-colors"
                           >
                             <Check className="h-3.5 w-3.5" />
                             Approve
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={() => handleDeny(request)}
-                            className="gap-2 text-sm text-red-600 focus:text-red-600 focus:bg-red-50"
+                            className="gap-2 text-sm text-red-600 cursor-pointer hover:bg-red-50 hover:text-
+                            red-700 transition-colors"
                           >
                             <X className="h-3.5 w-3.5" />
-                            Deny
+                            Reject
                           </DropdownMenuItem>
                         </>
                       )}
@@ -242,7 +246,8 @@ export default function RequestsPage() {
                       {request.status === "approved" && request.willReturn && !request.actualReturnTime && (
                         <DropdownMenuItem 
                           onClick={() => handleMarkReturn(request.id)}
-                          className="gap-2 text-sm text-blue-600 focus:text-blue-600 focus:bg-blue-50"
+                          className="gap-2 text-sm text-blue-600 cursor-pointer hover:bg-blue-50 hover:text-
+                          blue-700 transition-colors"
                         >
                           <Check className="h-3.5 w-3.5" />
                           Mark Return
@@ -277,13 +282,6 @@ export default function RequestsPage() {
             Review and manage staff outing requests
           </p>
         </div>
-        <Button 
-          onClick={loadData} 
-          className="gap-2 bg-[#0B2E4F] text-white hover:bg-white hover:text-[#0B2E4F] border border-[#0B2E4F] shadow-sm h-10 px-5 shrink-0 self-start sm:self-auto"
-        >
-          <RefreshCw className="h-4 w-4" />
-          Refresh
-        </Button>
       </div>
 
       {/* Stats Overview */}
@@ -305,7 +303,7 @@ export default function RequestsPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between gap-2">
               <div className="space-y-1 min-w-0">
-                <p className="text-sm font-medium text-slate-500 truncate">Today&apos;s Requests</p>
+                <p className="text-sm font-medium text-slate-500 truncate">Today's Requests</p>
                 <p className="text-2xl font-bold text-slate-900">{todayRequests.length}</p>
               </div>
               <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
@@ -332,9 +330,11 @@ export default function RequestsPage() {
             <div className="flex items-center justify-between gap-2">
               <div className="space-y-1 min-w-0">
                 <p className="text-sm font-medium text-slate-500 truncate">Approved Today</p>
-                <p className="text-2xl font-bold text-emerald-600">{todayRequests.filter(r => r.status === "approved").length}</p>
+                <p className="text-2xl font-bold text-emerald-600">{todayRequests.filter(r => r.status === 
+                  "approved").length}</p>
               </div>
-              <div className="h-10 w-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+              <div className="h-10 w-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-
+              0">
                 <Check className="h-6 w-6 text-emerald-600" />
               </div>
             </div>
@@ -421,7 +421,7 @@ export default function RequestsPage() {
                     placeholder="Search by employee, department, or reason..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 h-10 border-slate-200"
+                    className="pl-10 h-10 border-slate-200 focus:border-[#0B2E4F] focus:ring-[#0B2E4F]"
                   />
                 </div>
                 <div className="space-y-2">
@@ -430,20 +430,44 @@ export default function RequestsPage() {
                     type="date"
                     value={filterDate}
                     onChange={(e) => setFilterDate(e.target.value)}
-                    className="w-40 h-10 border-slate-200"
+                    className="w-40 h-10 border-slate-200 focus:border-[#0B2E4F] focus:ring-[#0B2E4F]"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label>Status</Label>
                   <Select value={filterStatus} onValueChange={setFilterStatus}>
-                    <SelectTrigger className="w-40 h-10 border-slate-200">
+                    <SelectTrigger className="w-40 h-10 border-slate-200 focus:border-[#0B2E4F]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="approved">Approved</SelectItem>
-                      <SelectItem value="denied">Denied</SelectItem>
+                      <SelectItem 
+                        value="all"
+                        className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] 
+                        focus:text-white transition-colors"
+                      >
+                        All Status
+                      </SelectItem>
+                      <SelectItem 
+                        value="pending"
+                        className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] 
+                        focus:text-white transition-colors"
+                      >
+                        Pending
+                      </SelectItem>
+                      <SelectItem 
+                        value="approved"
+                        className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] 
+                        focus:text-white transition-colors"
+                      >
+                        Approved
+                      </SelectItem>
+                      <SelectItem 
+                        value="denied"
+                        className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] 
+                        focus:text-white transition-colors"
+                      >
+                        Reject
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -456,186 +480,191 @@ export default function RequestsPage() {
         </TabsContent>
       </Tabs>
 
-{/* View Details Dialog */}
-<Dialog open={viewDetailsOpen} onOpenChange={setViewDetailsOpen}>
-  <DialogContent className="max-w-3xl">
-    <DialogHeader>
-      <DialogTitle className="text-xl font-semibold">Request Details</DialogTitle>
-      <DialogDescription>
-        Complete information about this outing request
-      </DialogDescription>
-    </DialogHeader>
+      {/* View Details Dialog */}
+      <Dialog open={viewDetailsOpen} onOpenChange={setViewDetailsOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">Request Details</DialogTitle>
+            <DialogDescription>
+              Complete information about this outing request
+            </DialogDescription>
+          </DialogHeader>
 
-    {selectedRequest && (
-      <div className="space-y-6">
-        {/* Top section: Employee Info */}
-        <div className="grid grid-cols-2 gap-6 border rounded-lg p-4 bg-muted/30">
-          <div>
-            <Label className="text-muted-foreground">Employee Name</Label>
-            <p className="text-base font-semibold">{getEmployeeName(selectedRequest.employeeId)}</p>
-          </div>
-          <div>
-            <Label className="text-muted-foreground">Department</Label>
-            <p className="text-base font-semibold">
-              {getEmployeeInfo(selectedRequest.employeeId)?.department || "N/A"}
-            </p>
-          </div>
-          <div>
-            <Label className="text-muted-foreground">Request Date</Label>
-            <p className="text-base font-semibold">{selectedRequest.date}</p>
-          </div>
-          <div>
-            <Label className="text-muted-foreground">Request Time</Label>
-            <p className="text-base font-semibold">{selectedRequest.requestTime}</p>
-          </div>
-          <div>
-            <Label className="text-muted-foreground">Purpose</Label>
-            <p className="text-base font-semibold">{selectedRequest.purpose}</p>
-          </div>
-          <div>
-            <Label className="text-muted-foreground">Status</Label>
-            <div className="mt-1">{getStatusBadge(selectedRequest.status)}</div>
-          </div>
-        </div>
+          {selectedRequest && (
+            <div className="space-y-6">
+              {/* Top section: Employee Info */}
+              <div className="grid grid-cols-2 gap-6 border rounded-lg p-4 bg-muted/30">
+                <div>
+                  <Label className="text-muted-foreground">Employee Name</Label>
+                  <p className="text-base font-semibold">{getEmployeeName(selectedRequest.employeeId)}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Department</Label>
+                  <p className="text-base font-semibold">
+                    {getEmployeeInfo(selectedRequest.employeeId)?.department || "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Request Date</Label>
+                  <p className="text-base font-semibold">{selectedRequest.date}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Request Time</Label>
+                  <p className="text-base font-semibold">{selectedRequest.requestTime}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Purpose</Label>
+                  <p className="text-base font-semibold">{selectedRequest.purpose}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Status</Label>
+                  <div className="mt-1">{getStatusBadge(selectedRequest.status)}</div>
+                </div>
+              </div>
 
-        {/* Reason */}
-        <div>
-          <Label className="text-muted-foreground">Reason</Label>
-          <p className="p-3 bg-muted rounded-lg mt-1 text-sm leading-relaxed">
-            {selectedRequest.reason}
-          </p>
-        </div>
+              {/* Reason */}
+              <div>
+                <Label className="text-muted-foreground">Reason</Label>
+                <p className="p-3 bg-muted rounded-lg mt-1 text-sm leading-relaxed">
+                  {selectedRequest.reason}
+                </p>
+              </div>
 
-        {/* Return Times */}
-        <div className="grid grid-cols-2 gap-6">
-          {selectedRequest.willReturn && (
-            <div>
-              <Label className="text-muted-foreground">Expected Return Time</Label>
-              <p className="font-medium text-yellow-600">{selectedRequest.expectedReturnTime}</p>
+              {/* Return Times */}
+              <div className="grid grid-cols-2 gap-6">
+                {selectedRequest.willReturn && (
+                  <div>
+                    <Label className="text-muted-foreground">Expected Return Time</Label>
+                    <p className="font-medium text-yellow-600">{selectedRequest.expectedReturnTime}</p>
+                  </div>
+                )}
+                {selectedRequest.actualReturnTime && (
+                  <div>
+                    <Label className="text-muted-foreground">Actual Return Time</Label>
+                    <p className="font-medium text-green-600">{selectedRequest.actualReturnTime}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Reviewer Remarks */}
+              {selectedRequest.reviewerRemarks && (
+                <div>
+                  <Label className="text-muted-foreground">Reviewer Remarks</Label>
+                  <p className="p-3 bg-muted rounded-lg mt-1 text-sm leading-relaxed">
+                    {selectedRequest.reviewerRemarks}
+                  </p>
+                </div>
+              )}
             </div>
           )}
-          {selectedRequest.actualReturnTime && (
-            <div>
-              <Label className="text-muted-foreground">Actual Return Time</Label>
-              <p className="font-medium text-green-600">{selectedRequest.actualReturnTime}</p>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setViewDetailsOpen(false)} 
+              className="gap-2 bg-[#0b2e4f] text-white shadow-sm h-10 px-5 border-2 border-transparent 
+              hover:bg-white hover:text-[#0b2e4f] hover:border-[#0b2e4f] transition-colors"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Review Dialog */}
+      <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
+        <DialogContent className="max-w-md p-6">
+          {/* Header */}
+          <DialogHeader className="border-b border-slate-200 pb-4">
+            <DialogTitle className="text-lg font-semibold text-slate-900">
+              Review Outing Request
+            </DialogTitle>
+            <DialogDescription className="text-sm text-slate-500">
+              Add remarks before approving or denying this request
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Body */}
+          {selectedRequest && (
+            <div className="py-6 space-y-6">
+              {/* Request Details */}
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-4">
+                <h4 className="text-sm font-semibold text-slate-800">Request Information</h4>
+                <div className="grid grid-cols-2 gap-6 text-sm">
+                  <div>
+                    <span className="text-slate-600">Employee</span>
+                    <p className="font-medium">{getEmployeeName(selectedRequest.employeeId)}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-600">Department</span>
+                    <p className="font-medium">
+                      {getEmployeeInfo(selectedRequest.employeeId)?.department}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-slate-600">Purpose</span>
+                    <p className="font-medium">
+                      {selectedRequest.purpose === "official" ? "Official Work" : "Personal Work"}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-slate-600">Reason</span>
+                    <p className="font-medium">{selectedRequest.reason}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-slate-600">Will Return</span>
+                    <p className="font-medium">
+                      {selectedRequest.willReturn
+                        ? `Yes, by ${selectedRequest.expectedReturnTime}`
+                        : "No"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Remarks */}
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-2 block">
+                  Remarks (Optional)
+                </label>
+                <Textarea
+                  value={reviewRemarks}
+                  onChange={(e) => setReviewRemarks(e.target.value)}
+                  placeholder="Add any remarks for this decision..."
+                  rows={3}
+                  className="border-slate-300 rounded-md focus:ring-2 focus:ring-[#0B2E4F] focus:border-
+                  [#0B2E4F]"
+                />
+              </div>
             </div>
           )}
-        </div>
 
-        {/* Reviewer Remarks */}
-        {selectedRequest.reviewerRemarks && (
-          <div>
-            <Label className="text-muted-foreground">Reviewer Remarks</Label>
-            <p className="p-3 bg-muted rounded-lg mt-1 text-sm leading-relaxed">
-              {selectedRequest.reviewerRemarks}
-            </p>
-          </div>
-        )}
-      </div>
-    )}
-
-    <DialogFooter>
-      <Button variant="outline" onClick={() => setViewDetailsOpen(false)} className="gap-2 bg-[#0b2e4f] text-white shadow-sm h-10 px-5 shrink-0 self-start sm:self-auto border-2 border-transparent hover:bg-white hover:text-[#0b2e4f] hover:border-[#0b2e4f] transition-colors">
-        Close
-      </Button>
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
-
-
-{/* Review Dialog */}
-<Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
-  <DialogContent className="max-w-md p-6">
-    {/* Header */}
-    <DialogHeader className="border-b border-slate-200 pb-4">
-      <DialogTitle className="text-lg font-semibold text-slate-900">
-        Review Outing Request
-      </DialogTitle>
-      <DialogDescription className="text-sm text-slate-500">
-        Add remarks before approving or denying this request
-      </DialogDescription>
-    </DialogHeader>
-
-    {/* Body */}
-    {selectedRequest && (
-      <div className="py-6 space-y-6">
-        {/* Request Details */}
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-4">
-          <h4 className="text-sm font-semibold text-slate-800">Request Information</h4>
-          <div className="grid grid-cols-2 gap-6 text-sm">
-            <div>
-              <span className="text-slate-600">Employee</span>
-              <p className="font-medium">{getEmployeeName(selectedRequest.employeeId)}</p>
-            </div>
-            <div>
-              <span className="text-slate-600">Department</span>
-              <p className="font-medium">
-                {getEmployeeInfo(selectedRequest.employeeId)?.department}
-              </p>
-            </div>
-            <div>
-              <span className="text-slate-600">Purpose</span>
-              <p className="font-medium">
-                {selectedRequest.purpose === "official" ? "Official Work" : "Personal Work"}
-              </p>
-            </div>
-            <div>
-              <span className="text-slate-600">Reason</span>
-              <p className="font-medium">{selectedRequest.reason}</p>
-            </div>
-            <div className="col-span-2">
-              <span className="text-slate-600">Will Return</span>
-              <p className="font-medium">
-                {selectedRequest.willReturn
-                  ? `Yes, by ${selectedRequest.expectedReturnTime}`
-                  : "No"}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Remarks */}
-        <div>
-          <label className="text-sm font-medium text-slate-700 mb-2 block">
-            Remarks (Optional)
-          </label>
-          <Textarea
-            value={reviewRemarks}
-            onChange={(e) => setReviewRemarks(e.target.value)}
-            placeholder="Add any remarks for this decision..."
-            rows={3}
-            className="border-slate-300 rounded-md focus:ring-2 focus:ring-slate-400"
-          />
-        </div>
-      </div>
-    )}
-
-    {/* Footer */}
-    <DialogFooter className="border-t border-slate-200 pt-4 flex-col sm:flex-row gap-3">
-      <Button
-        variant="outline"
-        onClick={() => setReviewDialogOpen(false)}
-        className="h-10 border-slate-300 text-slate-700 hover:bg-slate-50 w-full sm:w-auto"
-      >
-        Cancel
-      </Button>
-      <Button
-        variant="destructive"
-        onClick={() => submitReview("denied")}
-        className="h-10 w-full sm:w-auto"
-      >
-        Deny
-      </Button>
-      <Button
-        onClick={() => submitReview("approved")}
-        className="h-10 bg-slate-900 hover:bg-slate-800 text-white w-full sm:w-auto"
-      >
-        Approve
-      </Button>
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
-
+          {/* Footer */}
+          <DialogFooter className="border-t border-slate-200 pt-4 flex-col sm:flex-row gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setReviewDialogOpen(false)}
+              className="h-10 border-slate-300 text-slate-700 hover:bg-[#0B2E4F] hover:text-white transition-
+              colors w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => submitReview("denied")}
+              className="h-10 w-full sm:w-auto"
+            >
+              Reject
+            </Button>
+            <Button
+              onClick={() => submitReview("approved")}
+              className="h-10 bg-[#0B2E4F] hover:bg-[#1a456b] text-white w-full sm:w-auto transition-colors"
+            >
+              Approve
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

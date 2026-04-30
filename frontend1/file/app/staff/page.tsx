@@ -21,7 +21,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { LogIn, LogOut, Clock, CalendarDays, DoorOpen, Send, CheckCircle, History, User, ChevronDown, Menu, LayoutDashboard, Monitor, User2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
@@ -276,7 +276,7 @@ export default function StaffDashboard() {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col">
+    <div className="relative flex min-h-screen flex-col font-sans">
       {/* Background Pattern */}
       <div 
         className="fixed inset-0 bg-repeat opacity-10 -z-10"
@@ -284,7 +284,7 @@ export default function StaffDashboard() {
       />
       
       <div className="relative z-10">
-        {/* Header - White background like the image */}
+        {/* Header */}
         <header className="flex items-center justify-between bg-white shadow-sm px-6 md:px-10 py-3 border-b border-slate-200 sticky top-0 z-50">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center">
@@ -335,13 +335,18 @@ export default function StaffDashboard() {
           {/* Mobile Menu Button */}
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-5 w-5 text-slate-700" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="md:hidden hover:bg-[#0B2E4F] transition-colors group"
+              >
+                <Menu className="h-5 w-5 text-slate-700 group-hover:text-white transition-colors" />
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-[280px] sm:w-[350px] p-0">
+              <SheetTitle className="sr-only">Menu</SheetTitle>
+              <SheetDescription className="sr-only">Navigation menu for staff portal</SheetDescription>
               <div className="flex flex-col h-full bg-white">
-                {/* Sidebar Header */}
                 <div className="border-b border-slate-200 p-4">
                   <Link href="/staff" onClick={closeMobileMenu} className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg">
@@ -353,8 +358,6 @@ export default function StaffDashboard() {
                     </div>
                   </Link>
                 </div>
-
-                {/* Navigation */}
                 <div className="flex-1 py-4">
                   <div className="px-3 mb-2">
                     <p className="text-xs font-semibold text-slate-400 px-3 py-2">Navigation</p>
@@ -378,7 +381,6 @@ export default function StaffDashboard() {
                       </Link>
                     )
                   })}
-                  
                   <div className="px-3 mt-4 mb-2">
                     <p className="text-xs font-semibold text-slate-400 px-3 py-2">Quick Access</p>
                   </div>
@@ -392,8 +394,6 @@ export default function StaffDashboard() {
                     <span className="text-sm">TV Display</span>
                   </Link>
                 </div>
-
-                {/* User Footer */}
                 <div className="border-t border-slate-200 p-4">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0B2E4F]">
@@ -421,9 +421,9 @@ export default function StaffDashboard() {
           </Sheet>
         </header>
 
-        {/* Main Content - Increased padding on left and right */}
+        {/* Main Content */}
         <main className="px-6 md:px-10 lg:px-14 py-8 max-w-7xl mx-auto">
-          {/* Welcome Banner - Responsive Status */}
+          {/* Welcome Banner */}
           <div className="bg-gradient-to-r from-[#0B2E4F] to-[#1a456b] rounded-lg p-5 md:p-7 mb-8 text-white shadow-xl">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
@@ -436,8 +436,6 @@ export default function StaffDashboard() {
                   <p className="text-white/60 text-sm mt-1">ID: {employee.employeeId}</p>
                 </div>
               </div>
-              
-              {/* Responsive Status Section */}
               <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-white/10 sm:border-0">
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] uppercase font-bold text-white/60 tracking-widest hidden sm:inline">Current Status</span>
@@ -473,7 +471,7 @@ export default function StaffDashboard() {
                         <LogIn className="h-5 w-5" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Clock In</p>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Check In</p>
                         <p className="text-sm font-bold text-slate-900 leading-none">{attendance?.checkIn || "Ready"}</p>
                       </div>
                     </div>
@@ -481,7 +479,7 @@ export default function StaffDashboard() {
                       className={cn("h-8 px-4 rounded-lg font-bold transition-all", 
                         attendance?.checkIn ? "bg-slate-200 text-slate-400" : "bg-emerald-600 hover:bg-emerald-700 text-white"
                       )}>
-                      {attendance?.checkIn ? "Done" : "In"}
+                      {attendance?.checkIn ? "Completed" : "In"}
                     </Button>
                   </div>
                 </CardContent>
@@ -502,13 +500,14 @@ export default function StaffDashboard() {
                         <LogOut className="h-5 w-5" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Clock Out</p>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Check Out</p>
                         <p className="text-sm font-bold text-slate-900 leading-none">{attendance?.checkOut || "Not Yet"}</p>
                       </div>
                     </div>
                     <Button size="sm" variant={!attendance?.checkIn || attendance?.checkOut ? "secondary" : "destructive"}
-                      onClick={handleCheckOut} disabled={!attendance?.checkIn || !!attendance?.checkOut} className="h-8 px-4 rounded-lg font-bold">
-                      Out
+                      onClick={handleCheckOut} disabled={!attendance?.checkIn || !!attendance?.checkOut} 
+                      className="h-8 px-4 rounded-lg font-bold">
+                      {attendance?.checkOut ? "Completed" : "Out"}
                     </Button>
                   </div>
                 </CardContent>
@@ -530,12 +529,12 @@ export default function StaffDashboard() {
                       </div>
                       <div>
                         <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Outing</p>
-                        <p className="text-sm font-bold text-slate-900 leading-none">{pendingOuting ? "Wait" : currentOuting ? "Away" : "None"}</p>
+                        <p className="text-sm font-bold text-slate-900 leading-none">{pendingOuting ? "Pending" : currentOuting ? "Out of Office" : "None"}</p>
                       </div>
                     </div>
                     <Button size="sm" onClick={() => setRequestDialogOpen(true)} disabled={!attendance?.checkIn || !!currentOuting || !!pendingOuting}
                       className={cn("h-8 px-4 rounded-lg font-bold", currentOuting || pendingOuting ? "bg-slate-200 text-slate-400" : "bg-blue-600 hover:bg-blue-700 text-white")}>
-                      Go
+                      Request
                     </Button>
                   </div>
                 </CardContent>
@@ -561,8 +560,8 @@ export default function StaffDashboard() {
                       </div>
                     </div>
                     <Button size="sm" onClick={() => currentOuting && handleMarkReturn(currentOuting.id)} disabled={!currentOuting}
-                      className={cn("h-8 px-4 rounded-lg font-bold", !currentOuting ? "bg-slate-200 text-slate-400" : "bg-indigo-700 text-white")}>
-                      Back
+                      className={cn("h-8 px-4 rounded-lg font-bold", !currentOuting ? "bg-slate-200 text-slate-400" : "bg-indigo-700 hover:bg-indigo-800 text-white")}>
+                      Confirm
                     </Button>
                   </div>
                 </CardContent>
@@ -570,7 +569,7 @@ export default function StaffDashboard() {
             </div>
           </div>
 
-          {/* History Section - Updated with Employee Table Styling */}
+          {/* History Section */}
           <div>
             <h3 className="text-base font-semibold text-slate-900 mb-4">History & Records</h3>
             

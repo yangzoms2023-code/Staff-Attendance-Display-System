@@ -214,7 +214,8 @@ export default function SettingsPage() {
             <div className="rounded-lg border border-border p-4">
               <h4 className="font-medium text-foreground">Data Storage</h4>
               <p className="text-sm text-muted-foreground mt-1">
-                This demo uses localStorage for data persistence. Data will be preserved until browser data is cleared.
+                This demo uses localStorage for data persistence. Data will be preserved until browser data 
+                is cleared.
               </p>
             </div>
             <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-4">
@@ -232,8 +233,8 @@ export default function SettingsPage() {
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={isSaving} className="min-w-[120px] bg-[#0B2E4F] text-white hover:bg-
-        white hover:text-[#0B2E4F] border border-[#0B2E4F] shadow-sm">
+        <Button onClick={handleSave} disabled={isSaving} className="min-w-[120px] bg-[#0B2E4F] text-white 
+        hover:bg-white hover:text-[#0B2E4F] border border-[#0B2E4F] shadow-sm">
           {isSaving ? "Saving..." : "Save Settings"}
         </Button>
       </div>

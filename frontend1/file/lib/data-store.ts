@@ -50,13 +50,13 @@ const DEFAULT_USERS: User[] = [
   },
   {
     id: "102",
-    username: "TDA002",
+    username: "TDA003",
     password: "1234",
     role: "employee",
-    name: "Pema Wangmoo",
+    name: "Pema Wangmo",
     email: "pema.wangmo@thimphu.gov.bt",
-    employeeId: "TDA002",
-    department: "Finance"
+    employeeId: "TDA003",
+    department: "Finance" 
   }
 
 ]
