@@ -1,11 +1,9 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-
 import {
   Dialog,
   DialogContent,
@@ -30,7 +28,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { dataStore, DEPARTMENTS } from "@/lib/data-store"
 import type { Employee, AttendanceRecord } from "@/lib/types"
-import { CalendarCheck, Search, UserCheck, UserX, Clock, ChevronLeft, ChevronRight, Users, MoreHorizontal, Pencil, Eye } from "lucide-react"
+import { CalendarCheck, Search, UserCheck, UserX, Clock, ChevronLeft, ChevronRight, Users, MoreHorizontal, Pencil, Eye, CalendarX } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export default function AttendancePage() {
@@ -162,16 +160,15 @@ export default function AttendancePage() {
 
   const getStatusBadge = (record?: AttendanceRecord) => {
     if (!record) {
-      return <Badge variant="secondary" className="bg-slate-100 text-slate-600 border-0">Not 
-      Recorded</Badge>
+      return <Badge variant="secondary" className="bg-slate-100 text-slate-600 border-0">Not Recorded</Badge>
     }
     
     const statusColors: Record<string, string> = {
       Present: "bg-emerald-50 text-emerald-700",
       Late: "bg-amber-50 text-amber-700",
       Absent: "bg-red-50 text-red-700",
-      Leave: "bg-blue-50 text-blue-700",
-      "Half-Day": "bg-purple-50 text-purple-700",
+      Leave: "bg-purple-50 text-purple-700",
+      "Half-Day": "bg-indigo-50 text-indigo-700",
     }
     
     return (
@@ -182,7 +179,7 @@ export default function AttendancePage() {
           record.status === "Present" ? "bg-emerald-500" :
           record.status === "Late" ? "bg-amber-500" :
           record.status === "Absent" ? "bg-red-500" :
-          record.status === "Leave" ? "bg-blue-500" : "bg-purple-500"
+          record.status === "Leave" ? "bg-purple-500" : "bg-indigo-500"
         )} />
         {record.status}
       </Badge>
@@ -211,8 +208,8 @@ export default function AttendancePage() {
         />} iconBgColor="bg-red-100" iconColor="text-red-600" />
         <StatCard label="Late" value={stats.late} icon={<Clock className="h-4 w-4 sm:h-5 sm:w-5" />} 
         iconBgColor="bg-amber-100" iconColor="text-amber-600" />
-        <StatCard label="On Leave" value={stats.leave} icon={<CalendarCheck className="h-4 w-4 sm:h-5 
-        sm:w-5" />} iconBgColor="bg-blue-100" iconColor="text-blue-600" />
+        <StatCard label="On Leave" value={stats.leave} icon={<CalendarX className="h-4 w-4 sm:h-5 
+        sm:w-5" />} iconBgColor="bg-purple-100" iconColor="text-purple-600" />
       </div>
 
       {/* Date Navigation and Filters */}
@@ -225,8 +222,7 @@ export default function AttendancePage() {
                 variant="outline" 
                 size="icon" 
                 onClick={() => changeDate(-1)} 
-                className="h-9 w-9 border-slate-200 hover:bg-[#0B2E4F] hover:text-white transition-
-                colors"
+                className="h-9 w-9 border-slate-200 hover:bg-[#0B2E4F] hover:text-white transition-colors"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -240,8 +236,7 @@ export default function AttendancePage() {
                 variant="outline" 
                 size="icon" 
                 onClick={() => changeDate(1)} 
-                className="h-9 w-9 border-slate-200 hover:bg-[#0B2E4F] hover:text-white transition-
-                colors"
+                className="h-9 w-9 border-slate-200 hover:bg-[#0B2E4F] hover:text-white transition-colors"
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
@@ -269,8 +264,7 @@ export default function AttendancePage() {
                 />
               </div>
               <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-                <SelectTrigger className="w-full sm:w-[180px] h-9 border-slate-200 focus:border-
-                [#0B2E4F]">
+                <SelectTrigger className="w-full sm:w-[180px] h-9 border-slate-200 focus:border-[#0B2E4F]">
                   <SelectValue placeholder="Department" />
                 </SelectTrigger>
                 <SelectContent>
@@ -322,8 +316,7 @@ export default function AttendancePage() {
             <div className="py-3 text-xs font-semibold text-white uppercase tracking-wider">
               Check Out
             </div>
-            <div className="py-3 text-xs font-semibold text-white uppercase tracking-wider text-
-            center">
+            <div className="py-3 text-xs font-semibold text-white uppercase tracking-wider text-center">
               Actions
             </div>
           </div>
@@ -331,8 +324,7 @@ export default function AttendancePage() {
           {/* Table Body */}
           {filteredEmployees.length === 0 ? (
             <div className="h-32 flex flex-col items-center justify-center text-slate-400 border 
-            border-slate-200 
-            rounded-b-lg mt-[-1px] bg-white">
+            border-slate-200 rounded-b-lg mt-[-1px] bg-white">
               <Users className="h-8 w-8 mb-2 opacity-50" />
               <p className="text-sm font-medium">No employees found</p>
               <p className="text-xs mt-1">Try adjusting your search or filters</p>
@@ -352,8 +344,8 @@ export default function AttendancePage() {
                   )}
                 >
                   <div className="py-3">
-                    <span className="inline-flex items-center px-2 py-0.5 text-xs font-mono font-
-                    medium text-slate-700">
+                    <span className="inline-flex items-center px-2 py-0.5 text-xs font-mono font-medium text-
+                    slate-700">
                       {employee.employeeId}
                     </span>
                   </div>
@@ -363,9 +355,7 @@ export default function AttendancePage() {
                   </div>
 
                   <div className="py-3">
-                    <span className="text-sm text-slate-700 truncate block">{employee.department}
-
-                    </span>
+                    <span className="text-sm text-slate-700 truncate block">{employee.department}</span>
                   </div>
 
                   <div className="py-3">
@@ -377,9 +367,7 @@ export default function AttendancePage() {
                   </div>
 
                   <div className="py-3">
-                    <span className="text-sm text-slate-700 font-mono">{record?.checkOut || "-"}
-
-                    </span>
+                    <span className="text-sm text-slate-700 font-mono">{record?.checkOut || "-"}</span>
                   </div>
 
                   <div className="py-3">
@@ -399,8 +387,8 @@ export default function AttendancePage() {
                           <>
                             <DropdownMenuItem 
                               onClick={() => handleQuickCheckIn(employee.id)}
-                              className="gap-2 text-sm cursor-pointer hover:bg-[#0B2E4F] hover:text-
-                              white focus:bg-[#0B2E4F] focus:text-white transition-colors"
+                              className="gap-2 text-sm cursor-pointer hover:bg-[#0B2E4F] hover:text-white 
+                              focus:bg-[#0B2E4F] focus:text-white transition-colors"
                             >
                               <UserCheck className="h-3.5 w-3.5" />
                               Quick Check In
@@ -415,11 +403,10 @@ export default function AttendancePage() {
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={() => handleMarkAttendance(employee.id, "Leave")}
-                              className="gap-2 text-sm text-blue-600 cursor-pointer hover:bg-blue-50 
-                              hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 transition-
-                              colors"
+                              className="gap-2 text-sm text-purple-600 cursor-pointer hover:bg-purple-50 
+                              hover:text-purple-700 focus:bg-purple-50 focus:text-purple-700 transition-colors"
                             >
-                              <CalendarCheck className="h-3.5 w-3.5" />
+                              <CalendarX className="h-3.5 w-3.5" />
                               Mark Leave
                             </DropdownMenuItem>
                           </>
@@ -427,8 +414,8 @@ export default function AttendancePage() {
                         {record?.checkIn && !record?.checkOut && (
                           <DropdownMenuItem 
                             onClick={() => handleQuickCheckOut(employee.id)}
-                            className="gap-2 text-sm cursor-pointer hover:bg-[#0B2E4F] hover:text-
-                            white focus:bg-[#0B2E4F] focus:text-white transition-colors"
+                            className="gap-2 text-sm cursor-pointer hover:bg-[#0B2E4F] hover:text-white 
+                            focus:bg-[#0B2E4F] focus:text-white transition-colors"
                           >
                             <UserX className="h-3.5 w-3.5" />
                             Quick Check Out
@@ -437,8 +424,8 @@ export default function AttendancePage() {
                         {record && record.status !== "Absent" && (
                           <DropdownMenuItem 
                             onClick={() => openMarkDialog(employee, record)}
-                            className="gap-2 text-sm cursor-pointer hover:bg-[#0B2E4F] hover:text-
-                            white focus:bg-[#0B2E4F] focus:text-white transition-colors"
+                            className="gap-2 text-sm cursor-pointer hover:bg-[#0B2E4F] hover:text-white 
+                            focus:bg-[#0B2E4F] focus:text-white transition-colors"
                           >
                             <Pencil className="h-3.5 w-3.5" />
                             Edit Attendance
@@ -480,8 +467,8 @@ export default function AttendancePage() {
                   setMarkStatus(value as AttendanceRecord["status"])
                 }
               >
-                <SelectTrigger className="h-10 border-slate-300 rounded-md focus:ring-2 focus:ring-
-                [#0B2E4F] focus:border-[#0B2E4F]">
+                <SelectTrigger className="h-10 border-slate-300 rounded-md focus:ring-2 focus:ring-[#0B2E4F] 
+                focus:border-[#0B2E4F]">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -573,9 +560,9 @@ export default function AttendancePage() {
             <Button
               variant="outline"
               onClick={() => setIsMarkDialogOpen(false)}
-              className="gap-2 bg-[#ba0f0f] text-white shadow-sm h-10 px-5 shrink-0 self-start 
-              sm:self-auto border-2 border-transparent hover:bg-white hover:text-[#ba0f0f] 
-              hover:border-[#ba0f0f] transition-colors"
+              className="gap-2 bg-red-600 text-white shadow-sm h-10 px-5 shrink-0 self-start 
+              sm:self-auto border-2 border-transparent hover:bg-white hover:text-red-600 
+              hover:border-red-600 transition-colors"
             >
               Cancel
             </Button>

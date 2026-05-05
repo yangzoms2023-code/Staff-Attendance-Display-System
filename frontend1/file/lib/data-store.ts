@@ -66,11 +66,11 @@ const SAMPLE_EMPLOYEES: Employee[] = [
   {
     id: "1",
     employeeId: "TDA001",
-    name: "Tshering Dorji",
+    name: "Minjur Dorji",
     gender: "Male",
     designation: "Dzongdag",
     contactNumber: "17123456",
-    email: "tshering.dorji@thimphu.gov.bt",
+    email: "minjur.dorji@thimphu.gov.bt",
     address: "Thimphu, Bhutan",
     department: "Administration",
     joiningDate: "2020-01-15",
@@ -237,12 +237,16 @@ function generateSampleAttendance(): AttendanceRecord[] {
       
       if (random < 0.7) {
         status = "Present"
-        checkIn = `0${8 + Math.floor(Math.random() * 2)}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}`
-        checkOut = `1${6 + Math.floor(Math.random() * 2)}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}`
+        checkIn = `0${8 + Math.floor(Math.random() * 2)}:${String(Math.floor(Math.random() * 60)).padStart(2, 
+          "0")}`
+        checkOut = `1${6 + Math.floor(Math.random() * 2)}:${String(Math.floor(Math.random() * 60)).padStart(2, 
+          "0")}`
       } else if (random < 0.8) {
         status = "Late"
-        checkIn = `${9 + Math.floor(Math.random() * 2)}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}`
-        checkOut = `1${7 + Math.floor(Math.random() * 2)}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}`
+        checkIn = `${9 + Math.floor(Math.random() * 2)}:${String(Math.floor(Math.random() * 60)).padStart(2, 
+          "0")}`
+        checkOut = `1${7 + Math.floor(Math.random() * 2)}:${String(Math.floor(Math.random() * 60)).padStart(2, 
+          "0")}`
         remarks = "Arrived late"
       } else if (random < 0.9) {
         status = "Absent"

@@ -82,7 +82,8 @@ export default function LoginPage() {
         style={{ backgroundImage: "url('/images/bg-pattern.png')" }}
       />
       {/* Header */}
-      <header className="flex items-center justify-between bg-white/80 backdrop-blur-sm px-6 py-4 border-b border-
+      <header className="flex items-center justify-between bg-white/80 backdrop-blur-sm px-6 py-4 border-b 
+      border-
       slate-200">
         <div className="flex items-center gap-3">
           <div className="flex h-16 w-16 items-center justify-center">
@@ -94,12 +95,15 @@ export default function LoginPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/tv">
-            <Button variant="outline" className="gap-2 border-slate-200">
-              <Monitor className="h-4 w-4" />
-              TV Display
-            </Button>
-          </Link>
+            <Link href="/tv">
+               <Button 
+                variant="outline" 
+                className="gap-2 border-slate-200 hover:bg-[#0B2E4F] hover:text-white"
+                  >
+                     <Monitor className="h-4 w-4" />
+                        TV Display
+              </Button>
+            </Link>
         </div>
       </header>
 
@@ -107,7 +111,8 @@ export default function LoginPage() {
       <main className="relative z-10 flex flex-1 items-center justify-center p-4">
         <Card className="w-full max-w-md border border-white/20 shadow-2xl bg-white/95 backdrop-blur-sm">
           <CardHeader className="space-y-1 pb-2 pt-4">
-            <div className="mx-auto mb-1 flex h-12 w-12 items-center justify-center rounded-full bg-[#0B2E4F]/10">
+            <div className="mx-auto mb-1 flex h-12 w-12 items-center justify-center rounded-full bg-
+            [#0B2E4F]/10">
               <Lock className="h-6 w-6 text-[#0B2E4F]" />
             </div>
             <CardTitle className="text-xl font-bold text-center text-slate-900">
@@ -120,7 +125,8 @@ export default function LoginPage() {
 
           {/* Role Tabs */}
           <div className="px-6">
-            <Tabs defaultValue="employee" className="w-full" onValueChange={(value) => setActiveRole(value as "admin" |
+            <Tabs defaultValue="employee" className="w-full" onValueChange={(value) => setActiveRole(value as 
+            "admin" |
               "employee")}>
               <TabsList className="grid w-full grid-cols-2 bg-slate-100 h-9">
                 <TabsTrigger value="employee" className="data-[state=active]:bg-white data-[state=active]:text-
@@ -128,7 +134,8 @@ export default function LoginPage() {
                   <UserCheck className="h-3 w-3" />
                   Employee Login
                 </TabsTrigger>
-                <TabsTrigger value="admin" className="data-[state=active]:bg-white data-[state=active]:text-[#0B2E4F] 
+                <TabsTrigger value="admin" className="data-[state=active]:bg-white data-[state=active]:text-
+                [#0B2E4F] 
                 gap-1 text-xs">
                   <Shield className="h-3 w-3" />
                   Admin Login
@@ -158,7 +165,8 @@ export default function LoginPage() {
                           placeholder="Enter your employee ID"
                           value={employeeId}
                           onChange={(e) => setEmployeeId(e.target.value)}
-                          className="h-9 pl-9 border-slate-200 focus:border-[#0B2E4F] focus:ring-[#0B2E4F] text-sm"
+                          className="h-9 pl-9 border-slate-200 focus:border-[#0B2E4F] focus:ring-[#0B2E4F] 
+                          text-sm"
                           required
                           disabled={isLoading}
                         />
@@ -177,7 +185,8 @@ export default function LoginPage() {
                           placeholder="Enter your PIN"
                           value={pin}
                           onChange={(e) => setPin(e.target.value)}
-                          className="h-9 pl-9 border-slate-200 focus:border-[#0B2E4F] focus:ring-[#0B2E4F] text-sm"
+                          className="h-9 pl-9 border-slate-200 focus:border-[#0B2E4F] focus:ring-[#0B2E4F] 
+                          text-sm"
                           required
                           disabled={isLoading}
                         />
@@ -198,7 +207,8 @@ export default function LoginPage() {
                           Remember me
                         </Label>
                       </div>
-                      <Link href="/forgot-pin" className="text-xs text-slate-600 hover:text-[#0B2E4F] transition-
+                      <Link href="/forgot-pin" className="text-xs text-slate-600 hover:text-[#0B2E4F] 
+                      transition-
                       colors">
                         Forgot PIN?
                       </Link>
@@ -212,7 +222,8 @@ export default function LoginPage() {
                   >
                     {isLoading ? (
                       <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" 
+                        <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-
+                        transparent" 
                         />
                         Signing in...
                       </div>
@@ -246,7 +257,8 @@ export default function LoginPage() {
                           placeholder="Enter your username"
                           value={username}
                           onChange={(e) => setUsername(e.target.value)}
-                          className="h-9 pl-9 border-slate-200 focus:border-[#0B2E4F] focus:ring-[#0B2E4F] text-sm"
+                          className="h-9 pl-9 border-slate-200 focus:border-[#0B2E4F] focus:ring-[#0B2E4F] 
+                          text-sm"
                           required
                           disabled={isLoading}
                         />
@@ -265,7 +277,8 @@ export default function LoginPage() {
                           placeholder="Enter your password"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          className="h-9 pl-9 border-slate-200 focus:border-[#0B2E4F] focus:ring-[#0B2E4F] text-sm"
+                          className="h-9 pl-9 border-slate-200 focus:border-[#0B2E4F] focus:ring-[#0B2E4F] 
+                          text-sm"
                           required
                           disabled={isLoading}
                         />
@@ -281,7 +294,8 @@ export default function LoginPage() {
                           className="h-3 w-3 border-slate-300 data-[state=checked]:bg-[#0B2E4F] data-
                           [state=checked]:border-[#0B2E4F]"
                         />
-                        <Label htmlFor="remember-admin" className="text-xs font-normal text-slate-600 cursor-pointer">
+                        <Label htmlFor="remember-admin" className="text-xs font-normal text-slate-600 cursor-
+                        pointer">
                           Remember me
                         </Label>
                       </div>
@@ -300,7 +314,8 @@ export default function LoginPage() {
                   >
                     {isLoading ? (
                       <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" 
+                        <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-
+                        transparent" 
                         />
                         Signing in...
                       </div>

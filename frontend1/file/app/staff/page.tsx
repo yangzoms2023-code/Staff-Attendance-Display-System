@@ -106,7 +106,7 @@ export default function StaffDashboard() {
     setEmployee(emp)
 
     const timeInterval = setInterval(() => {
-      setCurrentTime(new Date())
+      setCurrentTime(new Date())                
     }, 1000)
 
     return () => clearInterval(timeInterval)
@@ -285,7 +285,8 @@ export default function StaffDashboard() {
       
       <div className="relative z-10">
         {/* Header */}
-        <header className="flex items-center justify-between bg-white shadow-sm px-6 md:px-10 py-3 border-b border-slate-200 sticky top-0 z-50">
+        <header className="flex items-center justify-between bg-white shadow-sm px-6 md:px-10 py-3 border-b 
+        border-slate-200 sticky top-0 z-50">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center">
               <Image src="/icon.png" alt="Logo" width={48} height={48} className="object-contain"/>
@@ -301,7 +302,8 @@ export default function StaffDashboard() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="gap-2 hover:bg-slate-100">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0B2E4F] text-white text-sm font-semibold">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0B2E4F] text-white 
+                  text-sm font-semibold">
                     {employee.name.charAt(0)}
                   </div>
                   <span className="font-medium text-slate-700">{employee.name.split(' ')[0]}</span>
@@ -315,14 +317,16 @@ export default function StaffDashboard() {
                   <p className="text-xs text-slate-400 mt-1">{employee.email}</p>
                 </div>
                 <DropdownMenuItem 
-                  className="gap-2 cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] focus:text-white transition-colors"
+                  className="gap-2 cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] 
+                  focus:text-white transition-colors"
                   onClick={() => router.push("/staff/profile")}
                 >
                   <User className="h-4 w-4" />
                   My Profile
                 </DropdownMenuItem>
                 <DropdownMenuItem 
-                  className="gap-2 cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] focus:text-white transition-colors" 
+                  className="gap-2 cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] 
+                  focus:text-white transition-colors" 
                   onClick={confirmLogout}
                 >
                   <LogOut className="h-4 w-4" />
@@ -381,18 +385,6 @@ export default function StaffDashboard() {
                       </Link>
                     )
                   })}
-                  <div className="px-3 mt-4 mb-2">
-                    <p className="text-xs font-semibold text-slate-400 px-3 py-2">Quick Access</p>
-                  </div>
-                  <Link
-                    href="/tv"
-                    target="_blank"
-                    onClick={closeMobileMenu}
-                    className="flex items-center gap-3 px-6 py-2.5 mx-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
-                  >
-                    <Monitor className="h-4 w-4" />
-                    <span className="text-sm">TV Display</span>
-                  </Link>
                 </div>
                 <div className="border-t border-slate-200 p-4">
                   <div className="flex items-center gap-3 mb-3">
@@ -424,26 +416,35 @@ export default function StaffDashboard() {
         {/* Main Content */}
         <main className="px-6 md:px-10 lg:px-14 py-8 max-w-7xl mx-auto">
           {/* Welcome Banner */}
-          <div className="bg-gradient-to-r from-[#0B2E4F] to-[#1a456b] rounded-lg p-5 md:p-7 mb-8 text-white shadow-xl">
+          <div className="bg-gradient-to-r from-[#0B2E4F] to-[#1a456b] rounded-lg p-5 md:p-7 mb-8 text-white 
+          shadow-xl">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 md:h-20 md:w-20 items-center justify-center rounded-full bg-white/20 text-white text-2xl md:text-3xl font-bold shadow-lg shrink-0">
+                <div className="flex h-14 w-14 md:h-20 md:w-20 items-center justify-center rounded-full bg-
+                white/20 text-white text-2xl md:text-3xl font-bold shadow-lg shrink-0">
                   {employee.name.charAt(0)}
                 </div>
                 <div>
-                  <h2 className="text-xl md:text-3xl font-bold">Welcome back, {employee.name.split(' ')[0]}!</h2>
-                  <p className="text-white/80 text-base md:text-lg mt-1">{employee.designation} • {employee.department}</p>
+                  <h2 className="text-xl md:text-3xl font-bold">Welcome back, {employee.name.split(' ')[0]}!
+
+                  </h2>
+                  <p className="text-white/80 text-base md:text-lg mt-1">{employee.designation} • 
+                  {employee.department}</p>
                   <p className="text-white/60 text-sm mt-1">ID: {employee.employeeId}</p>
                 </div>
               </div>
-              <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-white/10 sm:border-0">
+              <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-
+              start gap-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-white/10 sm:border-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] uppercase font-bold text-white/60 tracking-widest hidden sm:inline">Current Status</span>
-                  <span className="text-[8px] uppercase font-bold text-white/60 tracking-widest sm:hidden">Status</span>
+                  <span className="text-[10px] uppercase font-bold text-white/60 tracking-widest hidden 
+                  sm:inline">Current Status</span>
+                  <span className="text-[8px] uppercase font-bold text-white/60 tracking-widest 
+                  sm:hidden">Status</span>
                   {attendance?.status && getStatusBadge(attendance.status)}
                 </div>
                 {currentOuting && (
-                  <Badge className="bg-purple-500/30 text-white border-purple-500/50 backdrop-blur-sm hover:bg-purple-500/40 transition-all shadow-sm text-xs px-2 py-0.5 sm:px-3 sm:py-1">
+                  <Badge className="bg-purple-500/30 text-white border-purple-500/50 backdrop-blur-sm hover:bg-
+                  purple-500/40 transition-all shadow-sm text-xs px-2 py-0.5 sm:px-3 sm:py-1">
                     <span className="hidden sm:inline">Currently Out</span>
                     <span className="sm:hidden">Out</span>
                   </Badge>
@@ -472,7 +473,8 @@ export default function StaffDashboard() {
                       </div>
                       <div>
                         <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Check In</p>
-                        <p className="text-sm font-bold text-slate-900 leading-none">{attendance?.checkIn || "Ready"}</p>
+                        <p className="text-sm font-bold text-slate-900 leading-none">{attendance?.checkIn || 
+                        "Ready"}</p>
                       </div>
                     </div>
                     <Button size="sm" onClick={handleCheckIn} disabled={!!attendance?.checkIn}
@@ -501,10 +503,12 @@ export default function StaffDashboard() {
                       </div>
                       <div>
                         <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Check Out</p>
-                        <p className="text-sm font-bold text-slate-900 leading-none">{attendance?.checkOut || "Not Yet"}</p>
+                        <p className="text-sm font-bold text-slate-900 leading-none">{attendance?.checkOut || 
+                        "Not Yet"}</p>
                       </div>
                     </div>
-                    <Button size="sm" variant={!attendance?.checkIn || attendance?.checkOut ? "secondary" : "destructive"}
+                    <Button size="sm" variant={!attendance?.checkIn || attendance?.checkOut ? "secondary" : 
+                    "destructive"}
                       onClick={handleCheckOut} disabled={!attendance?.checkIn || !!attendance?.checkOut} 
                       className="h-8 px-4 rounded-lg font-bold">
                       {attendance?.checkOut ? "Completed" : "Out"}
@@ -529,10 +533,12 @@ export default function StaffDashboard() {
                       </div>
                       <div>
                         <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Outing</p>
-                        <p className="text-sm font-bold text-slate-900 leading-none">{pendingOuting ? "Pending" : currentOuting ? "Out of Office" : "None"}</p>
+                        <p className="text-sm font-bold text-slate-900 leading-none">{pendingOuting ? "Pending" 
+                        : currentOuting ? "Out of Office" : "None"}</p>
                       </div>
                     </div>
-                    <Button size="sm" onClick={() => setRequestDialogOpen(true)} disabled={!attendance?.checkIn || !!currentOuting || !!pendingOuting}
+                    <Button size="sm" onClick={() => setRequestDialogOpen(true)} disabled={!attendance?.checkIn 
+                    || !!currentOuting || !!pendingOuting}
                       className={cn("h-8 px-4 rounded-lg font-bold", currentOuting || pendingOuting ? "bg-slate-200 text-slate-400" : "bg-blue-600 hover:bg-blue-700 text-white")}>
                       Request
                     </Button>
@@ -556,10 +562,12 @@ export default function StaffDashboard() {
                       </div>
                       <div>
                         <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Return</p>
-                        <p className="text-sm font-bold text-slate-900 leading-none">{currentOuting ? "Check In" : "Ready"}</p>
+                        <p className="text-sm font-bold text-slate-900 leading-none">{currentOuting ? "Check In" 
+                        : "Ready"}</p>
                       </div>
                     </div>
-                    <Button size="sm" onClick={() => currentOuting && handleMarkReturn(currentOuting.id)} disabled={!currentOuting}
+                    <Button size="sm" onClick={() => currentOuting && handleMarkReturn(currentOuting.id)} 
+                    disabled={!currentOuting}
                       className={cn("h-8 px-4 rounded-lg font-bold", !currentOuting ? "bg-slate-200 text-slate-400" : "bg-indigo-700 hover:bg-indigo-800 text-white")}>
                       Confirm
                     </Button>
@@ -577,14 +585,18 @@ export default function StaffDashboard() {
               <TabsList className="bg-white border">
                 <TabsTrigger 
                   value="attendance" 
-                  className="gap-2 data-[state=active]:bg-[#0B2E4F] data-[state=active]:text-white data-[state=inactive]:bg-white data-[state=inactive]:text-slate-700 hover:data-[state=inactive]:bg-slate-50"
+                  className="gap-2 data-[state=active]:bg-[#0B2E4F] data-[state=active]:text-white data-
+                  [state=inactive]:bg-white data-[state=inactive]:text-slate-700 hover:data-[state=inactive]:bg-
+                  slate-50"
                 >
                   <CalendarDays className="h-4 w-4" />
                   Attendance History
                 </TabsTrigger>
                 <TabsTrigger 
                   value="outings" 
-                  className="gap-2 data-[state=active]:bg-[#0B2E4F] data-[state=active]:text-white data-[state=inactive]:bg-white data-[state=inactive]:text-slate-700 hover:data-[state=inactive]:bg-slate-50"
+                  className="gap-2 data-[state=active]:bg-[#0B2E4F] data-[state=active]:text-white data-
+                  [state=inactive]:bg-white data-[state=inactive]:text-slate-700 hover:data-[state=inactive]:bg-
+                  slate-50"
                 >
                   <History className="h-4 w-4" />
                   Outing Requests
@@ -599,7 +611,8 @@ export default function StaffDashboard() {
                   </CardHeader>
                   <CardContent>
                     {attendanceHistory.length === 0 ? (
-                      <div className="h-32 flex flex-col items-center justify-center text-slate-400 border border-slate-200 rounded-lg">
+                      <div className="h-32 flex flex-col items-center justify-center text-slate-400 border 
+                      border-slate-200 rounded-lg">
                         <CalendarDays className="h-8 w-8 mb-2 opacity-50" />
                         <p className="text-sm font-medium">No attendance records found</p>
                         <p className="text-xs">Start by checking in today</p>
@@ -608,7 +621,8 @@ export default function StaffDashboard() {
                       <div className="w-full overflow-x-auto">
                         <div className="min-w-[700px]">
                           {/* Table Header */}
-                          <div className="grid grid-cols-6 gap-0 border-b border-slate-200 bg-[#0B2E4F] rounded-t-lg text-white text-xs font-semibold uppercase tracking-wider">
+                          <div className="grid grid-cols-6 gap-0 border-b border-slate-200 bg-[#0B2E4F] 
+                          rounded-t-lg text-white text-xs font-semibold uppercase tracking-wider">
                             <div className="py-3 px-4 text-center">Date</div>
                             <div className="py-3 px-4 text-center">Day</div>
                             <div className="py-3 px-4 text-center">Status</div>
@@ -628,7 +642,8 @@ export default function StaffDashboard() {
                               )}
                             >
                               <div className="py-3 px-4 text-sm text-slate-700 text-center">
-                                {new Date(record.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                                {new Date(record.date).toLocaleDateString("en-US", { month: "short", day: 
+                                  "numeric", year: "numeric" })}
                               </div>
                               <div className="py-3 px-4 text-sm text-slate-700 text-center">
                                 {new Date(record.date).toLocaleDateString("en-US", { weekday: "short" })}
@@ -642,7 +657,8 @@ export default function StaffDashboard() {
                               <div className="py-3 px-4 text-sm font-mono text-slate-700 text-center">
                                 {record.checkOut || "-"}
                               </div>
-                              <div className="py-3 px-4 text-sm text-slate-500 truncate text-center" title={record.remarks || ""}>
+                              <div className="py-3 px-4 text-sm text-slate-500 truncate text-center" title=
+                              {record.remarks || ""}>
                                 {record.remarks || "-"}
                               </div>
                             </div>
@@ -662,7 +678,8 @@ export default function StaffDashboard() {
                   </CardHeader>
                   <CardContent>
                     {outingRequests.length === 0 ? (
-                      <div className="h-32 flex flex-col items-center justify-center text-slate-400 border border-slate-200 rounded-lg">
+                      <div className="h-32 flex flex-col items-center justify-center text-slate-400 border 
+                      border-slate-200 rounded-lg">
                         <DoorOpen className="h-8 w-8 mb-2 opacity-50" />
                         <p className="text-sm font-medium">No outing requests found</p>
                         <p className="text-xs">Submit your first outing request</p>
@@ -671,7 +688,8 @@ export default function StaffDashboard() {
                       <div className="w-full overflow-x-auto">
                         <div className="min-w-[900px]">
                           {/* Table Header */}
-                          <div className="grid grid-cols-7 gap-0 border-b border-slate-200 bg-[#0B2E4F] rounded-t-lg text-white text-xs font-semibold uppercase tracking-wider">
+                          <div className="grid grid-cols-7 gap-0 border-b border-slate-200 bg-[#0B2E4F] 
+                          rounded-t-lg text-white text-xs font-semibold uppercase tracking-wider">
                             <div className="py-3 px-4 text-center">Date</div>
                             <div className="py-3 px-4 text-center">Req Time</div>
                             <div className="py-3 px-4 text-center">Purpose</div>
@@ -692,28 +710,34 @@ export default function StaffDashboard() {
                               )}
                             >
                               <div className="py-3 px-4 text-sm text-slate-700 text-center">
-                                {new Date(request.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                                {new Date(request.date).toLocaleDateString("en-US", { month: "short", day: 
+                                  "numeric", year: "numeric" })}
                               </div>
                               <div className="py-3 px-4 text-sm font-mono text-slate-700 text-center">
                                 {request.requestTime}
                               </div>
                               <div className="py-3 px-4 flex justify-center">
-                                <Badge className={request.purpose === "official" ? "bg-blue-100 text-blue-800" : "bg-purple-100 text-purple-800"}>
+                                <Badge className={request.purpose === "official" ? "bg-blue-100 text-blue-800" : 
+                                  "bg-purple-100 text-purple-800"}>
                                   {request.purpose === "official" ? "Official" : "Personal"}
                                 </Badge>
                               </div>
-                              <div className="py-3 px-4 text-sm text-slate-700 truncate text-center" title={request.reason}>
-                                {request.reason.length > 20 ? request.reason.substring(0, 20) + "..." : request.reason}
+                              <div className="py-3 px-4 text-sm text-slate-700 truncate text-center" title=
+                              {request.reason}>
+                                {request.reason.length > 20 ? request.reason.substring(0, 20) + "..." : 
+                                request.reason}
                               </div>
                               <div className="py-3 px-4 text-center">
                                 {request.willReturn ? (
                                   request.actualReturnTime ? (
-                                    <span className="text-xs text-green-600 flex items-center justify-center gap-1">
+                                    <span className="text-xs text-green-600 flex items-center justify-center 
+                                    gap-1">
                                       <CheckCircle className="h-3 w-3" />
                                       Returned
                                     </span>
                                   ) : (
-                                    <span className="text-xs text-yellow-600">Expected: {request.expectedReturnTime}</span>
+                                    <span className="text-xs text-yellow-600">Expected: 
+                                    {request.expectedReturnTime}</span>
                                   )
                                 ) : (
                                   <span className="text-xs text-slate-400">No return</span>
@@ -723,11 +747,13 @@ export default function StaffDashboard() {
                                 {getOutingStatusBadge(request.status)}
                               </div>
                               <div className="py-3 px-4 flex justify-center">
-                                {request.status === "approved" && !request.actualReturnTime && request.date === today && (
+                                {request.status === "approved" && !request.actualReturnTime && request.date === 
+                                today && (
                                   <Button 
                                     size="sm" 
                                     variant="outline" 
-                                    className="h-7 text-xs border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+                                    className="h-7 text-xs border-emerald-200 text-emerald-600 hover:bg-emerald-
+                                    50"
                                     onClick={() => handleMarkReturn(request.id)}
                                   >
                                     <CheckCircle className="h-3 w-3 mr-1" />

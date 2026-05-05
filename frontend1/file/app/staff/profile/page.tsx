@@ -163,10 +163,12 @@ export default function ProfilePage() {
               </Button>
             ) : (
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={handleDiscard} className="h-8 text-[11px] font-bold">
+                <Button variant="outline" size="sm" onClick={handleDiscard} className="h-8 text-[11px] font-
+                bold">
                   <X className="h-3 w-3 mr-2" /> DISCARD
                 </Button>
-                <Button size="sm" onClick={handleSave} className="bg-emerald-600 h-8 text-[11px] font-bold hover:bg-emerald-700">
+                <Button size="sm" onClick={handleSave} className="bg-emerald-600 h-8 text-[11px] font-bold 
+                hover:bg-emerald-700">
                   <Save className="h-3 w-3 mr-2" /> SAVE
                 </Button>
               </div>
@@ -184,12 +186,14 @@ export default function ProfilePage() {
             <div className="relative flex flex-row items-center gap-4 -mt-8">
               <div className="relative group">
                 <div className="h-24 w-24 rounded-2xl bg-white p-1 shadow-lg border border-slate-100">
-                  <div className="h-full w-full rounded-xl bg-gradient-to-br from-[#0B2E4F] to-[#1a456b] flex items-center justify-center text-3xl font-bold text-white">
+                  <div className="h-full w-full rounded-xl bg-gradient-to-br from-[#0B2E4F] to-[#1a456b] flex 
+                  items-center justify-center text-3xl font-bold text-white">
                     {employee.name.charAt(0)}
                   </div>
                 </div>
                 {isEditing && (
-                  <button className="absolute inset-0 m-1 flex items-center justify-center bg-black/40 rounded-xl text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button className="absolute inset-0 m-1 flex items-center justify-center bg-black/40 rounded-
+                  xl text-white opacity-0 group-hover:opacity-100 transition-opacity">
                     <Camera className="h-5 w-5" />
                   </button>
                 )}
@@ -198,11 +202,14 @@ export default function ProfilePage() {
               <div className="flex-1 pt-8">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-xl font-black text-slate-900 tracking-tight">{employee.name}</h1>
-                  <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 text-[9px] font-bold px-2 py-0 border-emerald-100">
+                  <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 text-[9px] font-bold px-2 
+                  py-0 border-emerald-100">
                     {employee.status === "Active" ? "ACTIVE" : "INACTIVE"}
                   </Badge>
                 </div>
-                <p className="text-slate-500 font-medium text-xs">{employee.designation} • {employee.department}</p>
+                <p className="text-slate-500 font-medium text-xs">{employee.designation} • {employee.department}
+
+                </p>
               </div>
             </div>
           </div>
@@ -238,7 +245,8 @@ export default function ProfilePage() {
             {/* Metadata Card */}
             <Card className="rounded-xl border-none shadow-sm ring-1 ring-slate-200/60">
               <CardHeader className="py-3 px-4 border-b border-slate-50">
-                <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Employment Metadata</CardTitle>
+                <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Employment 
+                  Metadata</CardTitle>
               </CardHeader>
               <CardContent className="p-4 space-y-3">
                 <div>
@@ -269,14 +277,18 @@ export default function ProfilePage() {
 
           {/* Right Column: Account Info */}
           <div className="lg:col-span-8">
-            <Card className="rounded-xl border-none shadow-sm ring-1 ring-slate-200/60 h-full bg-white flex flex-col">
+            <Card className="rounded-xl border-none shadow-sm ring-1 ring-slate-200/60 h-full bg-white flex 
+            flex-col">
               <CardHeader className="py-5 px-8 border-b border-slate-50">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <CardTitle className="text-sm font-bold text-slate-800 tracking-tight">Account Details</CardTitle>
-                    <p className="text-[10px] text-slate-400 font-medium uppercase tracking-tight">Primary Contact Records</p>
+                    <CardTitle className="text-sm font-bold text-slate-800 tracking-tight">Account 
+                      Details</CardTitle>
+                    <p className="text-[10px] text-slate-400 font-medium uppercase tracking-tight">Primary 
+                      Contact Records</p>
                   </div>
-                  <Badge className="bg-slate-50 text-slate-500 border-slate-200 text-[9px] font-bold px-2 py-0.5">
+                  <Badge className="bg-slate-50 text-slate-500 border-slate-200 text-[9px] font-bold px-2 py-
+                  0.5">
                     VERIFIED
                   </Badge>
                 </div>
@@ -309,10 +321,12 @@ export default function ProfilePage() {
                   
                   {/* Email Field */}
                   <div className="space-y-2.5 group">
-                    <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] ml-0.5 group-focus-within:text-indigo-500 transition-colors">
+                    <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] ml-0.5 
+                    group-focus-within:text-indigo-500 transition-colors">
                       Email Address
                     </Label>
-                    <div className="flex items-center gap-3 border-b border-slate-100 pb-1 group-focus-within:border-indigo-500 transition-all">
+                    <div className="flex items-center gap-3 border-b border-slate-100 pb-1 group-focus-
+                    within:border-indigo-500 transition-all">
                       <Mail className={cn(
                         "h-4 w-4 flex-shrink-0 transition-colors duration-300",
                         isEditing ? "text-indigo-500" : "text-slate-400"
@@ -331,10 +345,12 @@ export default function ProfilePage() {
 
                   {/* Phone Field */}
                   <div className="space-y-2.5 group">
-                    <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] ml-0.5 group-focus-within:text-indigo-500 transition-colors">
+                    <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] ml-0.5 
+                    group-focus-within:text-indigo-500 transition-colors">
                       Contact Phone
                     </Label>
-                    <div className="flex items-center gap-3 border-b border-slate-100 pb-1 group-focus-within:border-indigo-500 transition-all">
+                    <div className="flex items-center gap-3 border-b border-slate-100 pb-1 group-focus-
+                    within:border-indigo-500 transition-all">
                       <Phone className={cn(
                         "h-4 w-4 flex-shrink-0 transition-colors duration-300",
                         isEditing ? "text-indigo-500" : "text-slate-400"
@@ -365,10 +381,12 @@ export default function ProfilePage() {
 
                   {/* Address Field */}
                   <div className="space-y-2.5 group md:col-span-2">
-                    <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] ml-0.5 group-focus-within:text-indigo-500 transition-colors">
+                    <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] ml-0.5 
+                    group-focus-within:text-indigo-500 transition-colors">
                       Residential Address
                     </Label>
-                    <div className="flex items-center gap-3 border-b border-slate-100 pb-1 group-focus-within:border-indigo-500 transition-all">
+                    <div className="flex items-center gap-3 border-b border-slate-100 pb-1 group-focus-
+                    within:border-indigo-500 transition-all">
                       <MapPin className={cn(
                         "h-4 w-4 flex-shrink-0 transition-colors duration-300",
                         isEditing ? "text-indigo-500" : "text-slate-400"
@@ -390,7 +408,8 @@ export default function ProfilePage() {
 
               {isEditing && (
                 <div className="px-8 pb-8 animate-in fade-in slide-in-from-bottom-2">
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-indigo-50/50 border border-indigo-100/50">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-indigo-50/50 border border-indigo-
+                  100/50">
                     <div className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
                     <p className="text-[11px] text-indigo-700 font-medium">
                       You are currently modifying sensitive personnel data. Click save to confirm changes.

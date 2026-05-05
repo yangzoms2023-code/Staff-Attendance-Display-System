@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { dataStore } from "@/lib/data-store"
 import { useAuth } from "@/lib/auth-context"
 import type { OutingRequest, Employee } from "@/lib/types"
@@ -19,6 +20,9 @@ import { Check, X, Clock, Briefcase, User, ArrowLeftRight, RefreshCw, Filter, Ca
 import { cn } from "@/lib/utils"
 
 export default function RequestsPage() {
+  const searchParams = useSearchParams()
+  const tabParam = searchParams?.get("tab")
+  
   const { user } = useAuth()
   const [requests, setRequests] = useState<OutingRequest[]>([])
   const [employees, setEmployees] = useState<Employee[]>([])
@@ -30,10 +34,21 @@ export default function RequestsPage() {
   const [filterDate, setFilterDate] = useState(new Date().toISOString().split("T")[0])
   const [filterStatus, setFilterStatus] = useState<string>("all")
   const [searchQuery, setSearchQuery] = useState("")
+  const [activeTab, setActiveTab] = useState("pending")
 
   useEffect(() => {
     loadData()
   }, [])
+
+  useEffect(() => {
+    if (tabParam === "active") {
+      setActiveTab("active")
+    } else if (tabParam === "all") {
+      setActiveTab("all")
+    } else {
+      setActiveTab("pending")
+    }
+  }, [tabParam])
 
   const loadData = () => {
     setLoading(true)
@@ -203,8 +218,7 @@ export default function RequestsPage() {
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-8 w-8 text-slate-400 hover:text-white hover:bg-[#0B2E4F] transition-
-                        colors"
+                        className="h-8 w-8 text-slate-400 hover:text-white hover:bg-[#0B2E4F] transition-colors"
                       >
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
@@ -215,8 +229,7 @@ export default function RequestsPage() {
                           setSelectedRequest(request)
                           setViewDetailsOpen(true)
                         }}
-                        className="gap-2 text-sm cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-
-                        [#0B2E4F] focus:text-white transition-colors"
+                        className="gap-2 text-sm cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] focus:text-white transition-colors"
                       >
                         <Eye className="h-3.5 w-3.5" />
                         View
@@ -226,16 +239,14 @@ export default function RequestsPage() {
                         <>
                           <DropdownMenuItem 
                             onClick={() => handleApprove(request)}
-                            className="gap-2 text-sm text-emerald-600 cursor-pointer hover:bg-emerald-50 
-                            hover:text-emerald-700 transition-colors"
+                            className="gap-2 text-sm text-emerald-600 cursor-pointer hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
                           >
                             <Check className="h-3.5 w-3.5" />
                             Approve
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={() => handleDeny(request)}
-                            className="gap-2 text-sm text-red-600 cursor-pointer hover:bg-red-50 hover:text-
-                            red-700 transition-colors"
+                            className="gap-2 text-sm text-red-600 cursor-pointer hover:bg-red-50 hover:text-red-700 transition-colors"
                           >
                             <X className="h-3.5 w-3.5" />
                             Reject
@@ -246,8 +257,7 @@ export default function RequestsPage() {
                       {request.status === "approved" && request.willReturn && !request.actualReturnTime && (
                         <DropdownMenuItem 
                           onClick={() => handleMarkReturn(request.id)}
-                          className="gap-2 text-sm text-blue-600 cursor-pointer hover:bg-blue-50 hover:text-
-                          blue-700 transition-colors"
+                          className="gap-2 text-sm text-blue-600 cursor-pointer hover:bg-blue-50 hover:text-blue-700 transition-colors"
                         >
                           <Check className="h-3.5 w-3.5" />
                           Mark Return
@@ -330,11 +340,9 @@ export default function RequestsPage() {
             <div className="flex items-center justify-between gap-2">
               <div className="space-y-1 min-w-0">
                 <p className="text-sm font-medium text-slate-500 truncate">Approved Today</p>
-                <p className="text-2xl font-bold text-emerald-600">{todayRequests.filter(r => r.status === 
-                  "approved").length}</p>
+                <p className="text-2xl font-bold text-emerald-600">{todayRequests.filter(r => r.status === "approved").length}</p>
               </div>
-              <div className="h-10 w-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-
-              0">
+              <div className="h-10 w-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
                 <Check className="h-6 w-6 text-emerald-600" />
               </div>
             </div>
@@ -342,7 +350,7 @@ export default function RequestsPage() {
         </Card>
       </div>
 
-      <Tabs defaultValue="pending" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="pending" className="gap-2">
             <Clock className="h-4 w-4" />
@@ -442,29 +450,25 @@ export default function RequestsPage() {
                     <SelectContent>
                       <SelectItem 
                         value="all"
-                        className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] 
-                        focus:text-white transition-colors"
+                        className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] focus:text-white transition-colors"
                       >
                         All Status
                       </SelectItem>
                       <SelectItem 
                         value="pending"
-                        className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] 
-                        focus:text-white transition-colors"
+                        className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] focus:text-white transition-colors"
                       >
                         Pending
                       </SelectItem>
                       <SelectItem 
                         value="approved"
-                        className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] 
-                        focus:text-white transition-colors"
+                        className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] focus:text-white transition-colors"
                       >
                         Approved
                       </SelectItem>
                       <SelectItem 
                         value="denied"
-                        className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] 
-                        focus:text-white transition-colors"
+                        className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] focus:text-white transition-colors"
                       >
                         Reject
                       </SelectItem>
@@ -562,8 +566,7 @@ export default function RequestsPage() {
             <Button 
               variant="outline" 
               onClick={() => setViewDetailsOpen(false)} 
-              className="gap-2 bg-[#0b2e4f] text-white shadow-sm h-10 px-5 border-2 border-transparent 
-              hover:bg-white hover:text-[#0b2e4f] hover:border-[#0b2e4f] transition-colors"
+              className="gap-2 bg-[#0b2e4f] text-white shadow-sm h-10 px-5 border-2 border-transparent hover:bg-white hover:text-[#0b2e4f] hover:border-[#0b2e4f] transition-colors"
             >
               Close
             </Button>
@@ -632,8 +635,7 @@ export default function RequestsPage() {
                   onChange={(e) => setReviewRemarks(e.target.value)}
                   placeholder="Add any remarks for this decision..."
                   rows={3}
-                  className="border-slate-300 rounded-md focus:ring-2 focus:ring-[#0B2E4F] focus:border-
-                  [#0B2E4F]"
+                  className="border-slate-300 rounded-md focus:ring-2 focus:ring-[#0B2E4F] focus:border-[#0B2E4F]"
                 />
               </div>
             </div>
@@ -644,8 +646,7 @@ export default function RequestsPage() {
             <Button
               variant="outline"
               onClick={() => setReviewDialogOpen(false)}
-              className="h-10 border-slate-300 text-slate-700 hover:bg-[#0B2E4F] hover:text-white transition-
-              colors w-full sm:w-auto"
+              className="h-10 border-slate-300 text-slate-700 hover:bg-[#0B2E4F] hover:text-white transition-colors w-full sm:w-auto"
             >
               Cancel
             </Button>
