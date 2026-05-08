@@ -222,7 +222,7 @@ export default function SettingsPage() {
               <p className="text-sm text-muted-foreground mt-1 mb-3">
                 Reset all data including employees and attendance records.
               </p>
-              <Button variant="destructive" size="sm" onClick={handleResetData}>
+              <Button variant="destructive" size="sm" onClick={handleResetData} className="gap-2 bg-[#ba0f0f] text-white shadow-sm h-10 px-5 shrink-0 self-start sm:self-auto border-2 border-transparent hover:bg-white hover:text-[#ba0f0f] hover:border-[#ba0f0f] transition-colors">
                 Reset All Data
               </Button>
             </div>
@@ -232,7 +232,7 @@ export default function SettingsPage() {
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={isSaving} className="min-w-[120px]">
+        <Button onClick={handleSave} disabled={isSaving} className="gap-2 bg-[#0b2e4f] text-white shadow-sm h-10 px-5 shrink-0 self-start sm:self-auto border-2 border-transparent hover:bg-white hover:text-[#0b2e4f] hover:border-[#0b2e4f] transition-colors">
           {isSaving ? "Saving..." : "Save Settings"}
         </Button>
       </div>

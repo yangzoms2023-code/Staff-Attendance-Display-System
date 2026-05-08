@@ -10,6 +10,7 @@ export interface Employee {
   department: string
   joiningDate: string
   status: "Active" | "Inactive"
+  inactiveReason?: string   // new field
   createdAt: string
   updatedAt: string
 }
@@ -26,13 +27,16 @@ export interface AttendanceRecord {
   updatedAt: string
 }
 
+// lib/types.ts
 export interface User {
   id: string
   username: string
   password: string
-  role: "admin" | "operator"
+  role: "admin" | "operator" | "employee"
   name: string
   email: string
+  employeeId?: string  // Link to employee record
+  department?: string
 }
 
 export interface DailyStats {

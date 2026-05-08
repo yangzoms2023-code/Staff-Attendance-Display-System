@@ -1,78 +1,107 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { FieldGroup, Field, FieldLabel } from "@/components/ui/field"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuth } from "@/lib/auth-context"
-import { Building2, Lock, User, AlertCircle, Monitor, Users } from "lucide-react"
+import { Building2, Lock, User, AlertCircle, Monitor, Users, Shield, UserCheck } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
+import { dataStore } from "@/lib/data-store"
 
 export default function LoginPage() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
+  const [employeeId, setEmployeeId] = useState("")
+  const [pin, setPin] = useState("")
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
+  const [activeRole, setActiveRole] = useState<"admin" | "employee">("employee")
   const { login, user, isLoading: authLoading } = useAuth()
   const router = useRouter()
 
-  useEffect(() => {
-    if (!authLoading && user) {
+useEffect(() => {
+  if (!authLoading) {
+    if (!user) {
+      // Stay on login page
+      return
+    }
+
+    // Redirect based on role if user exists
+    if (user.role === "employee") {
+      router.push("/staff")
+    } else {
       router.push("/dashboard")
     }
-  }, [user, authLoading, router])
+  }
+}, [user, authLoading, router])
 
-  const handleSubmit = async (e: React.FormEvent) => {
+
+  const handleEmployeeSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setIsLoading(true)
+    
+    // Add debug logs
+    console.log("Attempting login with:", { employeeId, pin })
+    const users = dataStore.getUsers()
+    console.log("Available users:", users)
+    
+    const success = login(employeeId, pin, "employee")
+    console.log("Login success:", success)
+    
+    if (!success) {
+      setError("Invalid employee credentials")
+    }
+    setIsLoading(false)
+  }
 
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 500))
-
-    const success = login(username, password)
-    if (success) {
-      router.push("/dashboard")
-    } else {
-      setError("Invalid username or password")
+  const handleAdminSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError("")
+    setIsLoading(true)
+    const success = login(username, password, "admin")
+    if (!success) {
+      setError("Invalid admin credentials")
     }
     setIsLoading(false)
   }
 
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="animate-pulse text-slate-500">Loading...</div>
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="relative flex min-h-screen flex-col">
+      {/* Background Pattern */}
+      <div 
+        className="fixed inset-0 bg-repeat opacity-10 -z-10"
+        style={{ backgroundImage: "url('/images/bg-pattern.png')" }}
+      />
       {/* Header */}
-      <header className="flex items-center justify-between bg-transparent px-6 py-4">
+      <header className="flex items-center justify-between bg-white/80 backdrop-blur-sm px-6 py-4 border-b border-
+      slate-200">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg border-2 border-primary bg-background">
-            <Building2 className="h-6 w-6 text-primary" />
+          <div className="flex h-16 w-16 items-center justify-center">
+            <Image src="/icon.png" alt="Logo" width={100} height={100} className="object-contain"/>
           </div>
           <div>
-            <h1 className="text-xl font-bold text-foreground">Thimphu Dzongkhag Administration</h1>
-            <p className="text-sm text-muted-foreground">Attendance Management System</p>
+            <h1 className="text-xl font-bold text-slate-900">Thimphu Dzongkhag Administration</h1>
+            <p className="text-sm text-slate-500">Attendance Management System</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/staff">
-            <Button className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
-              <Users className="h-4 w-4" />
-              Staff Portal
-            </Button>
-          </Link>
           <Link href="/tv">
-            <Button className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+            <Button variant="outline" className="gap-2 border-slate-200">
               <Monitor className="h-4 w-4" />
               TV Display
             </Button>
@@ -81,85 +110,219 @@ export default function LoginPage() {
       </header>
 
       {/* Main Content */}
-      <main className="flex flex-1 items-center justify-center p-6">
-        <Card className="w-full max-w-md border-0 shadow-lg">
-          <CardHeader className="pb-4 text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-accent/10">
-              <Lock className="h-7 w-7 text-accent" />
+      <main className="relative z-10 flex flex-1 items-center justify-center p-4">
+        <Card className="w-full max-w-md border border-white/20 shadow-2xl bg-white/95 backdrop-blur-sm">
+          <CardHeader className="space-y-1 pb-2 pt-4">
+            <div className="mx-auto mb-1 flex h-12 w-12 items-center justify-center rounded-full bg-[#0B2E4F]/10">
+              <Lock className="h-6 w-6 text-[#0B2E4F]" />
             </div>
-            <CardTitle className="text-2xl font-bold text-foreground">Welcome Back</CardTitle>
-            <CardDescription className="text-muted-foreground">
+            <CardTitle className="text-xl font-bold text-center text-slate-900">
+              Welcome Back
+            </CardTitle>
+            <CardDescription className="text-center text-slate-500 text-sm">
               Sign in to access the attendance management system
             </CardDescription>
           </CardHeader>
-          <CardContent className="px-8 pb-8">
-            <form onSubmit={handleSubmit}>
-              <FieldGroup>
-                <Field>
-                  <FieldLabel htmlFor="username" className="text-sm font-medium text-foreground">Username</FieldLabel>
-                  <div className="relative mt-1.5">
-                    <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="username"
-                      type="text"
-                      placeholder="Enter your username"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      className="h-11 rounded-lg border-border bg-background pl-10 text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary"
-                      required
-                    />
+
+          {/* Role Tabs */}
+          <div className="px-6">
+            <Tabs defaultValue="employee" className="w-full" onValueChange={(value) => setActiveRole(value as "admin" |
+              "employee")}>
+              <TabsList className="grid w-full grid-cols-2 bg-slate-100 h-9">
+                <TabsTrigger value="employee" className="data-[state=active]:bg-white data-[state=active]:text-
+                [#0B2E4F] gap-1 text-xs">
+                  <UserCheck className="h-3 w-3" />
+                  Employee Login
+                </TabsTrigger>
+                <TabsTrigger value="admin" className="data-[state=active]:bg-white data-[state=active]:text-[#0B2E4F] 
+                gap-1 text-xs">
+                  <Shield className="h-3 w-3" />
+                  Admin Login
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Employee Login Tab */}
+              <TabsContent value="employee" className="mt-3">
+                <form onSubmit={handleEmployeeSubmit}>
+                  {error && activeRole === "employee" && (
+                    <div className="mb-3 flex items-center gap-2 rounded-lg bg-red-50 p-2 text-xs text-red-600">
+                      <AlertCircle className="h-3 w-3" />
+                      {error}
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="employeeId" className="text-xs font-medium text-slate-700">
+                        Employee ID
+                      </Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                        <Input
+                          id="employeeId"
+                          type="text"
+                          placeholder="Enter your employee ID"
+                          value={employeeId}
+                          onChange={(e) => setEmployeeId(e.target.value)}
+                          className="h-9 pl-9 border-slate-200 focus:border-[#0B2E4F] focus:ring-[#0B2E4F] text-sm"
+                          required
+                          disabled={isLoading}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="pin" className="text-xs font-medium text-slate-700">
+                        PIN / Password
+                      </Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                        <Input
+                          id="pin"
+                          type="password"
+                          placeholder="Enter your PIN"
+                          value={pin}
+                          onChange={(e) => setPin(e.target.value)}
+                          className="h-9 pl-9 border-slate-200 focus:border-[#0B2E4F] focus:ring-[#0B2E4F] text-sm"
+                          required
+                          disabled={isLoading}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-0">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="remember-employee"
+                          checked={rememberMe}
+                          onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                          className="h-3 w-3 border-slate-300 data-[state=checked]:bg-[#0B2E4F] data-
+                          [state=checked]:border-[#0B2E4F]"
+                        />
+                        <Label htmlFor="remember-employee" className="text-xs font-normal text-slate-600 cursor-
+                        pointer">
+                          Remember me
+                        </Label>
+                      </div>
+                      <Link href="/forgot-pin" className="text-xs text-slate-600 hover:text-[#0B2E4F] transition-
+                      colors">
+                        Forgot PIN?
+                      </Link>
+                    </div>
                   </div>
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="password" className="text-sm font-medium text-foreground">Password</FieldLabel>
-                  <div className="relative mt-1.5">
-                    <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="Enter your Password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="h-11 rounded-lg border-border bg-background pl-10 text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary"
-                      required
-                    />
+
+                  <Button
+                    type="submit"
+                    className="w-full h-9 mt-4 bg-[#0B2E4F] hover:bg-[#1a456b] text-white text-sm"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" 
+                        />
+                        Signing in...
+                      </div>
+                    ) : (
+                      "Sign in as Employee"
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
+
+              {/* Admin Login Tab */}
+              <TabsContent value="admin" className="mt-3">
+                <form onSubmit={handleAdminSubmit}>
+                  {error && activeRole === "admin" && (
+                    <div className="mb-3 flex items-center gap-2 rounded-lg bg-red-50 p-2 text-xs text-red-600">
+                      <AlertCircle className="h-3 w-3" />
+                      {error}
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="username" className="text-xs font-medium text-slate-700">
+                        Username
+                      </Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                        <Input
+                          id="username"
+                          type="text"
+                          placeholder="Enter your username"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                          className="h-9 pl-9 border-slate-200 focus:border-[#0B2E4F] focus:ring-[#0B2E4F] text-sm"
+                          required
+                          disabled={isLoading}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="password" className="text-xs font-medium text-slate-700">
+                        Password
+                      </Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                        <Input
+                          id="password"
+                          type="password"
+                          placeholder="Enter your password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="h-9 pl-9 border-slate-200 focus:border-[#0B2E4F] focus:ring-[#0B2E4F] text-sm"
+                          required
+                          disabled={isLoading}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-0">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="remember-admin"
+                          checked={rememberMe}
+                          onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                          className="h-3 w-3 border-slate-300 data-[state=checked]:bg-[#0B2E4F] data-
+                          [state=checked]:border-[#0B2E4F]"
+                        />
+                        <Label htmlFor="remember-admin" className="text-xs font-normal text-slate-600 cursor-pointer">
+                          Remember me
+                        </Label>
+                      </div>
+                      <Link href="/forgot-password" className="text-xs text-slate-600 hover:text-[#0B2E4F] transition-
+                      colors">
+                        Forgot password?
+                      </Link>
+                    </div>
                   </div>
-                </Field>
-              </FieldGroup>
 
-              {/* Remember me and Forgot password */}
-              <div className="mt-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Checkbox 
-                    id="remember" 
-                    checked={rememberMe}
-                    onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                  />
-                  <label htmlFor="remember" className="text-sm text-foreground cursor-pointer">
-                    Remember me
-                  </label>
-                </div>
-                <Link href="#" className="text-sm text-primary hover:underline">
-                  Forgot password?
-                </Link>
-              </div>
+                  <Button
+                    type="submit"
+                    className="w-full h-9 mt-4 bg-[#0B2E4F] hover:bg-[#1a456b] text-white text-sm"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" 
+                        />
+                        Signing in...
+                      </div>
+                    ) : (
+                      "Sign in as Administrator"
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
+          </div>
 
-              {error && (
-                <div className="mt-4 flex items-center gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  {error}
-                </div>
-              )}
-
-              <Button 
-                type="submit" 
-                className="mt-6 h-11 w-full rounded-lg bg-primary text-primary-foreground hover:bg-primary/90" 
-                disabled={isLoading}
-              >
-                {isLoading ? "Signing in..." : "Sign In"}
-              </Button>
-            </form>
-          </CardContent>
+          <CardFooter className="flex flex-col space-y-2 px-6 pb-4 pt-2">
+            <div className="text-center text-xs text-slate-400">
+              <p>© 2024 Thimphu Dzongkhag Administration. All rights reserved.</p>
+            </div>
+          </CardFooter>
         </Card>
       </main>
     </div>

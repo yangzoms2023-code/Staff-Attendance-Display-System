@@ -47,6 +47,16 @@ const DEFAULT_USERS: User[] = [
     role: "operator",
     name: "Front Desk Operator",
     email: "operator@thimphu.gov.bt"
+  },
+  {
+    id: "102",
+    username: "TDA002",
+    password: "1234",
+    role: "employee",
+    name: "Pema Wangmoo",
+    email: "pema.wangmo@thimphu.gov.bt",
+    employeeId: "TDA002",
+    department: "Administrative"
   }
 ]
 
@@ -55,11 +65,11 @@ const SAMPLE_EMPLOYEES: Employee[] = [
   {
     id: "1",
     employeeId: "TDA001",
-    name: "Tshering Dorji",
+    name: "Minjur Dorji",
     gender: "Male",
     designation: "Dzongdag",
     contactNumber: "17123456",
-    email: "tshering.dorji@thimphu.gov.bt",
+    email: "minjur.dorji@thimphu.gov.bt",
     address: "Thimphu, Bhutan",
     department: "Administration",
     joiningDate: "2020-01-15",
@@ -270,19 +280,20 @@ const STORAGE_KEYS = {
 export const dataStore = {
   // Initialize data
   init() {
-    if (typeof window === "undefined") return
-    
-    if (!localStorage.getItem(STORAGE_KEYS.USERS)) {
-      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(DEFAULT_USERS))
+  if (typeof window === "undefined") return
+  
+  if (!localStorage.getItem(STORAGE_KEYS.USERS)) {
+    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(DEFAULT_USERS))
+  } else {
+    // Check if employee users exist, if not add them
+    const users = this.getUsers()
+    const hasEmployeeUsers = users.some(u => u.role === "employee")
+    if (!hasEmployeeUsers) {
+      const employeeUsers = DEFAULT_USERS.filter(u => u.role === "employee")
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify([...users, ...employeeUsers]))
     }
-    
-    if (!localStorage.getItem(STORAGE_KEYS.EMPLOYEES)) {
-      localStorage.setItem(STORAGE_KEYS.EMPLOYEES, JSON.stringify(SAMPLE_EMPLOYEES))
-    }
-    
-    if (!localStorage.getItem(STORAGE_KEYS.ATTENDANCE)) {
-      localStorage.setItem(STORAGE_KEYS.ATTENDANCE, JSON.stringify(generateSampleAttendance()))
-    }
+  }
+
   },
   
   // Users

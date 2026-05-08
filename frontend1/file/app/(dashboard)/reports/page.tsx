@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -11,14 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { dataStore, DEPARTMENTS } from "@/lib/data-store"
 import type { Employee, AttendanceRecord, ReportData } from "@/lib/types"
@@ -204,53 +196,99 @@ export default function ReportsPage() {
     totalAbsent: reportData.reduce((sum, r) => sum + r.absentDays, 0),
   }
 
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
+  const getAvatarColor = (name: string) => {
+    const colors = [
+      "bg-blue-100 text-blue-700",
+      "bg-emerald-100 text-emerald-700",
+      "bg-amber-100 text-amber-700",
+      "bg-rose-100 text-rose-700",
+      "bg-violet-100 text-violet-700",
+      "bg-cyan-100 text-cyan-700",
+    ]
+    let hash = 0
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash)
+    }
+    return colors[Math.abs(hash) % colors.length]
+  }
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Reports</h1>
-          <p className="text-muted-foreground">
+    <div className="w-full min-w-0 overflow-hidden">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+        <div className="space-y-1">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Reports</h1>
+          <p className="text-sm sm:text-base text-slate-500">
             Generate and export attendance reports
           </p>
         </div>
-        <Button onClick={exportToCSV} className="gap-2">
+        <Button 
+          onClick={exportToCSV} 
+          className="gap-2 bg-[#0B2E4F] text-white hover:bg-white hover:text-[#0B2E4F] border border-[#0B2E4F]
+          shadow-
+          sm h-9 sm:h-10 px-4 sm:px-5 shrink-0 self-start sm:self-auto w-full sm:w-auto transition-colors"
+        >
           <Download className="h-4 w-4" />
           Export CSV
         </Button>
       </div>
 
       {/* Filters */}
-      <Card className="border-0 shadow-sm">
-        <CardContent className="p-4">
-          <div className="flex flex-wrap items-center gap-4">
+      <Card className="border border-slate-200 shadow-none bg-white mb-6">
+        <CardContent className="p-3 sm:p-4">
+          <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">From:</span>
+              <Calendar className="h-4 w-4 text-slate-400" />
+              <span className="text-sm text-slate-500">From:</span>
               <Input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-[160px]"
+                className="w-[160px] h-9 border-slate-200 focus:border-[#0B2E4F] focus:ring-[#0B2E4F]"
               />
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">To:</span>
+              <span className="text-sm text-slate-500">To:</span>
               <Input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-[160px]"
+                className="w-[160px] h-9 border-slate-200 focus:border-[#0B2E4F] focus:ring-[#0B2E4F]"
               />
             </div>
             <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[180px] h-9 border-slate-200 focus:border-[#0B2E4F]">
                 <SelectValue placeholder="Department" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Departments</SelectItem>
+                <SelectItem 
+                  value="all"
+                  className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] focus:text-
+                  white 
+                  transition-colors"
+                >
+                  All Departments
+                </SelectItem>
                 {DEPARTMENTS.map((dept) => (
-                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                  <SelectItem 
+                    key={dept} 
+                    value={dept}
+                    className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] 
+                    focus:text-
+                    white 
+                    transition-colors"
+                  >
+                    {dept}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -258,182 +296,225 @@ export default function ReportsPage() {
         </CardContent>
       </Card>
 
-      {/* Summary Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
+      {/* Stats Overview */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <Card className="border-0 shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-start justify-between">
-              <p className="text-sm font-medium text-muted-foreground">Total Employees</p>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-100">
-                <Users className="h-5 w-5 text-violet-500" />
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="space-y-1 min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-slate-500 truncate">Total Employees</p>
+                <p className="text-xl sm:text-2xl font-bold text-slate-900">{overallStats.totalEmployees}</p>
+              </div>
+              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-slate-100 flex items-center justify-center 
+              shrink-0">
+                <Users className="h-4 w-4 sm:h-6 sm:w-6 text-slate-600" />
               </div>
             </div>
-            <p className="mt-2 text-3xl font-bold text-foreground">{overallStats.totalEmployees}</p>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-start justify-between">
-              <p className="text-sm font-medium text-muted-foreground">Avg Attendance</p>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100">
-                <TrendingUp className="h-5 w-5 text-emerald-500" />
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="space-y-1 min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-slate-500 truncate">Avg Attendance</p>
+                <p className="text-xl sm:text-2xl font-bold text-emerald-600">{overallStats.avgAttendance}%</p>
+              </div>
+              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-emerald-50 flex items-center justify-
+              center 
+              shrink-0">
+                <TrendingUp className="h-4 w-4 sm:h-6 sm:w-6 text-emerald-600" />
               </div>
             </div>
-            <p className="mt-2 text-3xl font-bold text-foreground">{overallStats.avgAttendance}%</p>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-start justify-between">
-              <p className="text-sm font-medium text-muted-foreground">Total Present Days</p>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-                <FileText className="h-5 w-5 text-blue-500" />
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="space-y-1 min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-slate-500 truncate">Total Present Days</p>
+                <p className="text-xl sm:text-2xl font-bold text-emerald-600">{overallStats.totalPresent}</p>
+              </div>
+              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-emerald-50 flex items-center justify-
+              center 
+              shrink-0">
+                <FileText className="h-4 w-4 sm:h-6 sm:w-6 text-emerald-600" />
               </div>
             </div>
-            <p className="mt-2 text-3xl font-bold text-foreground">{overallStats.totalPresent}</p>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-start justify-between">
-              <p className="text-sm font-medium text-muted-foreground">Total Absent Days</p>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
-                <FileText className="h-5 w-5 text-red-500" />
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="space-y-1 min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-slate-500 truncate">Total Absent Days</p>
+                <p className="text-xl sm:text-2xl font-bold text-rose-600">{overallStats.totalAbsent}</p>
+              </div>
+              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-rose-50 flex items-center justify-center 
+              shrink-
+              0">
+                <FileText className="h-4 w-4 sm:h-6 sm:w-6 text-rose-600" />
               </div>
             </div>
-            <p className="mt-2 text-3xl font-bold text-foreground">{overallStats.totalAbsent}</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Tabs for different report views */}
       <Tabs defaultValue="employee" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="employee">By Employee</TabsTrigger>
-          <TabsTrigger value="department">By Department</TabsTrigger>
-          <TabsTrigger value="trend">Attendance Trend</TabsTrigger>
+        <TabsList className="bg-slate-100 p-1 rounded-lg">
+          <TabsTrigger value="employee" className="text-sm data-[state=active]:bg-white data-
+          [state=active]:text-
+          slate-900 data-[state=active]:shadow-sm">By Employee</TabsTrigger>
+          <TabsTrigger value="department" className="text-sm data-[state=active]:bg-white data-
+          [state=active]:text-
+          slate-900 data-[state=active]:shadow-sm">By Department</TabsTrigger>
+          <TabsTrigger value="trend" className="text-sm data-[state=active]:bg-white data-[state=active]:text-
+          slate-
+          900 data-[state=active]:shadow-sm">Attendance Trend</TabsTrigger>
         </TabsList>
 
         <TabsContent value="employee" className="space-y-4">
-          <Card className="border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-100">
-                  <Users className="h-4 w-4 text-violet-500" />
+          {/* Employee Report Table */}
+          <div className="w-full overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
+            <div className="min-w-[900px] sm:min-w-full">
+              {/* Table Header */}
+              <div className="grid grid-cols-[80px_1.5fr_1.2fr_0.8fr_0.8fr_0.8fr_0.8fr_1fr] gap-3 border-b 
+              border-
+              slate-200 bg-[#0B2E4F] rounded-t-lg px-4">
+                <div className="py-3 text-xs font-semibold text-white uppercase tracking-wider">
+                  ID
                 </div>
-                Employee Attendance Report
-              </CardTitle>
-              <CardDescription>
-                Individual attendance records for {startDate} to {endDate}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Employee</TableHead>
-                      <TableHead>Department</TableHead>
-                      <TableHead className="text-center">Present</TableHead>
-                      <TableHead className="text-center">Late</TableHead>
-                      <TableHead className="text-center">Absent</TableHead>
-                      <TableHead className="text-center">Leave</TableHead>
-                      <TableHead className="text-center">Attendance %</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {reportData.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                          No data available
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      reportData.map((report) => (
-                        <TableRow key={report.employee.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-                                {report.employee.name.charAt(0)}
-                              </div>
-                              <div>
-                                <p className="font-medium">{report.employee.name}</p>
-                                <p className="text-sm text-muted-foreground">{report.employee.employeeId}</p>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>{report.employee.department}</TableCell>
-                          <TableCell className="text-center">
-                            <span className="rounded-full bg-chart-1/20 px-2 py-1 text-sm font-medium text-chart-1">
-                              {report.presentDays}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <span className="rounded-full bg-chart-3/20 px-2 py-1 text-sm font-medium text-chart-3">
-                              {report.lateDays}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <span className="rounded-full bg-chart-2/20 px-2 py-1 text-sm font-medium text-chart-2">
-                              {report.absentDays}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <span className="rounded-full bg-muted px-2 py-1 text-sm font-medium text-muted-foreground">
-                              {report.leaveDays}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div
-                              className={cn(
-                                "inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold",
-                                report.attendancePercentage >= 90 && "bg-chart-1/20 text-chart-1",
-                                report.attendancePercentage >= 70 && report.attendancePercentage < 90 && "bg-chart-3/20 text-chart-3",
-                                report.attendancePercentage < 70 && "bg-chart-2/20 text-chart-2"
-                              )}
-                            >
-                              {report.attendancePercentage}%
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+                <div className="py-3 text-xs font-semibold text-white uppercase tracking-wider">
+                  Employee
+                </div>
+                <div className="py-3 text-xs font-semibold text-white uppercase tracking-wider">
+                  Department
+                </div>
+                <div className="py-3 text-xs font-semibold text-white uppercase tracking-wider text-center">
+                  Present
+                </div>
+                <div className="py-3 text-xs font-semibold text-white uppercase tracking-wider text-center">
+                  Late
+                </div>
+                <div className="py-3 text-xs font-semibold text-white uppercase tracking-wider text-center">
+                  Absent
+                </div>
+                <div className="py-3 text-xs font-semibold text-white uppercase tracking-wider text-center">
+                  Leave
+                </div>
+                <div className="py-3 text-xs font-semibold text-white uppercase tracking-wider text-center">
+                  Attendance %
+                </div>
               </div>
-            </CardContent>
-          </Card>
+
+              {/* Table Body */}
+              {reportData.length === 0 ? (
+                <div className="h-32 flex flex-col items-center justify-center text-slate-400 border border-
+                slate-200 
+                rounded-b-lg mt-[-1px] bg-white">
+                  <Users className="h-8 w-8 mb-2 opacity-50" />
+                  <p className="text-sm font-medium">No data available</p>
+                  <p className="text-xs mt-1">Try adjusting your filters</p>
+                </div>
+              ) : (
+                reportData.map((report, index) => (
+                  <div 
+                    key={report.employee.id}
+                    className={cn(
+                      "grid grid-cols-[80px_1.5fr_1.2fr_0.8fr_0.8fr_0.8fr_0.8fr_1fr] gap-3 items-center border-l border-r border-b border-slate-200 transition-colors px-4",
+                      index % 2 === 0 ? "bg-[#FDFDFD]" : "bg-[#F6F6F6]",
+                      index === 0 && "border-t",
+                      index === reportData.length - 1 && "rounded-b-lg"
+                    )}
+                  >
+                    <div className="py-3">
+                      <span className="inline-flex items-center px-2 py-0.5 text-xs text-slate-900 rounded font-
+                      medium">
+                        {report.employee.employeeId}
+                      </span>
+                    </div>
+
+                    <div className="py-3 min-w-0">
+                      <p className="text-xs sm:text-sm text-slate-700 truncate">{report.employee.name}</p>
+                    </div>
+
+                    <div className="py-3">
+                      <span className="text-xs sm:text-sm text-slate-700 truncate block">
+                        {report.employee.department}
+
+                      </span>
+                    </div>
+
+                    <div className="py-3 text-center">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-emerald-50 text-xs font-
+                      medium 
+                      text-emerald-700">
+                        {report.presentDays}
+                      </span>
+                    </div>
+
+                    <div className="py-3 text-center">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-amber-50 text-xs font-
+                      medium 
+                      text-amber-700">
+                        {report.lateDays}
+                      </span>
+                    </div>
+
+                    <div className="py-3 text-center">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-red-50 text-xs font-
+                      medium 
+                      text-red-700">
+                        {report.absentDays}
+                      </span>
+                    </div>
+
+                    <div className="py-3 text-center">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-blue-50 text-xs font-
+                      medium 
+                      text-blue-700">
+                        {report.leaveDays}
+                      </span>
+                    </div>
+
+                    <div className="py-3 text-center">
+                      <div
+                        className={cn(
+                          "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold",
+                          report.attendancePercentage >= 90 && "bg-emerald-50 text-emerald-700",
+                          report.attendancePercentage >= 70 && report.attendancePercentage < 90 && "bg-amber-50 text-amber-700",
+                          report.attendancePercentage < 70 && "bg-red-50 text-red-700"
+                        )}
+                      >
+                        {report.attendancePercentage}%
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="department" className="space-y-4">
-          <Card className="border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
-                  <FileText className="h-4 w-4 text-blue-500" />
-                </div>
-                Department-wise Attendance
-              </CardTitle>
-              <CardDescription>
-                Average attendance by department
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+          <Card className="border border-slate-200 shadow-none bg-white">
+            <CardContent className="p-4 sm:p-6">
               <div className="h-[400px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={departmentStats} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                    <XAxis type="number" domain={[0, 100]} tick={{ fill: 'currentColor' }} className="text-muted-foreground" />
-                    <YAxis dataKey="department" type="category" width={120} tick={{ fill: 'currentColor' }} className="text-muted-foreground" />
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200" />
+                    <XAxis type="number" domain={[0, 100]} tick={{ fill: '#64748B' }} />
+                    <YAxis dataKey="department" type="category" width={120} tick={{ fill: '#64748B' }} />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: 'hsl(var(--card))',
-                        border: '1px solid hsl(var(--border))',
+                        backgroundColor: '#FFFFFF',
+                        border: '1px solid #E2E8F0',
                         borderRadius: '8px',
+                        color: '#0F172A',
                       }}
                       formatter={(value: number) => [`${value}%`, "Avg Attendance"]}
                     />
-                    <Bar dataKey="avgAttendance" fill="var(--chart-1)" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="avgAttendance" fill="#0B2E4F" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -442,36 +523,26 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="trend" className="space-y-4">
-          <Card className="border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100">
-                  <TrendingUp className="h-4 w-4 text-emerald-500" />
-                </div>
-                Attendance Trend
-              </CardTitle>
-              <CardDescription>
-                Daily attendance pattern over the selected period
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+          <Card className="border border-slate-200 shadow-none bg-white">
+            <CardContent className="p-4 sm:p-6">
               <div className="h-[400px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={trendData}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                    <XAxis dataKey="date" tick={{ fill: 'currentColor' }} className="text-muted-foreground" />
-                    <YAxis tick={{ fill: 'currentColor' }} className="text-muted-foreground" />
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200" />
+                    <XAxis dataKey="date" tick={{ fill: '#64748B' }} />
+                    <YAxis tick={{ fill: '#64748B' }} />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: 'hsl(var(--card))',
-                        border: '1px solid hsl(var(--border))',
+                        backgroundColor: '#FFFFFF',
+                        border: '1px solid #E2E8F0',
                         borderRadius: '8px',
+                        color: '#0F172A',
                       }}
                     />
                     <Legend />
-                    <Line type="monotone" dataKey="present" stroke="var(--chart-1)" strokeWidth={2} name="Present" />
-                    <Line type="monotone" dataKey="absent" stroke="var(--chart-2)" strokeWidth={2} name="Absent" />
-                    <Line type="monotone" dataKey="late" stroke="var(--chart-3)" strokeWidth={2} name="Late" />
+                    <Line type="monotone" dataKey="present" stroke="#10B981" strokeWidth={2} name="Present" />
+                    <Line type="monotone" dataKey="absent" stroke="#EF4444" strokeWidth={2} name="Absent" />
+                    <Line type="monotone" dataKey="late" stroke="#F59E0B" strokeWidth={2} name="Late" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>

@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   ],
   shortcut: '/icon.png',
   apple: '/icon.png',
-}
+  }
 }
 
 export const viewport: Viewport = {

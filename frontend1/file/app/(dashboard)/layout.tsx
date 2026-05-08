@@ -1,6 +1,7 @@
 "use client"
+
 import { useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { useAuth } from "@/lib/auth-context"
@@ -12,6 +13,16 @@ import {
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb"
 
+// Map routes to display titles
+const pageTitles: Record<string, string> = {
+  "/dashboard": "Dashboard",
+  "/employees": "Employees",
+  "/attendance": "Attendance",
+  "/requests": "Outing Requests",
+  "/reports": "Reports",
+  "/settings": "Settings",
+}
+
 export default function DashboardLayout({
   children,
 }: {
@@ -19,6 +30,7 @@ export default function DashboardLayout({
 }) {
   const { user, isLoading } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -38,17 +50,20 @@ export default function DashboardLayout({
     return null
   }
 
+  // Get the current page title, fallback to "Dashboard"
+  const currentTitle = pageTitles[pathname] || "Dashboard"
+
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
+        <header className="flex h-14 shrink-0 items-center gap-2 bg-[#0B2E4F] px-4">
+          <SidebarTrigger className="-ml-1 text-white" />
+          <Separator orientation="vertical" className="mr-2 h-4 bg-white/30" />
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbPage className="text-foreground">Dashboard</BreadcrumbPage>
+                <BreadcrumbPage className="text-white">{currentTitle}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
