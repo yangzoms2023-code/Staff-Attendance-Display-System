@@ -88,22 +88,26 @@ useEffect(() => {
         style={{ backgroundImage: "url('/images/bg-pattern.png')" }}
       />
       {/* Header */}
-      <header className="flex items-center justify-between bg-white/80 backdrop-blur-sm px-6 py-4 border-b border-
-      slate-200">
-        <div className="flex items-center gap-3">
-          <div className="flex h-16 w-16 items-center justify-center">
-            <Image src="/icon.png" alt="Logo" width={100} height={100} className="object-contain"/>
+      <header className="flex items-center justify-between bg-white/80 backdrop-blur-sm px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex h-10 w-10 sm:h-16 sm:w-16 items-center justify-center">
+            <Image src="/icon.png" alt="Logo" width={100} height={100} className="object-contain w-full h-full"/>
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Thimphu Dzongkhag Administration</h1>
-            <p className="text-sm text-slate-500">Attendance Management System</p>
+            <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-slate-900 leading-tight sm:leading-normal">
+              Thimphu Dzongkhag Administration
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500">
+              Attendance Management System
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Link href="/tv">
-            <Button variant="outline" className="gap-2 border-slate-200">
-              <Monitor className="h-4 w-4" />
-              TV Display
+            <Button variant="outline" className="gap-1 sm:gap-2 border-slate-200 text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 h-auto sm:h-10">
+              <Monitor className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">TV Display</span>
+              <span className="xs:hidden">TV</span>
             </Button>
           </Link>
         </div>
