@@ -3,6 +3,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "routes": [
-    { "src": "/(.*)", "dest": "/$1" }
+    { "src": "/", "dest": "/" }
   ]
 }
