@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { dataStore } from "@/lib/data-store"
-import type { Employee, AttendanceRecord, OutingRequest } from "@/lib/types"
+import type { Employee, AttendanceRecord, OutingRequest, LeaveRequest } from "@/lib/types"
 
 export default function TVDashboard() {
   const [employees, setEmployees] = useState<Employee[]>([])
@@ -68,6 +68,18 @@ export default function TVDashboard() {
     setEmployeeStatuses(statuses)
   }
 
+  // Helper function to get employee attendance record
+  const getEmployeeAttendance = (employeeId: string): AttendanceRecord | undefined => {
+    const allAttendance = dataStore.getAttendance()
+    return allAttendance.find(a => a.employeeId === employeeId && a.date === today)
+  }
+
+  // Helper function to get employee outing status
+  const getEmployeeOutingStatus = (employeeId: string): OutingRequest | undefined => {
+    const allOutings = dataStore.getOutingRequestsByEmployee(employeeId)
+    return allOutings.find(o => o.date === today && o.status === "approved" && !o.actualReturnTime)
+  }
+
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString("en-US", {
       hour: "2-digit",
@@ -108,7 +120,7 @@ export default function TVDashboard() {
         if (outingStatus.purpose === "official") {
           onDuty++
         } else {
-          scrollContainer.scrollTop = scrollAmount
+          outOfOffice++
         }
       } else if (status === "Present" || status === "Late") {
         inOffice++
@@ -156,8 +168,8 @@ export default function TVDashboard() {
           <div className="flex items-center gap-4">
             <img src="/icon.png" alt="Logo" className="h-18 w-18 object-contain" />
             <div>
-              <h1 className="text-xl font-bold text-[#0B2E4F]">Staff Information Display</h1>
-              <p className="text-sm text-slate-800 font-semibold">Thimphu Dzongkhag Administration</p>
+              <h1 className="text-xl font-bold text-white">Staff Information Display</h1>
+              <p className="text-sm text-slate-300 font-semibold">Thimphu Dzongkhag Administration</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -229,7 +241,7 @@ export default function TVDashboard() {
                 const outingStatus = getEmployeeOutingStatus(employee.id)
                 const status = record?.status ?? "Absent"
                 
-                let displayStatus: "In Office" | "On Duty" | "Out of Office"
+                let displayStatus: "In Office" | "On Duty" | "Out of Office" = "Out of Office"
                 let remarks: string = ""
 
                 if (outingStatus) {
@@ -312,19 +324,17 @@ export default function TVDashboard() {
   )
 }
 
-function StatusBadge({ status }: { status: "In Office" | "On Duty" | "Out of Office" | "On Leave" }) {
+function StatusBadge({ status }: { status: "In Office" | "On Duty" | "Out of Office" }) {
   const styles = {
     "In Office": "bg-emerald-50 text-emerald-600 border-emerald-200",
     "On Duty": "bg-amber-50 text-amber-600 border-amber-200",
-    "Out of Office": "bg-red-50 text-red-600 border-red-200",
-    "On Leave": "bg-purple-50 text-purple-600 border-purple-200"
+    "Out of Office": "bg-red-50 text-red-600 border-red-200"
   }
 
   const dotStyles = {
     "In Office": "bg-emerald-500",
     "On Duty": "bg-amber-500",
-    "Out of Office": "bg-red-500",
-    "On Leave": "bg-purple-500"
+    "Out of Office": "bg-red-500"
   }
 
   return (
