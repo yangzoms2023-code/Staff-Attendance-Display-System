@@ -371,14 +371,14 @@ export default function StaffDashboard() {
                     <p className="text-xs text-slate-400 mt-1">{employee.email}</p>
                   </div>
                   <DropdownMenuItem
-                    className="gap-2 cursor-pointer hover:bg-[#0B2E4F] hover:text-white"
+                    className="gap-2 cursor-pointer hover:!bg-[#0B2E4F] hover:text-white"
                     onClick={() => router.push("/staff/profile")}
                   >
                     <User className="h-4 w-4" />
                     My Profile
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    className="gap-2 cursor-pointer hover:bg-[#0B2E4F] hover:text-white"
+                    className="gap-2 cursor-pointer hover:!bg-[#0B2E4F] hover:text-white"
                     onClick={() => setLogoutDialogOpen(true)}
                   >
                     <User2 className="h-4 w-4" />

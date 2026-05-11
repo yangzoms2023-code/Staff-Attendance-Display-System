@@ -240,9 +240,10 @@ export default function TVDashboard() {
             key={dept}
             onClick={() => handleDepartmentClick(dept)}
             disabled={isChangingDepartment}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all whitespace-nowrap ${selectedDepartment === dept
-              ? "bg-[#0B2E4F] text-white shadow-lg scale-105"
-              : "bg-white text-[#0B2E4F] hover:bg-slate-100 border border-slate-200"
+            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all whitespace-nowrap 
+              ${selectedDepartment === dept
+                ? "bg-[#0B2E4F] text-white shadow-lg scale-105"
+                : "bg-white text-[#0B2E4F] hover:bg-slate-100 border border-slate-200"
               } ${isChangingDepartment ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {dept}
@@ -274,7 +275,8 @@ export default function TVDashboard() {
                     const status = employeeStatuses.get(employee.id) || { status: "Out of Office", remarks: "Unknown" }
 
                     return (
-                      <tr key={employee.id} className={`${index % 2 === 0 ? "bg-white" : "bg-slate-50"} hover:bg-slate-100 transition-colors`}>
+                      <tr key={employee.id} className={`${index % 2 === 0 ? "bg-white" : "bg-slate-50"} hover:bg-
+                      slate-100 transition-colors`}>
                         <td className="px-4 py-3 text-sm font-medium text-slate-700 font-mono">
                           {employee.employeeId}
                         </td>
