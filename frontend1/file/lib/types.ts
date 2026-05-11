@@ -10,7 +10,7 @@ export interface Employee {
   department: string
   joiningDate: string
   status: "Active" | "Inactive"
-  inactiveReason?: string   // new field
+  inactiveReason?: string
   createdAt: string
   updatedAt: string
 }
@@ -27,7 +27,6 @@ export interface AttendanceRecord {
   updatedAt: string
 }
 
-// lib/types.ts
 export interface User {
   id: string
   username: string
@@ -35,7 +34,7 @@ export interface User {
   role: "admin" | "operator" | "employee"
   name: string
   email: string
-  employeeId?: string  // Link to employee record
+  employeeId?: string
   department?: string
 }
 
@@ -82,4 +81,14 @@ export interface OutingRequest {
   reviewerRemarks: string
   createdAt: string
   updatedAt: string
+}
+
+// NEW: Leave Request interface
+export interface LeaveRequest {
+  id: string
+  employeeId: string
+  startDate: string
+  endDate: string
+  reason: string
+  createdAt: string
 }

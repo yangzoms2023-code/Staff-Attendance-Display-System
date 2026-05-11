@@ -25,36 +25,36 @@ export default function LoginPage() {
   const { login, user, isLoading: authLoading } = useAuth()
   const router = useRouter()
 
-useEffect(() => {
-  if (!authLoading) {
-    if (!user) {
-      // Stay on login page
-      return
-    }
+  useEffect(() => {
+    if (!authLoading) {
+      if (!user) {
+        // Stay on login page
+        return
+      }
 
-    // Redirect based on role if user exists
-    if (user.role === "employee") {
-      router.push("/staff")
-    } else {
-      router.push("/dashboard")
+      // Redirect based on role if user exists
+      if (user.role === "employee") {
+        router.push("/staff")
+      } else {
+        router.push("/dashboard")
+      }
     }
-  }
-}, [user, authLoading, router])
+  }, [user, authLoading, router])
 
 
   const handleEmployeeSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setIsLoading(true)
-    
+
     // Add debug logs
     console.log("Attempting login with:", { employeeId, pin })
     const users = dataStore.getUsers()
     console.log("Available users:", users)
-    
+
     const success = login(employeeId, pin, "employee")
     console.log("Login success:", success)
-    
+
     if (!success) {
       setError("Invalid employee credentials")
     }
@@ -83,27 +83,32 @@ useEffect(() => {
   return (
     <div className="relative flex min-h-screen flex-col">
       {/* Background Pattern */}
-      <div 
+      <div
         className="fixed inset-0 bg-repeat opacity-10 -z-10"
         style={{ backgroundImage: "url('/images/bg-pattern.png')" }}
       />
       {/* Header */}
-      <header className="flex items-center justify-between bg-white/80 backdrop-blur-sm px-6 py-4 border-b border-
-      slate-200">
-        <div className="flex items-center gap-3">
-          <div className="flex h-16 w-16 items-center justify-center">
-            <Image src="/icon.png" alt="Logo" width={100} height={100} className="object-contain"/>
+      {/* Header */}
+      <header className="flex items-center justify-between bg-white/80 backdrop-blur-sm px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex h-10 w-10 sm:h-16 sm:w-16 items-center justify-center">
+            <Image src="/icon.png" alt="Logo" width={100} height={100} className="object-contain w-full h-full" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Thimphu Dzongkhag Administration</h1>
-            <p className="text-sm text-slate-500">Attendance Management System</p>
+            <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-slate-900 leading-tight sm:leading-normal">
+              Thimphu Dzongkhag Administration
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500">
+              Attendance Management System
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Link href="/tv">
-            <Button variant="outline" className="gap-2 border-slate-200">
-              <Monitor className="h-4 w-4" />
-              TV Display
+            <Button variant="outline" className="gap-1 sm:gap-2 border-slate-200 text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 h-auto sm:h-10">
+              <Monitor className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">TV Display</span>
+              <span className="xs:hidden">TV</span>
             </Button>
           </Link>
         </div>
@@ -218,7 +223,7 @@ useEffect(() => {
                   >
                     {isLoading ? (
                       <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" 
+                        <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent"
                         />
                         Signing in...
                       </div>
@@ -305,7 +310,7 @@ useEffect(() => {
                   >
                     {isLoading ? (
                       <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" 
+                        <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent"
                         />
                         Signing in...
                       </div>

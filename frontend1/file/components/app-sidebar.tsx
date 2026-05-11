@@ -58,11 +58,6 @@ const navItems = [
     icon: CalendarCheck,
   },
   {
-    title: "Outing Requests",
-    url: "/requests",
-    icon: ClipboardList,
-  },
-  {
     title: "Reports",
     url: "/reports",
     icon: FileText,
