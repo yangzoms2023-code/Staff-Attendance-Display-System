@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from "react"
 import { dataStore } from "@/lib/data-store"
-import type { Employee, AttendanceRecord, OutingRequest, LeaveRequest } from "@/lib/types"
+import type { Employee, LeaveRequest } from "@/lib/types"
+import { BackgroundPattern } from '@/components/background-pattern'
 
 export default function TVDashboard() {
   const [employees, setEmployees] = useState<Employee[]>([])
@@ -17,23 +18,20 @@ export default function TVDashboard() {
 
   const today = new Date().toISOString().split("T")[0]
 
+  const departments = ["All", ...Array.from(new Set(employees.map(e => e.department)))]
+
   useEffect(() => {
     dataStore.init()
     loadData()
 
-    // Update time every second
-    const timeInterval = setInterval(() => {
-      setCurrentTime(new Date())
-    }, 1000)
-
-    // Auto-refresh data every 30 seconds
-    const refreshInterval = setInterval(() => {
-      loadData()
-    }, 30000)
+    const timeInterval = setInterval(() => setCurrentTime(new Date()), 1000)
+    const refreshInterval = setInterval(loadData, 30000)
 
     return () => {
       clearInterval(timeInterval)
       clearInterval(refreshInterval)
+      if (autoScrollIntervalRef.current) clearInterval(autoScrollIntervalRef.current)
+      if (departmentTimerRef.current) clearTimeout(departmentTimerRef.current)
     }
   }, [])
 
@@ -68,18 +66,6 @@ export default function TVDashboard() {
     setEmployeeStatuses(statuses)
   }
 
-  // Helper function to get employee attendance record
-  const getEmployeeAttendance = (employeeId: string): AttendanceRecord | undefined => {
-    const allAttendance = dataStore.getAttendance()
-    return allAttendance.find(a => a.employeeId === employeeId && a.date === today)
-  }
-
-  // Helper function to get employee outing status
-  const getEmployeeOutingStatus = (employeeId: string): OutingRequest | undefined => {
-    const allOutings = dataStore.getOutingRequestsByEmployee(employeeId)
-    return allOutings.find(o => o.date === today && o.status === "approved" && !o.actualReturnTime)
-  }
-
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString("en-US", {
       hour: "2-digit",
@@ -97,226 +83,257 @@ export default function TVDashboard() {
     }).toUpperCase()
   }
 
-  // Get unique departments
-  const departments = ["All", ...Array.from(new Set(employees.map(e => e.department)))]
-
-  // Filter employees by selected department
-  const filteredEmployees = selectedDepartment === "All" 
-    ? employees 
+  const filteredEmployees = selectedDepartment === "All"
+    ? employees
     : employees.filter(e => e.department === selectedDepartment)
 
-  // Calculate stats for filtered employees
-  const getStaffStats = () => {
-    let inOffice = 0
-    let onDuty = 0
-    let outOfOffice = 0
+  const startVerticalScrolling = () => {
+    if (!scrollContainerRef.current || filteredEmployees.length === 0) return
 
-    filteredEmployees.forEach(employee => {
-      const record = getEmployeeAttendance(employee.id)
-      const outingStatus = getEmployeeOutingStatus(employee.id)
-      const status = record?.status ?? "Absent"
+    const scrollContainer = scrollContainerRef.current
+    let scrollAmount = scrollContainer.scrollTop
+    const scrollStep = 1
+    const scrollInterval = 30
 
-      if (outingStatus) {
-        if (outingStatus.purpose === "official") {
-          onDuty++
+    if (autoScrollIntervalRef.current) clearInterval(autoScrollIntervalRef.current)
+
+    const totalScrollHeight = scrollContainer.scrollHeight - scrollContainer.clientHeight
+
+    if (totalScrollHeight <= 0) {
+      setIsAutoScrolling(false)
+      startDepartmentHoldTimer()
+      return
+    }
+
+    autoScrollIntervalRef.current = setInterval(() => {
+      if (scrollContainer && isAutoScrolling && !isChangingDepartment) {
+        scrollAmount += scrollStep
+
+        if (scrollAmount >= totalScrollHeight) {
+          clearInterval(autoScrollIntervalRef.current!)
+          autoScrollIntervalRef.current = null
+          setIsAutoScrolling(false)
+          startDepartmentHoldTimer()
         } else {
-          outOfOffice++
+          scrollContainer.scrollTop = scrollAmount
         }
-      } else if (status === "Present" || status === "Late") {
-        inOffice++
-      } else {
-        outOfOffice++
       }
-    })
-
-    return { inOffice, onDuty, outOfOffice, total: filteredEmployees.length }
+    }, scrollInterval)
   }
 
-  const stats = getStaffStats()
+  const startDepartmentHoldTimer = () => {
+    if (departmentTimerRef.current) clearTimeout(departmentTimerRef.current)
 
-  // Decorative cloud/wave SVG component
-  const DecorativeWave = ({ flip = false }: { flip?: boolean }) => (
-    <svg 
-      width="60" 
-      height="30" 
-      viewBox="0 0 60 30" 
-      fill="none" 
-      className={flip ? "scale-x-[-1]" : ""}
-    >
-      <path 
-        d="M5 15C8 10 12 10 15 15C18 20 22 20 25 15C28 10 32 10 35 15C38 20 42 20 45 15C48 10 52 10 55 15" 
-        stroke="#94a3b8" 
-        strokeWidth="2" 
-        fill="none"
-        strokeLinecap="round"
-      />
-      <path 
-        d="M5 22C8 17 12 17 15 22C18 27 22 27 25 22C28 17 32 17 35 22C38 27 42 27 45 22C48 17 52 17 55 22" 
-        stroke="#94a3b8" 
-        strokeWidth="1.5" 
-        fill="none"
-        strokeLinecap="round"
-      />
-    </svg>
-  )
+    departmentTimerRef.current = setTimeout(() => {
+      moveToNextDepartment()
+    }, 10000)
+  }
+
+  const stopDepartmentHoldTimer = () => {
+    if (departmentTimerRef.current) {
+      clearTimeout(departmentTimerRef.current)
+      departmentTimerRef.current = null
+    }
+  }
+
+  const moveToNextDepartment = () => {
+    if (isChangingDepartment) return
+
+    setIsChangingDepartment(true)
+    setIsAutoScrolling(false)
+    stopDepartmentHoldTimer()
+
+    if (autoScrollIntervalRef.current) {
+      clearInterval(autoScrollIntervalRef.current)
+      autoScrollIntervalRef.current = null
+    }
+
+    const currentIndex = departments.indexOf(selectedDepartment)
+    const nextIndex = (currentIndex + 1) % departments.length
+    const nextDepartment = departments[nextIndex]
+
+    setSelectedDepartment(nextDepartment)
+
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0
+    }
+
+    setIsChangingDepartment(false)
+    setIsAutoScrolling(true)
+  }
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (filteredEmployees.length > 0 && isAutoScrolling && !isChangingDepartment) {
+        if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0
+        startVerticalScrolling()
+      } else if (filteredEmployees.length > 0 && !isAutoScrolling && !isChangingDepartment && !departmentTimerRef.current) {
+        startDepartmentHoldTimer()
+      }
+    }, 200)
+
+    return () => clearTimeout(timer)
+  }, [filteredEmployees.length, selectedDepartment])
+
+  const handleMouseEnter = () => {
+    setIsAutoScrolling(false)
+    stopDepartmentHoldTimer()
+    if (autoScrollIntervalRef.current) clearInterval(autoScrollIntervalRef.current)
+  }
+
+  const handleMouseLeave = () => {
+    if (!isChangingDepartment) setIsAutoScrolling(true)
+  }
+
+  const handleDepartmentClick = (dept: string) => {
+    if (isChangingDepartment || dept === selectedDepartment) return
+
+    setIsChangingDepartment(true)
+    setIsAutoScrolling(false)
+    stopDepartmentHoldTimer()
+    if (autoScrollIntervalRef.current) clearInterval(autoScrollIntervalRef.current)
+
+    setSelectedDepartment(dept)
+    if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0
+
+    setTimeout(() => {
+      setIsChangingDepartment(false)
+      setIsAutoScrolling(true)
+    }, 100)
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-[#fafafa]">
-      {/* Header - Dark Navy */}
-      <header className="bg-[#0B2E4F] px-8 py-5">
+      <BackgroundPattern />
+      <header className="px-10 py-3 bg-transparent bg-white/50 backdrop-blur-sm border-b border-border flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <img src="/icon.png" alt="Logo" className="h-18 w-18 object-contain" />
             <div>
-              <h1 className="text-xl font-bold text-white">Staff Information Display</h1>
-              <p className="text-sm text-slate-300 font-semibold">Thimphu Dzongkhag Administration</p>
+              <h1 className="text-xl font-bold text-[#0B2E4F]">Staff Information Display</h1>
+              <p className="text-sm text-slate-800 font-semibold">Thimphu Dzongkhag Administration</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-lg font-medium text-white">{formatDate(currentTime)}</span>
+            <div className="flex items-center gap-2">
+              <div className={`h-2 w-2 rounded-full ${!isChangingDepartment ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`} />
+              <span className="text-xs font-medium text-[#0B2E4F]">
+                {isChangingDepartment ? 'Switching...' : (isAutoScrolling ? 'Scrolling' : 'Holding')}
+              </span>
+            </div>
+            <span className="text-lg font-semibold text-[#0B2E4F]">{formatDate(currentTime)}</span>
             <div className="h-6 w-px bg-slate-500" />
-            <span className="text-lg font-bold tabular-nums text-white">{formatTime(currentTime)}</span>
+            <span className="text-lg font-semibold tabular-nums text-[#0B2E4F]">{formatTime(currentTime)}</span>
           </div>
         </div>
       </header>
 
-      {/* Department Title Section */}
-      <div className="flex items-center justify-center gap-4 py-6">
-        <DecorativeWave />
-        <div className="flex items-center gap-3">
-          {selectedDepartment !== "All" ? (
-            <h2 className="text-2xl font-bold text-[#0B2E4F]">{selectedDepartment.toUpperCase()}</h2>
-          ) : (
-            <select
-              value={selectedDepartment}
-              onChange={(e) => setSelectedDepartment(e.target.value)}
-              className="border-0 bg-transparent text-2xl font-bold text-[#0B2E4F] focus:outline-none cursor-pointer"
-            >
-              {departments.map(dept => (
-                <option key={dept} value={dept}>
-                  {dept === "All" ? "ALL DEPARTMENTS" : dept.toUpperCase()}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
-        <DecorativeWave flip />
+      <div className="flex items-center justify-center gap-4 pt-10 pb-6 flex-shrink-0">
+        <h2 className="text-2xl font-bold text-[#0B2E4F] transition-all duration-300">
+          {selectedDepartment === "All" ? "ALL DEPARTMENTS" : `${selectedDepartment} DEPARTMENT`}
+        </h2>
       </div>
 
       <div className="flex justify-center gap-2 px-8 pb-4 flex-shrink-0 overflow-x-auto">
         {departments.map(dept => (
           <button
             key={dept}
-            onClick={() => setSelectedDepartment(dept)}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-              selectedDepartment === dept
-                ? "bg-[#0B2E4F] text-white"
+            onClick={() => handleDepartmentClick(dept)}
+            disabled={isChangingDepartment}
+            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all whitespace-nowrap 
+              ${selectedDepartment === dept
+                ? "bg-[#0B2E4F] text-white shadow-lg scale-105"
                 : "bg-white text-[#0B2E4F] hover:bg-slate-100 border border-slate-200"
-            }`}
+              } ${isChangingDepartment ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {dept}
           </button>
         ))}
       </div>
 
-      {/* Staff Table */}
-      <div className="flex-1 px-8 pb-4">
-        <div className="overflow-hidden rounded-lg bg-white shadow-sm">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-[#0B2E4F] text-white">
-                <th className="px-4 py-3 text-left text-sm font-semibold">Sl No.</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold">Name of Official</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold">Designation</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold">Contact Number</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold">Check In</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold">Check OUT</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold">Status</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold">Remarks</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredEmployees.map((employee, index) => {
-                const record = getEmployeeAttendance(employee.id)
-                const outingStatus = getEmployeeOutingStatus(employee.id)
-                const status = record?.status ?? "Absent"
-                
-                let displayStatus: "In Office" | "On Duty" | "Out of Office" = "Out of Office"
-                let remarks: string = ""
-
-                if (outingStatus) {
-                  if (outingStatus.purpose === "official") {
-                    displayStatus = "On Duty"
-                    remarks = outingStatus.willReturn 
-                      ? `Will be back at ${outingStatus.expectedReturnTime}`
-                      : "On official duty"
-                  } else {
-                    displayStatus = "Out of Office"
-                    remarks = outingStatus.willReturn 
-                      ? `Will be back at ${outingStatus.expectedReturnTime}`
-                      : "Stepped out"
-                  }
-                } else if (status === "Present" || status === "Late") {
-                  displayStatus = "In Office"
-                  remarks = status === "Late" ? "Late arrival" : "On time"
-                } else if (status === "Leave") {
-                  displayStatus = "Out of Office"
-                  remarks = "On leave"
-                } else {
-                  displayStatus = "Out of Office"
-                  remarks = "Not checked in"
-                }
-
-                const checkInTime = record?.checkIn || "-"
-                const checkOutTime = record?.checkOut || "-"
-
-                return (
-                  <tr 
-                    key={employee.id} 
-                    className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}
-                  >
-                    <td className="px-4 py-3 text-sm font-medium text-slate-700">{index + 1}</td>
-                    <td className="px-4 py-3 text-sm font-medium text-slate-900">{employee.name}</td>
-                    <td className="px-4 py-3 text-sm text-slate-600">{employee.designation}</td>
-                    <td className="px-4 py-3 text-sm text-slate-600">{employee.contactNumber}</td>
-                    <td className="px-4 py-3 text-sm text-slate-600">{checkInTime}</td>
-                    <td className="px-4 py-3 text-sm text-slate-600">{checkOutTime}</td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={displayStatus} />
-                    </td>
-                    <td className="px-4 py-3 text-sm text-slate-600">{remarks}</td>
+      <div className="flex-1 px-8 pb-4 min-h-0">
+        <div className="overflow-hidden rounded-lg bg-white shadow-sm h-full flex flex-col">
+          <div className="overflow-x-auto flex-1">
+            <div
+              ref={scrollContainerRef}
+              className="h-[550px] overflow-y-auto transition-opacity duration-300"
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
+              <table className="w-full">
+                <thead className="sticky top-0 bg-[#0B2E4F] z-10">
+                  <tr className="bg-[#0B2E4F] text-white">
+                    <th className="px-4 py-3 text-left text-sm font-semibold w-32">Employee ID</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Name of Official</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Contact Number</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Status</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Remarks</th>
                   </tr>
-                )
-              })}
-              {filteredEmployees.length === 0 && (
-                <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-slate-500">
-                    No staff members found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                </thead>
+                <tbody>
+                  {filteredEmployees.map((employee, index) => {
+                    const status = employeeStatuses.get(employee.id) || { status: "Out of Office", remarks: "Unknown" }
+
+                    return (
+                      <tr key={employee.id} className={`${index % 2 === 0 ? "bg-white" : "bg-slate-50"} hover:bg-
+                      slate-100 transition-colors`}>
+                        <td className="px-4 py-3 text-sm font-medium text-slate-700 font-mono">
+                          {employee.employeeId}
+                        </td>
+                        <td className="px-4 py-3 text-sm font-medium text-slate-900">{employee.name}</td>
+                        <td className="px-4 py-3 text-sm text-slate-600">{employee.contactNumber || "-"}</td>
+                        <td className="px-4 py-3">
+                          <StatusBadge status={status.status as "In Office" | "On Duty" | "Out of Office" | "On Leave"} />
+                        </td>
+                        <td className="px-4 py-3 text-sm text-slate-600">{status.remarks}</td>
+                      </tr>
+                    )
+                  })}
+                  {filteredEmployees.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
+                        No staff members found in {selectedDepartment} department
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 flex justify-center items-center gap-2">
+          <div className="text-xs text-slate-500 text-center">
+            <span className="inline-flex items-center gap-2">
+              <span className={`animate-pulse ${isChangingDepartment ? 'text-yellow-500' : ''}`}>↻</span>
+              {isChangingDepartment ? 'Switching department...' :
+                (isAutoScrolling ? 'Auto-scrolling • Hover to pause' : 'Holding for 10 seconds')}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Footer - Dark Navy with Stats */}
-      <footer className="bg-[#0B2E4F] px-8 py-4">
-        <div className="flex items-center justify-center gap-8">
-          <span className="text-lg font-bold text-white">
-            TOTAL STAFF: {stats.total}
-          </span>
-          <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-            <span className="text-emerald-400">{stats.inOffice} In Office</span>
+      <footer className="mt-auto bg-[#0B2E4F] py-2 flex-shrink-0">
+        <div className="flex justify-center items-center gap-6">
+          <div className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+            <span className="text-xs text-white">In Office</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-            <span className="text-amber-400">{stats.onDuty} On Duty</span>
+          <div className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+            <span className="text-xs text-white">On Duty</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
-            <span className="text-red-400">{stats.outOfOffice} Out of Office</span>
+          <div className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-rose-500" />
+            <span className="text-xs text-white">Out of Office</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-purple-500" />
+            <span className="text-xs text-white">On Leave</span>
+          </div>
+          <div className="h-4 w-px bg-white/30" />
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-white/80">Auto-updating every 30 seconds</span>
           </div>
         </div>
       </footer>
@@ -324,17 +341,19 @@ export default function TVDashboard() {
   )
 }
 
-function StatusBadge({ status }: { status: "In Office" | "On Duty" | "Out of Office" }) {
+function StatusBadge({ status }: { status: "In Office" | "On Duty" | "Out of Office" | "On Leave" }) {
   const styles = {
     "In Office": "bg-emerald-50 text-emerald-600 border-emerald-200",
     "On Duty": "bg-amber-50 text-amber-600 border-amber-200",
-    "Out of Office": "bg-red-50 text-red-600 border-red-200"
+    "Out of Office": "bg-red-50 text-red-600 border-red-200",
+    "On Leave": "bg-purple-50 text-purple-600 border-purple-200"
   }
 
   const dotStyles = {
     "In Office": "bg-emerald-500",
     "On Duty": "bg-amber-500",
-    "Out of Office": "bg-red-500"
+    "Out of Office": "bg-red-500",
+    "On Leave": "bg-purple-500"
   }
 
   return (
