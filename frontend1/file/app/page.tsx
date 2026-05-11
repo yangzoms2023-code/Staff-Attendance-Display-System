@@ -24,23 +24,23 @@ export default function LoginPage() {
   const [activeRole, setActiveRole] = useState<"admin" | "employee">("employee")
   const { login, user, isLoading: authLoading } = useAuth()
   const router = useRouter()
+  
+  // FIX: Add redirecting state to prevent multiple redirects
+  const [isRedirecting, setIsRedirecting] = useState(false)
 
-useEffect(() => {
-  if (!authLoading) {
-    if (!user) {
-      // Stay on login page
-      return
+  // FIX: Modified useEffect to prevent multiple redirect attempts
+  useEffect(() => {
+    if (!authLoading && !isRedirecting) {
+      if (user) {
+        setIsRedirecting(true)
+        if (user.role === "employee") {
+          router.replace("/staff")
+        } else {
+          router.replace("/dashboard")
+        }
+      }
     }
-
-    // Redirect based on role if user exists
-    if (user.role === "employee") {
-      router.push("/staff")
-    } else {
-      router.push("/dashboard")
-    }
-  }
-}, [user, authLoading, router])
-
+  }, [user, authLoading, router, isRedirecting])
 
   const handleEmployeeSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -72,6 +72,7 @@ useEffect(() => {
     setIsLoading(false)
   }
 
+  // Show loading state while auth is loading
   if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
@@ -133,13 +134,11 @@ useEffect(() => {
             <Tabs defaultValue="employee" className="w-full" onValueChange={(value) => setActiveRole(value as "admin" |
               "employee")}>
               <TabsList className="grid w-full grid-cols-2 bg-slate-100 h-9">
-                <TabsTrigger value="employee" className="data-[state=active]:bg-white data-[state=active]:text-
-                [#0B2E4F] gap-1 text-xs">
+                <TabsTrigger value="employee" className="data-[state=active]:bg-white data-[state=active]:text-[#0B2E4F] gap-1 text-xs">
                   <UserCheck className="h-3 w-3" />
                   Employee Login
                 </TabsTrigger>
-                <TabsTrigger value="admin" className="data-[state=active]:bg-white data-[state=active]:text-[#0B2E4F] 
-                gap-1 text-xs">
+                <TabsTrigger value="admin" className="data-[state=active]:bg-white data-[state=active]:text-[#0B2E4F] gap-1 text-xs">
                   <Shield className="h-3 w-3" />
                   Admin Login
                 </TabsTrigger>
@@ -200,16 +199,13 @@ useEffect(() => {
                           id="remember-employee"
                           checked={rememberMe}
                           onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                          className="h-3 w-3 border-slate-300 data-[state=checked]:bg-[#0B2E4F] data-
-                          [state=checked]:border-[#0B2E4F]"
+                          className="h-3 w-3 border-slate-300 data-[state=checked]:bg-[#0B2E4F] data-[state=checked]:border-[#0B2E4F]"
                         />
-                        <Label htmlFor="remember-employee" className="text-xs font-normal text-slate-600 cursor-
-                        pointer">
+                        <Label htmlFor="remember-employee" className="text-xs font-normal text-slate-600 cursor-pointer">
                           Remember me
                         </Label>
                       </div>
-                      <Link href="/forgot-pin" className="text-xs text-slate-600 hover:text-[#0B2E4F] transition-
-                      colors">
+                      <Link href="/forgot-pin" className="text-xs text-slate-600 hover:text-[#0B2E4F] transition-colors">
                         Forgot PIN?
                       </Link>
                     </div>
@@ -288,15 +284,13 @@ useEffect(() => {
                           id="remember-admin"
                           checked={rememberMe}
                           onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                          className="h-3 w-3 border-slate-300 data-[state=checked]:bg-[#0B2E4F] data-
-                          [state=checked]:border-[#0B2E4F]"
+                          className="h-3 w-3 border-slate-300 data-[state=checked]:bg-[#0B2E4F] data-[state=checked]:border-[#0B2E4F]"
                         />
                         <Label htmlFor="remember-admin" className="text-xs font-normal text-slate-600 cursor-pointer">
                           Remember me
                         </Label>
                       </div>
-                      <Link href="/forgot-password" className="text-xs text-slate-600 hover:text-[#0B2E4F] transition-
-                      colors">
+                      <Link href="/forgot-password" className="text-xs text-slate-600 hover:text-[#0B2E4F] transition-colors">
                         Forgot password?
                       </Link>
                     </div>

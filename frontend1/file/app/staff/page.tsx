@@ -43,6 +43,9 @@ export default function StaffDashboard() {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false)
+  
+  // FIX: Add mounted state to prevent hydration issues
+  const [isMounted, setIsMounted] = useState(false)
 
   // Outing request form state
   const [outingDialogOpen, setOutingDialogOpen] = useState(false)
@@ -61,7 +64,16 @@ export default function StaffDashboard() {
 
   const today = new Date().toISOString().split("T")[0]
 
+  // FIX: Set mounted state after component mounts
   useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  // FIX: Modified useEffect with mounted check to prevent redirect loops
+  useEffect(() => {
+    // Don't run until component is mounted on client
+    if (!isMounted) return
+
     if (!user) {
       router.push("/")
       return
@@ -110,7 +122,7 @@ export default function StaffDashboard() {
     }, 1000)
 
     return () => clearInterval(timeInterval)
-  }, [user, router])
+  }, [user, router, isMounted])
 
   useEffect(() => {
     if (employee) {
@@ -324,7 +336,8 @@ export default function StaffDashboard() {
     }
   }
 
-  if (!employee) {
+  // Show loading state while mounting to prevent hydration mismatch
+  if (!isMounted || !employee) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="animate-pulse text-slate-500">Loading employee data...</div>
