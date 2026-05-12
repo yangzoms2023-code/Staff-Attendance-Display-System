@@ -369,11 +369,6 @@ export default function TVDashboard() {
                                     <div className="text-xl font-bold leading-tight">
                                       {status}
                                     </div>
-                                    {time !== "-" && (
-                                      <div className="text-xs text-slate-200 mt-0.5">
-                                        ⏱️ {time}
-                                      </div>
-                                    )}
                                   </div>
                                 </div>
                               </div>
