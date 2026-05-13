@@ -28,10 +28,10 @@ export default function TVDashboard() {
   const [headerTransitioning, setHeaderTransitioning] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const animationRef = useRef<number | null>(null)
-  const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map())
   const lastVisibleDeptRef = useRef<string | null>(null)
   const isAutoScrollingRef = useRef(true)
-  const scrollSpeedRef = useRef(1.0) // Medium speed
+  const scrollSpeedRef = useRef(0.8) // Slightly slower for better readability
+  const isResettingRef = useRef(false)
 
   const today = new Date().toISOString().split("T")[0]
 
@@ -50,10 +50,10 @@ export default function TVDashboard() {
   // Create a stable string representation of departmentList for comparison
   const departmentListKey = departmentList.join(',')
 
-  // Create looped content for infinite scroll (3 cycles)
+  // Create looped content for infinite scroll (2 cycles is enough for seamless loop)
   const loopedDepartments = useMemo(() => {
     if (departmentList.length === 0) return []
-    return [...departmentList, ...departmentList, ...departmentList]
+    return [...departmentList, ...departmentList]
   }, [departmentListKey, departmentList.length])
 
   // Fix hydration by setting client-side only after mount
@@ -84,7 +84,7 @@ export default function TVDashboard() {
     return () => clearInterval(quoteInterval)
   }, [])
 
-  // Setup scroll listener for sticky header detection - ONLY changes when department is completely gone
+  // Setup scroll listener for sticky header detection
   useEffect(() => {
     if (!isClient || !scrollContainerRef.current || departmentList.length === 0) return
 
@@ -92,50 +92,33 @@ export default function TVDashboard() {
     const viewportTop = scrollContainer.getBoundingClientRect().top
 
     const checkVisibleDepartments = () => {
+      if (isResettingRef.current) return
+      
       let currentVisibleDept: string | null = null
 
-      // Find which department's section is currently active based on its position
-      for (let i = 0; i < departmentList.length; i++) {
-        const dept = departmentList[i]
-        const sectionElement = sectionRefs.current.get(dept)
+      // Get all department sections (both first and second cycle)
+      const allSections = scrollContainer.querySelectorAll('.department-section')
+      
+      for (let i = 0; i < allSections.length; i++) {
+        const section = allSections[i] as HTMLDivElement
+        const sectionRect = section.getBoundingClientRect()
+        const sectionTop = sectionRect.top
+        const sectionBottom = sectionRect.bottom
         
-        if (sectionElement) {
-          const sectionRect = sectionElement.getBoundingClientRect()
-          const sectionTop = sectionRect.top
-          const sectionBottom = sectionRect.bottom
-          
-          // A department is considered "active" if its header is at or above the viewport top
-          // AND its content hasn't completely passed yet
-          const isHeaderPassed = sectionTop <= viewportTop + 10
-          const isContentStillVisible = sectionBottom > viewportTop
-          
-          if (isHeaderPassed && isContentStillVisible) {
-            currentVisibleDept = dept
+        // Department is active if its content is visible in the viewport
+        const isContentVisible = sectionBottom > viewportTop && sectionTop < window.innerHeight
+        
+        if (isContentVisible) {
+          // Get department name from the header inside the section
+          const deptHeader = section.querySelector('.original-dept-header h2')
+          if (deptHeader) {
+            currentVisibleDept = deptHeader.textContent?.trim() || null
             break
           }
         }
       }
 
-      // If no department matches, check the next one
-      if (!currentVisibleDept) {
-        for (let i = 0; i < departmentList.length; i++) {
-          const dept = departmentList[i]
-          const sectionElement = sectionRefs.current.get(dept)
-          
-          if (sectionElement) {
-            const sectionRect = sectionElement.getBoundingClientRect()
-            const sectionTop = sectionRect.top
-            
-            // Find the first department whose header is at or below the viewport
-            if (sectionTop >= viewportTop) {
-              currentVisibleDept = dept
-              break
-            }
-          }
-        }
-      }
-
-      // Update sticky header only when the department actually changes
+      // Update sticky header when department changes
       if (currentVisibleDept && currentVisibleDept !== lastVisibleDeptRef.current) {
         setHeaderTransitioning(true)
         setTimeout(() => {
@@ -145,7 +128,7 @@ export default function TVDashboard() {
         }, 50)
       }
       
-      // Ensure first department is set
+      // Ensure first department is set initially
       if (!lastVisibleDeptRef.current && departmentList.length > 0) {
         const firstDept = departmentList[0]
         setActiveStickyDept(firstDept)
@@ -170,7 +153,7 @@ export default function TVDashboard() {
     }
   }, [isClient, departmentListKey])
 
-  // Smooth continuous auto-scroll functionality with infinite loop - NO PAUSE
+  // Smooth continuous auto-scroll functionality with seamless looping
   useEffect(() => {
     if (!isClient || employees.length === 0 || loopedDepartments.length === 0) return
 
@@ -183,18 +166,23 @@ export default function TVDashboard() {
       const maxScrollTop = scrollContainer.scrollHeight - scrollContainer.clientHeight
       let newScrollTop = scrollContainer.scrollTop + scrollSpeedRef.current
 
-      // Check if we've reached the end
+      // Check if we're near the end of the second cycle
       if (newScrollTop >= maxScrollTop) {
-        // Reset to the start of the second cycle for seamless looping
-        const singleCycleHeight = maxScrollTop / 3
-        newScrollTop = singleCycleHeight
-        scrollContainer.scrollTop = newScrollTop
+        // Calculate the height of one complete cycle (all departments once)
+        const singleCycleHeight = maxScrollTop / 2
+        
+        // Reset to the start of the first cycle seamlessly
+        isResettingRef.current = true
+        scrollContainer.scrollTop = singleCycleHeight / 2 // Reset to middle of first cycle
+        isResettingRef.current = false
+        
+        // Continue animation
+        animationRef.current = requestAnimationFrame(autoScroll)
       } else {
         scrollContainer.scrollTop = newScrollTop
+        // Continue animation
+        animationRef.current = requestAnimationFrame(autoScroll)
       }
-
-      // Continue animation
-      animationRef.current = requestAnimationFrame(autoScroll)
     }
 
     // Start auto-scroll immediately
@@ -359,13 +347,6 @@ export default function TVDashboard() {
       return (
         <div 
           key={`${department}-${idx}`}
-          ref={(el) => {
-            // Store reference only for original departments (first cycle)
-            if (idx < departmentList.length && el) {
-              sectionRefs.current.set(department, el)
-            }
-          }}
-          data-department={department}
           className="animate-fadeIn department-section"
           style={{ animationDuration: '0.6s' }}
         >
@@ -502,7 +483,7 @@ export default function TVDashboard() {
           <div className="mt-8 h-px bg-gradient-to-r from-transparent via-[#0B2E4F]/50 to-transparent" />
         </div>
 
-        {/* Auto-scroll indicator - Now just shows it's auto-scrolling continuously */}
+        {/* Auto-scroll indicator */}
         <div className="flex-shrink-0 mb-2 text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#0B2E4F]/10 rounded-full backdrop-blur-sm">
             <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
@@ -512,7 +493,7 @@ export default function TVDashboard() {
           </div>
         </div>
 
-        {/* ===== STICKY DEPARTMENT HEADER - Changes only when department is fully scrolled ===== */}
+        {/* ===== STICKY DEPARTMENT HEADER ===== */}
         {activeStickyDept && (
           <div 
             className={`sticky-header-container flex-shrink-0 z-30 mb-4 transition-all duration-500 ${
@@ -531,11 +512,11 @@ export default function TVDashboard() {
                 <div className="flex-1 h-px bg-gradient-to-r from-[#0B2E4F]/30 to-transparent" />
                 
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 px-4 py-2 bg-[#0B2E4F]/10 rounded-full backdrop-blur-sm">
-                    <span className="text-xl">👥</span>
+                  {/* <div className="flex items-center gap-2 px-4 py-2 bg-[#0B2E4F]/10 rounded-full backdrop-blur-sm">
+                    <span className="text-xl"></span>
                     <span className="text-2xl font-bold text-[#0B2E4F]">{getDepartmentCount(activeStickyDept)}</span>
                     <span className="text-base text-slate-600">members</span>
-                  </div>
+                  </div> */}
                   <div className="flex items-center gap-1.5">
                     {departmentList.map((dept, idx) => (
                       <div
@@ -556,7 +537,7 @@ export default function TVDashboard() {
           </div>
         )}
 
-        {/* ===== MAIN ATTENDANCE SECTION WITH SMOOTH CONTINUOUS SCROLL ===== */}
+        {/* ===== MAIN ATTENDANCE SECTION ===== */}
         <div className="flex-1 min-h-0">
           <div 
             ref={scrollContainerRef}
