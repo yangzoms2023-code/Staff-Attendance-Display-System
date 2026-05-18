@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FieldGroup, Field, FieldLabel } from "@/components/ui/field";
-import { useSession } from "@/lib/session-provider"; // 👈 <changed></changed>
+import { useAuth } from "@/lib/auth-context";
 import {
 	Settings,
 	User,
@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 
 export default function SettingsPage() {
-	const { user } = useSession();
+	const { user } = useAuth();
 	const [isSaving, setIsSaving] = useState(false);
 	const [message, setMessage] = useState<{
 		type: "success" | "error";

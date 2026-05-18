@@ -15,6 +15,20 @@ export function setAccessToken(token: string | null) {
 
 export function getAccessToken(): string | null {
 	if (accessToken) return accessToken;
+	// Try to get from auth_session (used by auth-context)
+	const authSession = localStorage.getItem("auth_session");
+	if (authSession) {
+		try {
+			const session = JSON.parse(authSession);
+			if (session?.accessToken) {
+				accessToken = session.accessToken;
+				return accessToken;
+			}
+		} catch (e) {
+			// If parsing fails, try the old method
+		}
+	}
+	// Fallback to old storage method
 	const stored = localStorage.getItem("access_token");
 	if (stored) accessToken = stored;
 	return accessToken;
@@ -42,17 +56,55 @@ export async function request<T>(
 	const token = getAccessToken();
 	if (token) headers["Authorization"] = `Bearer ${token}`;
 
-	const response = await fetch(`${API_BASE}${endpoint}`, {
-		...options,
-		headers,
+	const fullUrl = `${API_BASE}${endpoint}`;
+	const method = options.method || "GET";
+	
+	console.log(`[API Request] ${method} ${fullUrl}`, {
+		hasToken: !!token,
+		endpoint,
+		method,
 	});
 
+	const response = await fetch(fullUrl, {
+		...options,
+		headers,
+		credentials: "include",
+	});
+
+	console.log(`[API Response] ${method} ${fullUrl} - Status: ${response.status}`);
+
 	if (!response.ok) {
-		const errorData = await response.json().catch(() => ({}));
-		throw new Error(
-			errorData.message ||
-				`Request failed with status ${response.status}`,
-		);
+		let errorData: any = {};
+		let errorText = "";
+		
+		try {
+			errorData = await response.json();
+		} catch (e) {
+			errorText = await response.text();
+		}
+
+		const errorMessage = errorData?.message || errorText || `Request failed with status ${response.status}`;
+		
+		// Log detailed error info for debugging
+		if (response.status === 404) {
+			console.error(`[API 404 Error] Endpoint not found`, {
+				method,
+				url: fullUrl,
+				endpoint,
+				status: response.status,
+				errorData,
+				errorText,
+			});
+		} else {
+			console.error(`[API Error] ${method} ${fullUrl}`, {
+				status: response.status,
+				statusText: response.statusText,
+				errorData,
+				errorText,
+			});
+		}
+
+		throw new Error(errorMessage);
 	}
 
 	// ✅ Handle 204 No Content or empty response
@@ -118,6 +170,7 @@ export async function logout() {
 	setStoredUser(null);
 	// Optionally call backend logout if needed
 	// await request('/auth/logout', { method: 'POST' }).catch(() => {});
+<<<<<<< HEAD
 }
 
 // lib/auth-controller.ts
@@ -595,3 +648,6 @@ class AuthController {
 }
 
 export const authController = AuthController.getInstance();
+=======
+}
+>>>>>>> 44f5bc6f4faea486054a2d1c35801993fdb9fc2d
