@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import {
 	Card,
@@ -7,27 +8,19 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { dataStore } from "@/lib/data-store";
-import type {
-	Employee,
-	AttendanceRecord,
-	DailyStats,
-	OutingRequest,
-} from "@/lib/types";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
 	Users,
 	UserCheck,
 	UserX,
 	CalendarX,
 	TrendingUp,
-	ArrowLeftRight,
-	DoorOpen,
 	Clock,
+	ChevronDown,
+	ChevronUp,
 } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import {
 	BarChart,
 	Bar,
@@ -41,167 +34,235 @@ import {
 	Cell,
 	Legend,
 } from "recharts";
+import { fetchEmployees, type Employee } from "@/lib/services/employeeApi";
+import { fetchDepartments } from "@/lib/services/departmentApi";
+import {
+	fetchDailySummary,
+	type DailySummary,
+} from "@/lib/services/attendanceApi";
+import {
+	fetchWeeklyHolidays,
+	fetchDateHolidays,
+} from "@/lib/services/holidayApi";
+
+const formatDate = (date: Date) => date.toISOString().split("T")[0];
 
 export default function DashboardPage() {
 	const [employees, setEmployees] = useState<Employee[]>([]);
-	const [employeeMap, setEmployeeMap] = useState<Map<string, Employee>>(
-		new Map(),
-	);
-	const [stats, setStats] = useState<DailyStats | null>(null);
-	const [recentAttendance, setRecentAttendance] = useState<
-		AttendanceRecord[]
+	const [departments, setDepartments] = useState<
+		{ id: string; name: string }[]
 	>([]);
+	const [todaySummary, setTodaySummary] = useState<DailySummary | null>(null);
 	const [weeklyData, setWeeklyData] = useState<
-		{ day: string; present: number; absent: number; leave: number }[]
-	>([]);
-	const [outingRequests, setOutingRequests] = useState<OutingRequest[]>([]);
-
-	const today = new Date().toISOString().split("T")[0];
-
-	useEffect(() => {
-		dataStore.init();
-		loadData();
-
-		const interval = setInterval(loadData, 30000);
-		return () => clearInterval(interval);
-	}, []);
-
-	const loadData = () => {
-		const emps = dataStore
-			.getEmployees()
-			.filter((e) => e.status === "Active");
-		const todayAttendance = dataStore.getAttendanceByDate(today);
-		const todayOutings = dataStore.getTodayOutingRequests();
-
-		setEmployees(emps);
-
-		const map = new Map();
-		emps.forEach((emp) => {
-			map.set(emp.id, emp);
-			map.set(emp.employeeId, emp);
-		});
-		setEmployeeMap(map);
-
-		const validAttendance = todayAttendance.filter((record) =>
-			emps.some((emp) => emp.id === record.employeeId),
-		);
-
-		setRecentAttendance(validAttendance);
-		setOutingRequests(todayOutings);
-
-		const accurateStats = calculateAccurateStats(emps, validAttendance);
-		setStats(accurateStats);
-
-		const weekly: {
+		{
 			day: string;
 			present: number;
 			absent: number;
 			leave: number;
-		}[] = [];
+			isHoliday: boolean;
+		}[]
+	>([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
+	const [showAllStaff, setShowAllStaff] = useState(false);
 
-		for (let i = 6; i >= 0; i--) {
-			const date = new Date();
-			date.setDate(date.getDate() - i);
-			const dayOfWeek = date.getDay();
-			if (dayOfWeek === 0 || dayOfWeek === 6) continue;
+	const today = formatDate(new Date());
 
-			const dateStr = date.toISOString().split("T")[0];
-			const dayAttendance = dataStore.getAttendanceByDate(dateStr);
+	// Get Monday of the current week and return 7 days with day names (without date)
+	const getCurrentWeekDays = () => {
+		const now = new Date();
+		const currentDay = now.getDay();
+		const diffToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+		const monday = new Date(now);
+		monday.setDate(now.getDate() + diffToMonday);
+		monday.setHours(0, 0, 0, 0);
 
-			let present = 0,
-				absent = 0,
-				leave = 0;
-
-			emps.forEach((emp) => {
-				const record = dayAttendance.find(
-					(a) => a.employeeId === emp.id,
-				);
-				if (record) {
-					if (record.status === "Present" || record.status === "Late")
-						present++;
-					else if (record.status === "Leave") leave++;
-					else if (record.status === "Absent") absent++;
-				} else {
-					absent++;
-				}
+		const weekDays = [];
+		for (let i = 0; i < 7; i++) {
+			const date = new Date(monday);
+			date.setDate(monday.getDate() + i);
+			const dayName = date.toLocaleDateString("en-US", {
+				weekday: "short",
 			});
-
-			weekly.push({
-				day: date.toLocaleDateString("en-US", { weekday: "short" }),
-				present: Math.max(0, present),
-				absent: Math.max(0, absent),
-				leave: Math.max(0, leave),
-			});
+			const dayOfWeek = i + 1; // Monday=1, Sunday=7
+			weekDays.push({ date, dayName, dayOfWeek });
 		}
-		setWeeklyData(weekly);
+		return weekDays;
 	};
 
-	const calculateAccurateStats = (
-		emps: Employee[],
-		todayAttendance: AttendanceRecord[],
-	): DailyStats => {
-		let present = 0,
-			late = 0,
-			onLeave = 0,
-			absent = 0;
+	useEffect(() => {
+		const loadDashboard = async () => {
+			try {
+				setLoading(true);
+				setError(null);
 
-		emps.forEach((emp) => {
-			const record = todayAttendance.find((a) => a.employeeId === emp.id);
+				// Load employees and departments
+				const [empsResult, deptsResult] = await Promise.allSettled([
+					fetchEmployees(),
+					fetchDepartments(),
+				]);
 
-			if (record) {
-				switch (record.status) {
-					case "Present":
-						present++;
-						break;
-					case "Late":
-						late++;
-						break;
-					case "Leave":
-						onLeave++;
-						break;
-					case "Absent":
-						absent++;
-						break;
+				let emps: Employee[] = [];
+				let depts: { id: string; name: string }[] = [];
+
+				if (empsResult.status === "fulfilled") {
+					emps = empsResult.value;
+				} else {
+					console.error(
+						"Failed to load employees:",
+						empsResult.reason,
+					);
+					setError("Failed to load employees");
 				}
-			} else {
-				absent++;
+
+				if (deptsResult.status === "fulfilled") {
+					depts = deptsResult.value.map((d) => ({
+						id: d.id,
+						name: d.name,
+					}));
+				} else {
+					console.error(
+						"Failed to load departments:",
+						deptsResult.reason,
+					);
+				}
+
+				setEmployees(emps);
+				setDepartments(depts);
+
+				// Load holidays
+				const [weeklyHolidaysResult, dateHolidaysResult] =
+					await Promise.allSettled([
+						fetchWeeklyHolidays(),
+						fetchDateHolidays(),
+					]);
+
+				const weeklyHolidayDays =
+					weeklyHolidaysResult.status === "fulfilled"
+						? weeklyHolidaysResult.value
+								.filter((h) => h.isActive)
+								.map((h) => h.dayOfWeek)
+						: [];
+				const fixedHolidayDates =
+					dateHolidaysResult.status === "fulfilled"
+						? dateHolidaysResult.value.map((h) => h.holidayDate)
+						: [];
+
+				// Get current week days
+				const weekDays = getCurrentWeekDays();
+				const totalEmployeesCount = emps.length;
+
+				const weeklyPromises = weekDays.map(
+					async ({ date, dayName, dayOfWeek }) => {
+						const dateStr = formatDate(date);
+						const isWeeklyHoliday =
+							weeklyHolidayDays.includes(dayOfWeek);
+						const isFixedHoliday =
+							fixedHolidayDates.includes(dateStr);
+						const isHoliday = isWeeklyHoliday || isFixedHoliday;
+
+						if (isHoliday) {
+							return {
+								day: dayName,
+								present: 0,
+								absent: 0,
+								leave: 0,
+								isHoliday: true,
+							};
+						}
+
+						try {
+							const summary = await fetchDailySummary(dateStr);
+							const present = summary.presentCount || 0;
+							const leave = summary.leaveCount || 0;
+							// Compute absent as total employees - present - leave (covers case where API returns 0 absent)
+							const absent = Math.max(
+								0,
+								totalEmployeesCount - present - leave,
+							);
+							return {
+								day: dayName,
+								present,
+								absent,
+								leave,
+								isHoliday: false,
+							};
+						} catch (err) {
+							console.warn(`No data for ${dateStr}:`, err);
+							return {
+								day: dayName,
+								present: 0,
+								absent: totalEmployeesCount, // all absent if no data
+								leave: 0,
+								isHoliday: false,
+							};
+						}
+					},
+				);
+
+				const weeklyResults = await Promise.all(weeklyPromises);
+				setWeeklyData(weeklyResults);
+
+				// Load today's summary
+				try {
+					const summary = await fetchDailySummary(today);
+					setTodaySummary(summary);
+				} catch (err) {
+					console.error("Failed to load today's summary:", err);
+				}
+			} catch (err) {
+				console.error("Dashboard load error:", err);
+				setError("Failed to load dashboard data");
+			} finally {
+				setLoading(false);
 			}
-		});
-
-		return {
-			date: today,
-			totalEmployees: emps.length,
-			present,
-			absent,
-			late,
-			onLeave,
 		};
-	};
 
-	const getEmployeeName = (employeeId: string) => {
-		let employee = employeeMap.get(employeeId);
-		if (!employee)
-			employee = employees.find(
-				(e) => e.id === employeeId || e.employeeId === employeeId,
-			);
-		return employee?.name ?? "Unknown";
-	};
+		loadDashboard();
+	}, [today]);
 
-	const currentlyOutStaff = outingRequests.filter(
-		(r) => r.status === "approved" && !r.actualReturnTime,
-	);
+	if (loading) {
+		return (
+			<div className="flex items-center justify-center h-64">
+				<div className="text-slate-500">Loading dashboard...</div>
+			</div>
+		);
+	}
 
-	const totalPresent = (stats?.present ?? 0) + (stats?.late ?? 0);
-	const totalAbsent = Math.max(
-		0,
-		employees.length - totalPresent - (stats?.onLeave ?? 0),
-	);
+	if (error && employees.length === 0) {
+		return (
+			<div className="flex items-center justify-center h-64">
+				<div className="text-red-600">Error: {error}</div>
+			</div>
+		);
+	}
+
+	const totalEmployees = employees.length;
+	const presentToday = todaySummary?.presentCount ?? 0;
+	const leaveToday = todaySummary?.leaveCount ?? 0;
+	// Use API's absentCount if available, otherwise compute from total
+	let absentToday = todaySummary?.absentCount ?? 0;
+	if (
+		absentToday === 0 &&
+		totalEmployees > 0 &&
+		presentToday === 0 &&
+		leaveToday === 0
+	) {
+		absentToday = totalEmployees;
+	}
 
 	const pieData = [
-		{ name: "Present", value: totalPresent, color: "#10b981" },
-		{ name: "Leave", value: stats?.onLeave ?? 0, color: "#8b5cf6" },
-		{ name: "Absent", value: totalAbsent, color: "#ef4444" },
+		{ name: "Present", value: presentToday, color: "#10b981" },
+		{ name: "Leave", value: leaveToday, color: "#8b5cf6" },
+		{ name: "Absent", value: absentToday, color: "#ef4444" },
 	].filter((item) => item.value > 0);
+
+	const todayStaff = todaySummary?.staff ?? [];
+	const getDepartmentName = (deptId: string) => {
+		return departments.find((d) => d.id === deptId)?.name || deptId;
+	};
+
+	const displayStaff = showAllStaff ? todayStaff : todayStaff.slice(0, 10);
 
 	const renderLegend = (props: any) => {
 		const { payload } = props;
@@ -225,6 +286,38 @@ export default function DashboardPage() {
 		);
 	};
 
+	const CustomTooltip = ({ active, payload, label }: any) => {
+		if (!active || !payload?.length) return null;
+		const dataPoint = weeklyData.find((d) => d.day === label);
+		return (
+			<div className="rounded-lg border bg-white p-3 shadow-xl min-w-[200px]">
+				<p className="mb-1 font-semibold text-gray-900">{label}</p>
+				{dataPoint?.isHoliday && (
+					<p className="text-xs text-purple-600 mb-2">
+						🎉 Holiday (No attendance)
+					</p>
+				)}
+				{payload.map((entry: any, i: number) => (
+					<div
+						key={i}
+						className="flex items-center justify-between gap-4 text-sm mb-1"
+					>
+						<div className="flex items-center gap-2">
+							<div
+								className="h-2 w-2 rounded-full"
+								style={{ backgroundColor: entry.color }}
+							/>
+							<span className="text-gray-600">{entry.name}</span>
+						</div>
+						<span className="font-semibold text-gray-900">
+							{entry.value}
+						</span>
+					</div>
+				))}
+			</div>
+		);
+	};
+
 	return (
 		<div className="space-y-6">
 			<div>
@@ -232,7 +325,7 @@ export default function DashboardPage() {
 					Dashboard
 				</h1>
 				<p className="text-muted-foreground">
-					Overview of today&apos;s attendance -{" "}
+					Overview of today's attendance –{" "}
 					{new Date().toLocaleDateString("en-US", {
 						weekday: "long",
 						year: "numeric",
@@ -242,30 +335,33 @@ export default function DashboardPage() {
 				</p>
 			</div>
 
+			{/* Stats Cards */}
 			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 				<StatsCard
 					icon={<Users className="h-6 w-6 text-slate-600" />}
 					label="Total Employees"
-					value={employees.length}
+					value={totalEmployees}
 				/>
 				<StatsCard
 					icon={<UserCheck className="h-6 w-6 text-emerald-600" />}
 					label="Present Today"
-					value={totalPresent}
+					value={presentToday}
 				/>
 				<StatsCard
 					icon={<UserX className="h-6 w-6 text-rose-600" />}
 					label="Absent Today"
-					value={totalAbsent}
+					value={absentToday}
 				/>
 				<StatsCard
 					icon={<CalendarX className="h-6 w-6 text-purple-600" />}
 					label="On Leave"
-					value={stats?.onLeave ?? 0}
+					value={leaveToday}
 				/>
 			</div>
 
+			{/* Charts Row */}
 			<div className="grid gap-4 lg:grid-cols-2">
+				{/* Weekly Attendance Bar Chart - Current Week Mon-Sun, only day names */}
 				<Card className="border-0 shadow-sm">
 					<CardHeader className="pb-2">
 						<CardTitle className="flex items-center gap-2 text-base">
@@ -275,8 +371,8 @@ export default function DashboardPage() {
 							Weekly Attendance
 						</CardTitle>
 						<CardDescription>
-							Attendance trend for the last 7 days (Present,
-							Absent, Leave)
+							Current week (Monday – Sunday) – holidays are
+							marked, absent = total - present - leave
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
@@ -308,54 +404,7 @@ export default function DashboardPage() {
 										domain={[0, "dataMax + 2"]}
 										allowDecimals={false}
 									/>
-									<Tooltip
-										content={({
-											active,
-											payload,
-											label,
-										}: any) => {
-											if (!active || !payload?.length)
-												return null;
-											return (
-												<div className="rounded-lg border bg-white p-3 shadow-xl min-w-[160px]">
-													<p className="mb-2 font-semibold text-gray-900">
-														{label}
-													</p>
-													{payload.map(
-														(
-															entry: any,
-															i: number,
-														) => (
-															<div
-																key={i}
-																className="flex items-center justify-between gap-4 text-sm mb-1"
-															>
-																<div className="flex items-center gap-2">
-																	<div
-																		className="h-2 w-2 rounded-full"
-																		style={{
-																			backgroundColor:
-																				entry.color,
-																		}}
-																	/>
-																	<span className="text-gray-600">
-																		{
-																			entry.name
-																		}
-																	</span>
-																</div>
-																<span className="font-semibold text-gray-900">
-																	{
-																		entry.value
-																	}
-																</span>
-															</div>
-														),
-													)}
-												</div>
-											);
-										}}
-									/>
+									<Tooltip content={<CustomTooltip />} />
 									<Legend content={renderLegend} />
 									<Bar
 										dataKey="present"
@@ -384,13 +433,14 @@ export default function DashboardPage() {
 					</CardContent>
 				</Card>
 
+				{/* Today's Distribution Pie Chart */}
 				<Card className="border-0 shadow-sm">
 					<CardHeader className="pb-2">
 						<CardTitle className="flex items-center gap-2 text-base">
 							<div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100">
 								<Users className="h-4 w-4 text-emerald-500" />
 							</div>
-							Today&apos;s Distribution
+							Today's Distribution
 						</CardTitle>
 						<CardDescription>
 							Attendance breakdown for today
@@ -420,50 +470,20 @@ export default function DashboardPage() {
 											/>
 										))}
 									</Pie>
-									<Tooltip
-										content={({ active, payload }: any) => {
-											if (!active || !payload?.length)
-												return null;
-											return (
-												<div className="rounded-lg border bg-white p-3 shadow-xl">
-													<div className="flex items-center justify-between gap-6 text-sm">
-														<div className="flex items-center gap-2">
-															<div
-																className="h-2 w-2 rounded-full"
-																style={{
-																	backgroundColor:
-																		payload[0]
-																			.payload
-																			.color,
-																}}
-															/>
-															<span className="text-gray-600">
-																{
-																	payload[0]
-																		.name
-																}
-															</span>
-														</div>
-														<span className="font-semibold text-gray-900">
-															{payload[0].value}
-														</span>
-													</div>
-												</div>
-											);
-										}}
-									/>
+									<Tooltip />
 								</PieChart>
 							</ResponsiveContainer>
 						</div>
 						<div className="mt-4 text-center text-xs text-muted-foreground">
 							Total accounted:{" "}
 							{pieData.reduce((sum, item) => sum + item.value, 0)}{" "}
-							/ {employees.length} employees
+							/ {totalEmployees} employees
 						</div>
 					</CardContent>
 				</Card>
 			</div>
 
+			{/* Today's Staff Status List with pagination */}
 			<Card className="border-0 shadow-sm">
 				<CardHeader className="pb-2">
 					<CardTitle className="flex items-center gap-2 text-base">
@@ -478,8 +498,7 @@ export default function DashboardPage() {
 				</CardHeader>
 				<CardContent>
 					<div className="space-y-3">
-						{recentAttendance.length === 0 &&
-						employees.length > 0 ? (
+						{todayStaff.length === 0 && employees.length > 0 ? (
 							<div className="text-center py-12">
 								<Clock className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-50" />
 								<p className="text-muted-foreground">
@@ -487,61 +506,89 @@ export default function DashboardPage() {
 								</p>
 							</div>
 						) : (
-							employees.slice(0, 10).map((employee) => {
-								const record = recentAttendance.find(
-									(a) => a.employeeId === employee.id,
-								);
-								const isOut = currentlyOutStaff.some(
-									(o) => o.employeeId === employee.id,
-								);
-								let displayStatus = "Not Checked In";
-								let statusColor = "bg-slate-100 text-slate-700";
+							<>
+								{displayStaff.map((item) => {
+									const staff = item.staff;
+									const deptName = getDepartmentName(
+										staff.departmentId,
+									);
+									const status = item.status;
+									let displayStatus = "Not Checked In";
+									let statusColor =
+										"bg-slate-100 text-slate-700";
 
-								if (record?.status === "Leave") {
-									displayStatus = "On Leave";
-									statusColor =
-										"bg-purple-100 text-purple-700";
-								} else if (isOut) {
-									displayStatus = "Currently Out";
-									statusColor = "bg-amber-100 text-amber-700";
-								} else if (record?.checkIn) {
-									displayStatus = record.checkOut
-										? "Checked Out"
-										: "In Office";
-									statusColor = record.checkOut
-										? "bg-blue-100 text-blue-700"
-										: "bg-emerald-100 text-emerald-700";
-								}
+									if (status === "leave") {
+										displayStatus = "On Leave";
+										statusColor =
+											"bg-purple-100 text-purple-700";
+									} else if (status === "present") {
+										displayStatus = "Present";
+										statusColor =
+											"bg-emerald-100 text-emerald-700";
+									} else if (status === "late") {
+										displayStatus = "Late";
+										statusColor =
+											"bg-amber-100 text-amber-700";
+									} else if (status === "absent") {
+										displayStatus = "Absent";
+										statusColor = "bg-red-100 text-red-700";
+									}
 
-								return (
-									<div
-										key={employee.id}
-										className="flex items-center justify-between rounded-lg border border-border bg-card p-3"
-									>
-										<div className="flex items-center gap-3">
-											<div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0B2E4F] text-white text-sm font-semibold">
-												{employee.name.charAt(0)}
-											</div>
-											<div>
-												<p className="font-medium text-foreground">
-													{employee.name}
-												</p>
-												<p className="text-sm text-muted-foreground">
-													{employee.department}
-												</p>
-											</div>
-										</div>
-										<Badge
-											className={cn(
-												"rounded-full px-3 py-1 text-xs font-medium",
-												statusColor,
-											)}
+									return (
+										<div
+											key={staff.id}
+											className="flex items-center justify-between rounded-lg border border-border bg-card p-3"
 										>
-											{displayStatus}
-										</Badge>
+											<div className="flex items-center gap-3">
+												<div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0B2E4F] text-white text-sm font-semibold">
+													{staff.name.charAt(0)}
+												</div>
+												<div>
+													<p className="font-medium text-foreground">
+														{staff.name}
+													</p>
+													<p className="text-sm text-muted-foreground">
+														{deptName}
+													</p>
+												</div>
+											</div>
+											<Badge
+												className={cn(
+													"rounded-full px-3 py-1 text-xs font-medium",
+													statusColor,
+												)}
+											>
+												{displayStatus}
+											</Badge>
+										</div>
+									);
+								})}
+								{todayStaff.length > 10 && (
+									<div className="flex justify-center pt-2">
+										<Button
+											variant="ghost"
+											size="sm"
+											onClick={() =>
+												setShowAllStaff(!showAllStaff)
+											}
+											className="gap-1 text-[#0B2E4F]"
+										>
+											{showAllStaff ? (
+												<>
+													Show less{" "}
+													<ChevronUp className="h-4 w-4" />
+												</>
+											) : (
+												<>
+													Show all {todayStaff.length}{" "}
+													staff{" "}
+													<ChevronDown className="h-4 w-4" />
+												</>
+											)}
+										</Button>
 									</div>
-								);
-							})
+								)}
+							</>
 						)}
 					</div>
 				</CardContent>

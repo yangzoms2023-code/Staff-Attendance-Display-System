@@ -1,106 +1,292 @@
-// // lib/auth-context.tsx
-// "use client";
+"use client";
 
-// import {
-// 	createContext,
-// 	useContext,
-// 	useState,
-// 	useEffect,
-// 	type ReactNode,
-// } from "react";
-// import type { User } from "./types";
-// import { adminLogin, staffLogin, setAccessToken } from "./api-client";
-// // dataStore is still used for other parts, but auth will use API
-// import { dataStore } from "./data-store";
+import {
+	createContext,
+	useContext,
+	useState,
+	useEffect,
+	useCallback,
+	type ReactNode,
+} from "react";
+import type { User } from "./types";
+import { setAccessToken as setApiAccessToken } from "./api-client";
 
-// interface AuthContextType {
-// 	user: User | null;
-// 	login: (
-// 		identifier: string,
-// 		password: string,
-// 		role?: "admin" | "employee" | "operator",
-// 	) => Promise<boolean>;
-// 	logout: () => void;
-// 	isLoading: boolean;
-// }
+interface Session {
+	accessToken: string;
+	refreshToken: string;
+	expiresIn: number;
+	tokenType: string;
+	user: User;
+}
 
-// const AuthContext = createContext<AuthContextType | undefined>(undefined);
+interface AuthContextType {
+	user: User | null;
+	isLoading: boolean;
+	login: (
+		username: string,
+		password: string,
+		role?: "admin" | "employee" | "operator",
+	) => Promise<boolean>;
+	logout: () => void;
+	refreshAccessToken: () => Promise<boolean>;
+	getAuthHeaders: () => Record<string, string> | undefined;
+	hasSession: boolean;
+}
 
-// export function AuthProvider({ children }: { children: ReactNode }) {
-// 	const [user, setUser] = useState<User | null>(null);
-// 	const [isLoading, setIsLoading] = useState(true);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:9001";
 
-// 	useEffect(() => {
-// 		dataStore.init(); // Keep for other mock data, but consider removing later
+export function AuthProvider({ children }: { children: ReactNode }) {
+	const [session, setSession] = useState<Session | null>(null);
+	const [isLoading, setIsLoading] = useState(true);
 
-// 		// Check for existing session from API token? For now, we can check localStorage for user object
-// 		const savedUser = localStorage.getItem("tda_current_user");
-// 		const token = localStorage.getItem("access_token");
-// 		if (savedUser && token) {
-// 			setUser(JSON.parse(savedUser));
-// 		}
-// 		setIsLoading(false);
-// 	}, []);
+	useEffect(() => {
+		try {
+			const stored = localStorage.getItem("auth_session");
+			if (stored) {
+				const parsedSession = JSON.parse(stored);
+				const expiresAt = parsedSession.expiresIn
+					? new Date(parsedSession.expiresIn).getTime()
+					: null;
+				const isValid = !expiresAt || expiresAt > Date.now();
 
-// 	const login = async (
-// 		identifier: string,
-// 		password: string,
-// 		role?: "admin" | "employee" | "operator",
-// 	): Promise<boolean> => {
-// 		try {
-// 			let apiResponse;
-// 			if (role === "admin") {
-// 				apiResponse = await adminLogin(identifier, password);
-// 			} else if (role === "employee") {
-// 				// For employee, identifier is email (or CID? Backend expects email)
-// 				// We'll assume email for now; if CID is needed, fetch staff by CID first
-// 				apiResponse = await staffLogin(identifier, password);
-// 			} else {
-// 				return false;
-// 			}
+				if (isValid) {
+					setSession(parsedSession);
+					setApiAccessToken(parsedSession.accessToken);
+					console.log(
+						"Session restored for user:",
+						parsedSession.user?.name,
+					);
+				} else {
+					console.log("Session expired, clearing");
+					localStorage.removeItem("auth_session");
+					setApiAccessToken(null);
+				}
+			}
+		} catch (error) {
+			console.error("Failed to restore session", error);
+			localStorage.removeItem("auth_session");
+			setApiAccessToken(null);
+		}
+		setIsLoading(false);
+	}, []);
 
-// 			// Transform backend user object to match frontend User type
-// 			const backendUser = apiResponse.user;
-// 			const frontendUser: User = {
-// 				id: backendUser.id,
-// 				username: backendUser.email, // or use email as username
-// 				password: "", // never store
-// 				role: role === "admin" ? "admin" : "employee",
-// 				name: backendUser.name,
-// 				email: backendUser.email,
-// 				employeeId: backendUser.staffId || undefined,
-// 				department: backendUser.department || undefined,
-// 			};
+	useEffect(() => {
+		if (session) {
+			localStorage.setItem("auth_session", JSON.stringify(session));
+			setApiAccessToken(session.accessToken);
+			console.log("Session saved for user:", session.user?.name);
+		} else {
+			localStorage.removeItem("auth_session");
+			setApiAccessToken(null);
+			console.log("Session cleared from storage");
+		}
+	}, [session]);
 
-// 			setUser(frontendUser);
-// 			localStorage.setItem(
-// 				"tda_current_user",
-// 				JSON.stringify(frontendUser),
-// 			);
-// 			return true;
-// 		} catch (error) {
-// 			console.error("Login error:", error);
-// 			return false;
-// 		}
-// 	};
+	const login = async (
+		username: string,
+		password: string,
+		role: "admin" | "employee" | "operator" = "employee",
+	): Promise<boolean> => {
+		console.log("=== LOGIN ATTEMPT START ===");
+		console.log("Clearing existing session before login");
+		setSession(null);
+		localStorage.removeItem("auth_session");
+		sessionStorage.clear();
+		await new Promise((resolve) => setTimeout(resolve, 100));
 
-// 	const logout = () => {
-// 		setUser(null);
-// 		localStorage.removeItem("tda_current_user");
-// 		setAccessToken(null);
-// 	};
+		const endpoint =
+			role === "admin" ? "/auth/admin/login" : "/auth/staff/login";
+		const requestBody =
+			role === "admin"
+				? { email: username, password }
+				: { cidNo: username, password };
 
-// 	return (
-// 		<AuthContext.Provider value={{ user, login, logout, isLoading }}>
-// 			{children}
-// 		</AuthContext.Provider>
-// 	);
-// }
+		try {
+			console.log(
+				`Attempting ${role} login with:`,
+				role === "admin" ? username : `CID: ${username}`,
+			);
+			console.log("Request body:", requestBody);
+			console.log("API Base URL:", API_BASE);
+			console.log("Full endpoint:", `${API_BASE}${endpoint}`);
 
-// export function useAuth() {
-// 	const context = useContext(AuthContext);
-// 	if (context === undefined) {
-// 		throw new Error("useAuth must be used within an AuthProvider");
-// 	}
-// 	return context;
-// }
+			const response = await fetch(`${API_BASE}${endpoint}`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(requestBody),
+			});
+
+			console.log("Login response status:", response.status);
+			console.log("Login response status text:", response.statusText);
+
+			let data;
+			try {
+				data = await response.json();
+			} catch (parseError) {
+				console.error("Failed to parse response as JSON", parseError);
+				data = { error: "Invalid JSON response from server" };
+			}
+
+			console.log("Login response data:", JSON.stringify(data, null, 2));
+
+			if (!response.ok) {
+				console.error(
+					"Auth login failed with status",
+					response.status,
+					":",
+					data,
+				);
+				return false;
+			}
+
+			if (!data?.accessToken || !data?.refreshToken || !data?.user) {
+				console.error(
+					"Auth login returned invalid session payload",
+					data,
+				);
+				return false;
+			}
+
+			console.log("Raw user data from backend:", data.user);
+
+			const normalizedUser: User = {
+				id: data.user.id,
+				name: data.user.name,
+				email: data.user.email || "",
+				role: role === "admin" ? "admin" : "employee",
+				employeeId: data.user.employeeId || data.user.employee_id,
+				employee_id: data.user.employee_id || data.user.employeeId,
+				cidNo: data.user.cidNo || data.user.cid_no,
+				cid_no: data.user.cid_no || data.user.cidNo,
+				contactNumber: data.user.contactNumber || data.user.contact_no,
+				contact_no: data.user.contact_no || data.user.contactNumber,
+				employmentType:
+					data.user.employmentType || data.user.employment_type,
+				employment_type:
+					data.user.employment_type || data.user.employmentType,
+				department: data.user.department,
+				designation: data.user.designation,
+				is_active: data.user.is_active,
+				created_at: data.user.created_at,
+				last_login_at: data.user.last_login_at,
+				address: data.user.address,
+			};
+
+			console.log("Normalized user:", {
+				id: normalizedUser.id,
+				name: normalizedUser.name,
+				employee_id: normalizedUser.employee_id,
+				cid_no: normalizedUser.cid_no,
+				role: normalizedUser.role,
+			});
+
+			setSession({
+				accessToken: data.accessToken,
+				refreshToken: data.refreshToken,
+				expiresIn: data.expiresIn,
+				tokenType: data.tokenType,
+				user: normalizedUser,
+			});
+
+			console.log("=== LOGIN SUCCESSFUL ===");
+			return true;
+		} catch (error) {
+			console.error("Login request failed", error);
+			return false;
+		}
+	};
+
+	const logout = useCallback(() => {
+		console.log("Logging out, clearing session");
+		setSession(null);
+		localStorage.removeItem("auth_session");
+		setApiAccessToken(null);
+		sessionStorage.clear();
+	}, []);
+
+	const refreshAccessToken = async (): Promise<boolean> => {
+		if (!session?.refreshToken) {
+			console.log("No refresh token available");
+			return false;
+		}
+
+		try {
+			const response = await fetch(`${API_BASE}/auth/refresh`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ refreshToken: session.refreshToken }),
+			});
+
+			const data = await response.json();
+
+			if (!response.ok) {
+				console.error("Refresh token failed", data);
+				logout();
+				return false;
+			}
+
+			if (!data?.accessToken || !data?.refreshToken) {
+				console.error("Refresh token returned invalid payload", data);
+				logout();
+				return false;
+			}
+
+			setSession((current) =>
+				current
+					? {
+							...current,
+							accessToken: data.accessToken,
+							refreshToken: data.refreshToken,
+							expiresIn: data.expiresIn,
+							tokenType: data.tokenType,
+						}
+					: null,
+			);
+
+			return true;
+		} catch (error) {
+			console.error("Refresh request failed", error);
+			logout();
+			return false;
+		}
+	};
+
+	const getAuthHeaders = useCallback(() => {
+		if (!session?.accessToken) {
+			return undefined;
+		}
+		return { Authorization: `Bearer ${session.accessToken}` };
+	}, [session?.accessToken]);
+
+	const user = session?.user ?? null;
+	const hasSession = Boolean(session);
+
+	return (
+		<AuthContext.Provider
+			value={{
+				user,
+				isLoading,
+				login,
+				logout,
+				refreshAccessToken,
+				getAuthHeaders,
+				hasSession,
+			}}
+		>
+			{children}
+		</AuthContext.Provider>
+	);
+}
+
+export function useAuth() {
+	const context = useContext(AuthContext);
+	if (context === undefined) {
+		throw new Error("useAuth must be used within an AuthProvider");
+	}
+	return context;
+}

@@ -1,10 +1,8 @@
 "use client";
-import { dataStore } from "@/lib/data-store";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { useSession } from "@/lib/session-provider";
-import type { Employee, OutingRequest, LeaveRequest } from "@/lib/types";
+import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -54,6 +52,12 @@ import {
 	AlertCircle,
 	CalendarX,
 	Clock,
+	Briefcase,
+	Phone,
+	Mail,
+	IdCard,
+	RefreshCw,
+	AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -64,24 +68,47 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { EmployeeAvatar } from "@/components/employee/employee-avatar";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:9001";
 const navItems = [
 	{ title: "Dashboard", url: "/staff", icon: LayoutDashboard },
 	{ title: "My Profile", url: "/staff/profile", icon: User },
 ];
 
+interface EmployeeData {
+	id: string;
+	employee_id: string;
+	cid_no: string;
+	name: string;
+	contact_no: string;
+	email: string;
+	employment_type: string;
+	is_active: boolean;
+	created_at: string;
+	last_login_at: string | null;
+	department?: string;
+	designation?: string;
+}
+
 export default function StaffDashboard() {
 	const router = useRouter();
 	const pathname = usePathname();
-	const { user, loading, logout } = useSession();
-	const [employee, setEmployee] = useState<Employee | null>(null);
-	const [outingRequests, setOutingRequests] = useState<OutingRequest[]>([]);
-	const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
-	const [currentTime, setCurrentTime] = useState(new Date());
+	const { user, getAuthHeaders, refreshAccessToken, logout } = useAuth();
+	const [employee, setEmployee] = useState<EmployeeData | null>(null);
+	const [outingRequests, setOutingRequests] = useState<any[]>([]);
+	const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 	const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+	const [isMounted, setIsMounted] = useState(false);
+	const [loading, setLoading] = useState(true);
+	const [fetchError, setFetchError] = useState<string | null>(null);
+	const [avatarRefreshKey, setAvatarRefreshKey] = useState(0);
+	const [dataMismatch, setDataMismatch] = useState(false);
 
-	// Outing request form state
+	const previousUserIdRef = useRef<string | null>(null);
+	const isInitialMount = useRef(true);
+
 	const [outingDialogOpen, setOutingDialogOpen] = useState(false);
 	const [outingPurpose, setOutingPurpose] = useState<"official" | "personal">(
 		"official",
@@ -91,17 +118,65 @@ export default function StaffDashboard() {
 	const [outingExpectedReturnTime, setOutingExpectedReturnTime] =
 		useState("");
 	const [outingError, setOutingError] = useState("");
+	const [submitting, setSubmitting] = useState(false);
 
-	// Leave request form state
 	const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
 	const [leaveStartDate, setLeaveStartDate] = useState("");
 	const [leaveEndDate, setLeaveEndDate] = useState("");
 	const [leaveReason, setLeaveReason] = useState("");
 	const [leaveError, setLeaveError] = useState("");
+	const [submittingLeave, setSubmittingLeave] = useState(false);
 
 	const today = new Date().toISOString().split("T")[0];
 
 	useEffect(() => {
+		setIsMounted(true);
+	}, []);
+
+	const clearAllData = useCallback(() => {
+		console.log("Clearing all employee data");
+		setEmployee(null);
+		setOutingRequests([]);
+		setLeaveRequests([]);
+		setFetchError(null);
+		setDataMismatch(false);
+		setAvatarRefreshKey((prev) => prev + 1);
+	}, []);
+
+	useEffect(() => {
+		if (!isMounted) return;
+
+		const currentUserId =
+			(user as any)?.id ||
+			(user as any)?.employee_id ||
+			(user as any)?.cid_no;
+
+		if (isInitialMount.current) {
+			isInitialMount.current = false;
+			previousUserIdRef.current = currentUserId;
+			return;
+		}
+
+		if (
+			previousUserIdRef.current &&
+			previousUserIdRef.current !== currentUserId
+		) {
+			console.log(
+				"User changed from",
+				previousUserIdRef.current,
+				"to",
+				currentUserId,
+			);
+			clearAllData();
+			setLoading(true);
+		}
+
+		previousUserIdRef.current = currentUserId;
+	}, [user, isMounted, clearAllData]);
+
+	useEffect(() => {
+		if (!isMounted) return;
+
 		if (!user) {
 			router.push("/");
 			return;
@@ -112,86 +187,216 @@ export default function StaffDashboard() {
 			return;
 		}
 
-		dataStore.init();
+		const loadData = async () => {
+			setLoading(true);
+			setFetchError(null);
+			setDataMismatch(false);
+			await new Promise((resolve) => setTimeout(resolve, 100));
+			await Promise.all([
+				fetchEmployeeData(),
+				fetchOutingRequests(),
+				fetchLeaveRequests(),
+			]);
+		};
 
-		const employees = dataStore.getEmployees();
-		let emp: Employee | undefined;
+		loadData();
+	}, [(user as any)?.id, router, isMounted]);
 
-		if (user.employeeId) {
-			emp = employees.find(
-				(e) =>
-					e.employeeId === user.employeeId ||
-					e.id === user.employeeId,
-			);
+	const getValidHeaders = async () => {
+		let headers = getAuthHeaders();
+		if (!headers) {
+			const refreshed = await refreshAccessToken();
+			if (!refreshed) {
+				router.push("/");
+				return null;
+			}
+			headers = getAuthHeaders();
 		}
-
-		if (!emp && user.username) {
-			emp = employees.find((e) => e.name === user.name);
-		}
-
-		if (!emp) {
-			emp = {
-				id: user.employeeId || user.id,
-				employeeId: user.employeeId || user.username,
-				name: user.name,
-				gender: "Other",
-				designation: "Staff",
-				contactNumber: "",
-				email: user.email,
-				address: "",
-				department: user.department || "General",
-				joiningDate: new Date().toISOString().split("T")[0],
-				status: "Active",
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString(),
-			};
-		}
-
-		setEmployee(emp);
-
-		const timeInterval = setInterval(() => {
-			setCurrentTime(new Date());
-		}, 1000);
-
-		return () => clearInterval(timeInterval);
-	}, [user, router]);
-
-	useEffect(() => {
-		if (employee) {
-			loadEmployeeData();
-		}
-	}, [employee]);
-
-	const loadEmployeeData = () => {
-		if (!employee) return;
-
-		const empOutings = dataStore.getOutingRequestsByEmployee(employee.id);
-		setOutingRequests(
-			empOutings.sort(
-				(a, b) =>
-					new Date(b.createdAt).getTime() -
-					new Date(a.createdAt).getTime(),
-			),
-		);
-
-		const leaves = dataStore
-			.getLeaveRequests()
-			.filter((l) => l.employeeId === employee.id);
-		setLeaveRequests(
-			leaves.sort(
-				(a, b) =>
-					new Date(b.createdAt).getTime() -
-					new Date(a.createdAt).getTime(),
-			),
-		);
+		return headers;
 	};
 
-	const formatTime = (date: Date) => {
-		return date.toLocaleTimeString("en-US", {
-			hour: "2-digit",
-			minute: "2-digit",
-			hour12: true,
-		});
+	const fetchEmployeeData = async () => {
+		try {
+			const headers = await getValidHeaders();
+			if (!headers) return;
+
+			console.log("=== FETCHING EMPLOYEE DATA ===");
+			console.log("Auth headers present:", !!headers);
+			console.log("User ID from auth:", (user as any)?.id);
+
+			const userId = (user as any)?.id;
+			if (!userId) {
+				console.error("No user ID found in auth context");
+				setFetchError("User ID not found. Please login again.");
+				return;
+			}
+
+			const response = await fetch(
+				`${API_BASE}/staff/${userId}?_=${Date.now()}`,
+				{
+					headers,
+					cache: "no-store",
+				},
+			);
+
+			console.log("Profile API Response Status:", response.status);
+
+			if (response.ok) {
+				const data = await response.json();
+				console.log(
+					"FULL EMPLOYEE API RESPONSE:",
+					JSON.stringify(data, null, 2),
+				);
+				console.log(
+					"Fetched employee data:",
+					data.name,
+					"CID:",
+					data.cid_no,
+					"Employee ID:",
+					data.employee_id,
+				);
+
+				// Validate that the returned data matches the logged-in user
+				const expectedCid =
+					(user as any)?.cid_no || (user as any)?.cidNo;
+				const actualCid = data.cid_no;
+
+				console.log("Expected CID from auth:", expectedCid);
+				console.log("Actual CID from API:", actualCid);
+
+				if (expectedCid && actualCid && expectedCid !== actualCid) {
+					console.error("=== CID MISMATCH DETECTED! ===");
+					console.error("Expected:", expectedCid, "Got:", actualCid);
+					console.error(
+						"This means the backend returned wrong user data!",
+					);
+					setDataMismatch(true);
+					setFetchError(
+						`Data mismatch! Logged in as CID: ${expectedCid} but API returned data for CID: ${actualCid}. Please logout and login again.`,
+					);
+					setEmployee(null);
+					return;
+				}
+
+				setEmployee(data);
+				setAvatarRefreshKey((prev) => prev + 1);
+			} else if (response.status === 401) {
+				console.log("Token expired, attempting refresh");
+				const refreshed = await refreshAccessToken();
+				if (refreshed) {
+					const retryHeaders = getAuthHeaders();
+					if (retryHeaders) {
+						const retryResponse = await fetch(
+							`${API_BASE}/staff/${userId}?_=${Date.now()}`,
+							{
+								headers: retryHeaders,
+								cache: "no-store",
+							},
+						);
+						if (retryResponse.ok) {
+							const data = await retryResponse.json();
+							console.log("Retry successful:", data.name);
+							setEmployee(data);
+							setAvatarRefreshKey((prev) => prev + 1);
+							return;
+						}
+					}
+				}
+				setFetchError("Session expired. Please login again.");
+				setTimeout(() => router.push("/"), 2000);
+			} else {
+				console.error(
+					"Failed to fetch employee profile:",
+					response.status,
+				);
+				setFetchError(
+					"Unable to load profile data. Please refresh the page.",
+				);
+			}
+		} catch (error) {
+			console.error("Error fetching employee:", error);
+			setFetchError("Network error. Please check your connection.");
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const fetchOutingRequests = async () => {
+		try {
+			const headers = await getValidHeaders();
+			if (!headers) return;
+
+			const response = await fetch(
+				`${API_BASE}/attendance/outings/my?_=${Date.now()}`,
+				{
+					headers,
+					cache: "no-store",
+				},
+			);
+
+			if (response.ok) {
+				const data = await response.json();
+				setOutingRequests(
+					data.sort(
+						(a: any, b: any) =>
+							new Date(b.createdAt).getTime() -
+							new Date(a.createdAt).getTime(),
+					),
+				);
+			} else if (response.status !== 404) {
+				console.error("Failed to fetch outings:", response.status);
+				setOutingRequests([]);
+			}
+		} catch (error) {
+			console.error("Error fetching outings:", error);
+			setOutingRequests([]);
+		}
+	};
+
+	const fetchLeaveRequests = async () => {
+		try {
+			const headers = await getValidHeaders();
+			if (!headers) return;
+
+			const response = await fetch(
+				`${API_BASE}/attendance/leaves/my?_=${Date.now()}`,
+				{
+					headers,
+					cache: "no-store",
+				},
+			);
+
+			if (response.ok) {
+				const data = await response.json();
+				setLeaveRequests(
+					data.sort(
+						(a: any, b: any) =>
+							new Date(b.createdAt).getTime() -
+							new Date(a.createdAt).getTime(),
+					),
+				);
+			} else if (response.status !== 404) {
+				console.error("Failed to fetch leaves:", response.status);
+				setLeaveRequests([]);
+			}
+		} catch (error) {
+			console.error("Error fetching leaves:", error);
+			setLeaveRequests([]);
+		}
+	};
+
+	const refreshAllData = async () => {
+		console.log("Refreshing all data");
+		setLoading(true);
+		setFetchError(null);
+		setDataMismatch(false);
+		await Promise.all([
+			fetchEmployeeData(),
+			fetchOutingRequests(),
+			fetchLeaveRequests(),
+		]);
+		setLoading(false);
+		setAvatarRefreshKey((prev) => prev + 1);
 	};
 
 	const getCurrentTime24 = () => {
@@ -208,25 +413,10 @@ export default function StaffDashboard() {
 	const parseTime = (timeStr: string): number => {
 		let hours = 0,
 			minutes = 0;
-		const str = timeStr.trim().toUpperCase();
-		const hasAmPm = str.includes("AM") || str.includes("PM");
-		const isPm = str.includes("PM");
-		const timePart = str.replace(/(AM|PM)/i, "").trim();
-		const parts = timePart.split(":");
+		const parts = timeStr.split(":");
 		if (parts.length >= 2) {
 			hours = parseInt(parts[0], 10);
 			minutes = parseInt(parts[1], 10);
-			if (hasAmPm) {
-				if (isPm && hours !== 12) hours += 12;
-				if (!isPm && hours === 12) hours = 0;
-			}
-		} else if (parts.length === 1) {
-			hours = parseInt(parts[0], 10);
-			minutes = 0;
-			if (hasAmPm) {
-				if (isPm && hours !== 12) hours += 12;
-				if (!isPm && hours === 12) hours = 0;
-			}
 		}
 		return hours * 60 + minutes;
 	};
@@ -235,10 +425,9 @@ export default function StaffDashboard() {
 		return parseTime(time1) > parseTime(time2);
 	};
 
-	const handleSubmitOutingRequest = () => {
+	const handleSubmitOutingRequest = async () => {
 		if (!employee) return;
 
-		// Block if on leave
 		if (isOnLeaveToday()) {
 			setOutingError("You cannot request an outing while on leave.");
 			return;
@@ -263,73 +452,83 @@ export default function StaffDashboard() {
 			}
 		}
 
-		let finalReturnTime: string | null = null;
-		if (outingWillReturn && outingExpectedReturnTime) {
-			const match = outingExpectedReturnTime.match(/(\d{1,2}):(\d{2})/);
-			if (match) {
-				let hours = parseInt(match[1], 10);
-				const minutes = match[2];
-				if (
-					outingExpectedReturnTime.toUpperCase().includes("PM") &&
-					hours !== 12
-				)
-					hours += 12;
-				if (
-					outingExpectedReturnTime.toUpperCase().includes("AM") &&
-					hours === 12
-				)
-					hours = 0;
-				finalReturnTime = `${String(hours).padStart(2, "0")}:${minutes}`;
-			} else {
-				finalReturnTime = outingExpectedReturnTime;
-			}
-		}
-
-		dataStore.createOutingRequest({
-			employeeId: employee.id,
-			date: today,
-			requestTime: getCurrentTime24(),
-			purpose: outingPurpose,
-			reason: outingReason,
-			willReturn: outingWillReturn,
-			expectedReturnTime: finalReturnTime,
-		});
-
-		setOutingPurpose("official");
-		setOutingReason("");
-		setOutingWillReturn(true);
-		setOutingExpectedReturnTime("");
+		setSubmitting(true);
 		setOutingError("");
-		setOutingDialogOpen(false);
-		loadEmployeeData();
-	};
 
-	const handleMarkReturn = (requestId: string) => {
-		if (!employee) return;
+		try {
+			const headers = await getValidHeaders();
+			if (!headers) return;
 
-		const outing = outingRequests.find((r) => r.id === requestId);
-		if (!outing) return;
+			const response = await fetch(`${API_BASE}/attendance/outings`, {
+				method: "POST",
+				headers: {
+					...headers,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					date: today,
+					purpose: outingPurpose,
+					reason: outingReason,
+					willReturn: outingWillReturn,
+					expectedReturnTime: outingWillReturn
+						? outingExpectedReturnTime
+						: null,
+				}),
+			});
 
-		const returnTime = getCurrentTime24();
-		const expectedTime = outing.expectedReturnTime;
-
-		if (expectedTime && isTimeAfter(returnTime, expectedTime)) {
-			if (
-				!confirm(
-					`You are returning late (expected: ${expectedTime}, actual: ${returnTime}). Do you want to continue?`,
-				)
-			) {
-				return;
+			if (response.ok) {
+				setOutingPurpose("official");
+				setOutingReason("");
+				setOutingWillReturn(true);
+				setOutingExpectedReturnTime("");
+				setOutingError("");
+				setOutingDialogOpen(false);
+				await fetchOutingRequests();
+			} else {
+				const error = await response.json();
+				setOutingError(
+					error.message || "Failed to submit outing request",
+				);
 			}
+		} catch (error) {
+			console.error("Error submitting outing:", error);
+			setOutingError("Failed to submit request. Please try again.");
+		} finally {
+			setSubmitting(false);
 		}
-
-		dataStore.markOutingReturn(requestId);
-		loadEmployeeData();
 	};
 
-	const handleSubmitLeaveRequest = () => {
-		if (!employee) return;
+	const handleMarkReturn = async (requestId: string) => {
+		try {
+			const headers = await getValidHeaders();
+			if (!headers) return;
 
+			const response = await fetch(
+				`${API_BASE}/attendance/outings/${requestId}/return`,
+				{
+					method: "PATCH",
+					headers: {
+						...headers,
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						returnTime: getCurrentTime24(),
+					}),
+				},
+			);
+
+			if (response.ok) {
+				await fetchOutingRequests();
+			} else {
+				alert("Failed to mark return");
+			}
+		} catch (error) {
+			console.error("Error marking return:", error);
+			alert("Error marking return");
+		}
+	};
+
+	const handleSubmitLeaveRequest = async () => {
 		const start = leaveStartDate.trim();
 		const end = leaveEndDate.trim();
 		const reason = leaveReason.trim();
@@ -349,60 +548,164 @@ export default function StaffDashboard() {
 			return;
 		}
 
-		dataStore.createLeaveRequest({
-			employeeId: employee.id,
-			startDate: start,
-			endDate: end,
-			reason: reason,
-		});
-
-		setLeaveStartDate("");
-		setLeaveEndDate("");
-		setLeaveReason("");
+		setSubmittingLeave(true);
 		setLeaveError("");
-		setLeaveDialogOpen(false);
-		loadEmployeeData();
+
+		try {
+			const headers = await getValidHeaders();
+			if (!headers) return;
+
+			const response = await fetch(`${API_BASE}/attendance/leaves`, {
+				method: "POST",
+				headers: {
+					...headers,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					startDate: start,
+					endDate: end,
+					reason: reason,
+				}),
+			});
+
+			if (response.ok) {
+				setLeaveStartDate("");
+				setLeaveEndDate("");
+				setLeaveReason("");
+				setLeaveError("");
+				setLeaveDialogOpen(false);
+				await fetchLeaveRequests();
+			} else {
+				const error = await response.json();
+				setLeaveError(
+					error.message || "Failed to submit leave request",
+				);
+			}
+		} catch (error) {
+			console.error("Error submitting leave:", error);
+			setLeaveError("Failed to submit request. Please try again.");
+		} finally {
+			setSubmittingLeave(false);
+		}
 	};
 
-	const handleLogout = () => {
-		localStorage.removeItem("tda_current_user");
+	const handleLogout = async () => {
+		clearAllData();
 		logout();
 		router.push("/");
 	};
 
 	const currentOuting = outingRequests.find(
-		(r) =>
+		(r: any) =>
 			r.date === today && r.status === "approved" && !r.actualReturnTime,
 	);
 
 	const isOnLeaveToday = () => {
 		const todayStr = today;
 		return leaveRequests.some(
-			(leave) => leave.startDate <= todayStr && leave.endDate >= todayStr,
+			(leave: any) =>
+				leave.startDate <= todayStr && leave.endDate >= todayStr,
 		);
 	};
 
 	const canRequestOuting = !currentOuting && !isOnLeaveToday();
-	const canMarkReturn = !!currentOuting;
 
-	const getOutingStatusBadge = (status: OutingRequest["status"]) => {
-		switch (status) {
-			case "approved":
-				return (
-					<Badge className="bg-green-100 text-green-800">
-						Approved
-					</Badge>
-				);
-			default:
-				return <Badge variant="secondary">{status}</Badge>;
-		}
+	const getEmployeeName = () =>
+		employee?.name || (user as any)?.name || "Employee";
+	const getEmployeeId = () =>
+		employee?.employee_id ||
+		(user as any)?.employee_id ||
+		(user as any)?.employeeId ||
+		"N/A";
+	const getEmployeeEmail = () => employee?.email || user?.email || "";
+	const getEmployeeContact = () =>
+		employee?.contact_no ||
+		(user as any)?.contact_no ||
+		(user as any)?.contactNumber ||
+		"N/A";
+	const getEmployeeCid = () =>
+		employee?.cid_no ||
+		(user as any)?.cid_no ||
+		(user as any)?.cidNo ||
+		"N/A";
+	const getEmploymentType = () => {
+		const type =
+			employee?.employment_type ||
+			(user as any)?.employment_type ||
+			(user as any)?.employmentType ||
+			"regular";
+		return type.charAt(0).toUpperCase() + type.slice(1);
 	};
 
-	if (!employee) {
+	if (!isMounted || loading) {
 		return (
 			<div className="min-h-screen flex items-center justify-center bg-slate-50">
-				<div className="animate-pulse text-slate-500">
-					Loading employee data...
+				<div className="text-center">
+					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0B2E4F] mx-auto mb-4"></div>
+					<div className="text-slate-500">Loading dashboard...</div>
+				</div>
+			</div>
+		);
+	}
+
+	if (dataMismatch) {
+		return (
+			<div className="min-h-screen flex items-center justify-center bg-slate-50">
+				<div className="text-center max-w-md mx-auto p-8 bg-white rounded-2xl shadow-lg">
+					<div className="bg-red-100 rounded-full h-20 w-20 flex items-center justify-center mx-auto mb-4">
+						<AlertTriangle className="h-10 w-10 text-red-600" />
+					</div>
+					<h2 className="text-xl font-bold text-slate-900 mb-2">
+						Data Mismatch Detected!
+					</h2>
+					<p className="text-slate-600 mb-4">{fetchError}</p>
+					<p className="text-sm text-slate-500 mb-6">
+						This usually happens when the backend API returns data
+						for a different user than the one logged in. Please
+						logout and login again.
+					</p>
+					<div className="flex gap-3 justify-center">
+						<Button
+							onClick={handleLogout}
+							className="bg-red-600 hover:bg-red-700"
+						>
+							Logout Now
+						</Button>
+						<Button onClick={refreshAllData} variant="outline">
+							<RefreshCw className="h-4 w-4 mr-2" />
+							Retry
+						</Button>
+					</div>
+				</div>
+			</div>
+		);
+	}
+
+	if (!employee && !loading) {
+		return (
+			<div className="min-h-screen flex items-center justify-center bg-slate-50">
+				<div className="text-center max-w-md mx-auto p-8 bg-white rounded-2xl shadow-lg">
+					<div className="bg-red-100 rounded-full h-20 w-20 flex items-center justify-center mx-auto mb-4">
+						<AlertCircle className="h-10 w-10 text-red-600" />
+					</div>
+					<h2 className="text-xl font-bold text-slate-900 mb-2">
+						No Employee Data
+					</h2>
+					<p className="text-slate-600 mb-6">
+						{fetchError || "Unable to load employee data"}
+					</p>
+					<div className="flex gap-3 justify-center">
+						<Button
+							onClick={refreshAllData}
+							className="bg-[#0B2E4F] hover:bg-[#1a5a92]"
+						>
+							<RefreshCw className="h-4 w-4 mr-2" />
+							Retry
+						</Button>
+						<Button onClick={handleLogout} variant="outline">
+							Logout
+						</Button>
+					</div>
 				</div>
 			</div>
 		);
@@ -417,7 +720,6 @@ export default function StaffDashboard() {
 				/>
 
 				<div className="relative z-10">
-					{/* Header */}
 					<header className="flex items-center justify-between bg-white shadow-sm px-6 md:px-10 py-3 border-b border-slate-200 sticky top-0 z-50">
 						<div className="flex items-center gap-3">
 							<div className="flex h-12 w-12 items-center justify-center">
@@ -440,35 +742,56 @@ export default function StaffDashboard() {
 						</div>
 
 						<div className="hidden md:flex items-center gap-4">
+							<Button
+								variant="ghost"
+								size="icon"
+								onClick={refreshAllData}
+								className="hover:bg-slate-100"
+								title="Refresh data"
+							>
+								<RefreshCw className="h-4 w-4 text-slate-500" />
+							</Button>
+
 							<DropdownMenu>
 								<DropdownMenuTrigger asChild>
 									<Button
 										variant="ghost"
 										className="gap-2 hover:bg-slate-100"
 									>
-										<div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0B2E4F] text-white text-sm font-semibold">
-											{employee.name.charAt(0)}
-										</div>
+										<EmployeeAvatar
+											cidNo={getEmployeeCid()}
+											name={getEmployeeName()}
+											size="sm"
+											refreshKey={avatarRefreshKey}
+										/>
 										<span className="font-medium text-slate-700">
-											{employee.name.split(" ")[0]}
+											{getEmployeeName().split(" ")[0]}
 										</span>
 										<ChevronDown className="h-4 w-4 text-slate-500" />
 									</Button>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent
 									align="end"
-									className="w-56"
+									className="w-64"
 								>
-									<div className="p-3 border-b">
-										<p className="font-semibold text-slate-900">
-											{employee.name}
-										</p>
-										<p className="text-sm text-slate-500">
-											{employee.designation}
-										</p>
-										<p className="text-xs text-slate-400 mt-1">
-											{employee.email}
-										</p>
+									<div className="p-3 border-b flex items-center gap-3">
+										<EmployeeAvatar
+											cidNo={getEmployeeCid()}
+											name={getEmployeeName()}
+											size="sm"
+											refreshKey={avatarRefreshKey}
+										/>
+										<div>
+											<p className="font-semibold text-slate-900">
+												{getEmployeeName()}
+											</p>
+											<p className="text-sm text-slate-500">
+												{getEmploymentType()}
+											</p>
+											<p className="text-xs text-slate-400 mt-1">
+												{getEmployeeEmail()}
+											</p>
+										</div>
 									</div>
 									<DropdownMenuItem
 										className="gap-2 cursor-pointer hover:!bg-[#0B2E4F] hover:text-white"
@@ -480,7 +803,7 @@ export default function StaffDashboard() {
 										My Profile
 									</DropdownMenuItem>
 									<DropdownMenuItem
-										className="gap-2 cursor-pointer hover:!bg-[#0B2E4F] hover:text-white"
+										className="gap-2 cursor-pointer hover:!bg-red-600 hover:text-white"
 										onClick={() =>
 											setLogoutDialogOpen(true)
 										}
@@ -500,7 +823,7 @@ export default function StaffDashboard() {
 								<Button
 									variant="ghost"
 									size="icon"
-									className="md:hidden hover:bg-[#0B2E4F] hover:text-white"
+									className="md:hidden"
 								>
 									<Menu className="h-5 w-5 text-slate-700" />
 								</Button>
@@ -570,15 +893,18 @@ export default function StaffDashboard() {
 									</div>
 									<div className="border-t border-slate-200 p-4">
 										<div className="flex items-center gap-3 mb-3">
-											<div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0B2E4F]">
-												<User2 className="h-5 w-5 text-white" />
-											</div>
+											<EmployeeAvatar
+												cidNo={getEmployeeCid()}
+												name={getEmployeeName()}
+												size="sm"
+												refreshKey={avatarRefreshKey}
+											/>
 											<div className="flex-1">
 												<p className="text-sm font-medium text-slate-800">
-													{employee.name}
+													{getEmployeeName()}
 												</p>
 												<p className="text-xs text-slate-500 capitalize">
-													Employee
+													{getEmploymentType()}
 												</p>
 											</div>
 										</div>
@@ -600,24 +926,44 @@ export default function StaffDashboard() {
 					</header>
 
 					<main className="px-6 md:px-10 lg:px-14 py-8 max-w-7xl mx-auto">
-						{/* Welcome Banner */}
+						{fetchError && (
+							<div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between">
+								<div className="flex items-center gap-2 text-red-700">
+									<AlertCircle className="h-5 w-5" />
+									<span>{fetchError}</span>
+								</div>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={refreshAllData}
+									className="border-red-300 text-red-700 hover:bg-red-100"
+								>
+									Retry
+								</Button>
+							</div>
+						)}
+
 						<div className="bg-gradient-to-r from-[#0B2E4F] to-[#1a456b] rounded-lg p-5 md:p-7 mb-8 text-white shadow-xl">
 							<div className="flex items-center justify-between flex-wrap gap-4">
 								<div className="flex items-center gap-4">
-									<div className="flex h-14 w-14 md:h-20 md:w-20 items-center justify-center rounded-full bg-white/20 text-white text-2xl md:text-3xl font-bold shadow-lg">
-										{employee.name.charAt(0)}
-									</div>
+									<EmployeeAvatar
+										cidNo={getEmployeeCid()}
+										name={getEmployeeName()}
+										size="md"
+										refreshKey={avatarRefreshKey}
+									/>
+
 									<div>
 										<h2 className="text-xl md:text-3xl font-bold">
 											Welcome back,{" "}
-											{employee.name.split(" ")[0]}!
+											{getEmployeeName().split(" ")[0]}!
 										</h2>
 										<p className="text-white/80 text-base md:text-lg mt-1">
-											{employee.designation} •{" "}
-											{employee.department}
+											{getEmploymentType()} Employee
 										</p>
 										<p className="text-white/60 text-sm mt-1">
-											ID: {employee.employeeId}
+											ID: {getEmployeeId()} | CID:{" "}
+											{getEmployeeCid()}
 										</p>
 									</div>
 								</div>
@@ -644,9 +990,55 @@ export default function StaffDashboard() {
 							</div>
 						</div>
 
-						{/* Quick Actions */}
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+							<Card className="border-0 shadow-sm">
+								<CardContent className="p-4 flex items-center gap-4">
+									<div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+										<Mail className="h-5 w-5 text-blue-600" />
+									</div>
+									<div>
+										<p className="text-xs text-slate-500">
+											Email
+										</p>
+										<p className="text-sm font-medium truncate max-w-[200px]">
+											{getEmployeeEmail()}
+										</p>
+									</div>
+								</CardContent>
+							</Card>
+							<Card className="border-0 shadow-sm">
+								<CardContent className="p-4 flex items-center gap-4">
+									<div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+										<Phone className="h-5 w-5 text-green-600" />
+									</div>
+									<div>
+										<p className="text-xs text-slate-500">
+											Contact Number
+										</p>
+										<p className="text-sm font-medium">
+											{getEmployeeContact()}
+										</p>
+									</div>
+								</CardContent>
+							</Card>
+							<Card className="border-0 shadow-sm">
+								<CardContent className="p-4 flex items-center gap-4">
+									<div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+										<IdCard className="h-5 w-5 text-purple-600" />
+									</div>
+									<div>
+										<p className="text-xs text-slate-500">
+											Employment Type
+										</p>
+										<p className="text-sm font-medium">
+											{getEmploymentType()}
+										</p>
+									</div>
+								</CardContent>
+							</Card>
+						</div>
+
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-							{/* Leave Request Card */}
 							<Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
 								<CardHeader className="pb-3">
 									<CardTitle className="flex items-center gap-2 text-lg">
@@ -654,7 +1046,7 @@ export default function StaffDashboard() {
 										Request Leave
 									</CardTitle>
 									<CardDescription>
-										Submit a leave request (auto-approved)
+										Submit a leave request
 									</CardDescription>
 								</CardHeader>
 								<CardContent>
@@ -668,7 +1060,6 @@ export default function StaffDashboard() {
 								</CardContent>
 							</Card>
 
-							{/* Outing Request Card */}
 							<Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
 								<CardHeader className="pb-3">
 									<CardTitle className="flex items-center gap-2 text-lg">
@@ -676,7 +1067,7 @@ export default function StaffDashboard() {
 										Request Outing
 									</CardTitle>
 									<CardDescription>
-										Submit an outing request (auto-approved)
+										Submit an outing request
 									</CardDescription>
 								</CardHeader>
 								<CardContent>
@@ -744,7 +1135,6 @@ export default function StaffDashboard() {
 							</Card>
 						</div>
 
-						{/* History Section */}
 						<div>
 							<h3 className="text-base font-semibold text-slate-900 mb-4">
 								History & Records
@@ -802,6 +1192,9 @@ export default function StaffDashboard() {
 																		Reason
 																	</th>
 																	<th className="text-left text-white font-semibold py-3 px-4">
+																		Status
+																	</th>
+																	<th className="text-left text-white font-semibold py-3 px-4">
 																		Requested
 																		On
 																	</th>
@@ -840,6 +1233,11 @@ export default function StaffDashboard() {
 																				{
 																					request.reason
 																				}
+																			</td>
+																			<td className="py-3 px-4">
+																				<Badge className="bg-green-100 text-green-800">
+																					Approved
+																				</Badge>
 																			</td>
 																			<td className="py-3 px-4 text-sm text-slate-500">
 																				{new Date(
@@ -990,7 +1388,6 @@ export default function StaffDashboard() {
 					</main>
 				</div>
 
-				{/* Dialogs */}
 				<Dialog
 					open={logoutDialogOpen}
 					onOpenChange={setLogoutDialogOpen}
@@ -1118,10 +1515,13 @@ export default function StaffDashboard() {
 							</Button>
 							<Button
 								onClick={handleSubmitOutingRequest}
+								disabled={submitting}
 								className="bg-[#0B2E4F] hover:bg-[#1a456b]"
 							>
 								<Send className="h-4 w-4 mr-2" />
-								Submit Request
+								{submitting
+									? "Submitting..."
+									: "Submit Request"}
 							</Button>
 						</DialogFooter>
 					</DialogContent>
@@ -1191,10 +1591,13 @@ export default function StaffDashboard() {
 							</Button>
 							<Button
 								onClick={handleSubmitLeaveRequest}
+								disabled={submittingLeave}
 								className="bg-purple-600 hover:bg-purple-700"
 							>
 								<Send className="h-4 w-4 mr-2" />
-								Submit Leave
+								{submittingLeave
+									? "Submitting..."
+									: "Submit Leave"}
 							</Button>
 						</DialogFooter>
 					</DialogContent>

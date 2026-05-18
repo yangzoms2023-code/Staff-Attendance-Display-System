@@ -33,16 +33,6 @@ const PROVERBS = [
 	},
 ];
 
-// Bhutanese Proverbs
-const PROVERBS = [
-  { text: "Individual success depends on success as a nation – no one succeeds when the nation has failed.", author: "Jigme Khesar Namgyel Wangchuck" },
-  { text: "Our size is our greatest strength.", author: "Jigme Khesar Namgyel Wangchuck" },
-  { text: "Rise to the challenge, change our mindset, think big and work hard.", author: "Jigme Khesar Namgyel Wangchuck" },
-  { text: "We cannot change the past, but we can shape the future.", author: "Jigme Khesar Namgyel Wangchuck" },
-  { text: "The strength of a nation lies in its people, their dreams, and their determination.", author: "Jigme Khesar Namgyel Wangchuck" },
-  { text: "We cannot afford to be timid, avoid what we don’t yet understand and hope for the best. Such an attitude will cost us our national objective of self-reliance.", author: "Jigme Khesar Namgyel Wangchuck" },
-]
-
 export default function TVDashboard() {
 	const [employees, setEmployees] = useState<Employee[]>([]);
 	const [attendanceRecords, setAttendanceRecords] = useState<
@@ -64,12 +54,21 @@ export default function TVDashboard() {
 	const animationRef = useRef<number | null>(null);
 	const lastVisibleDeptRef = useRef<string | null>(null);
 	const isAutoScrollingRef = useRef(true);
-	const scrollSpeedRef = useRef(0.8); // Slightly slower for better readability
+	const scrollSpeedRef = useRef(0.8);
 	const isResettingRef = useRef(false);
 
-	const today = new Date().toISOString().split("T")[0];
+	// Get today's date in local timezone consistently
+	const getTodayDate = () => {
+		const now = new Date();
+		const year = now.getFullYear();
+		const month = String(now.getMonth() + 1).padStart(2, "0");
+		const day = String(now.getDate()).padStart(2, "0");
+		return `${year}-${month}-${day}`;
+	};
 
-	// Group employees by department - memoized to prevent recreation
+	const today = getTodayDate();
+
+	// Group employees by department
 	const groupedEmployees = useMemo(() => {
 		return employees.reduce(
 			(acc, employee) => {
@@ -87,22 +86,18 @@ export default function TVDashboard() {
 		[groupedEmployees],
 	);
 
-	// Create a stable string representation of departmentList for comparison
 	const departmentListKey = departmentList.join(",");
 
-	// Create looped content for infinite scroll (2 cycles is enough for seamless loop)
 	const loopedDepartments = useMemo(() => {
 		if (departmentList.length === 0) return [];
 		return [...departmentList, ...departmentList];
 	}, [departmentListKey, departmentList.length]);
 
-	// Fix hydration by setting client-side only after mount
 	useEffect(() => {
 		setIsClient(true);
 		setCurrentTime(new Date());
 	}, []);
 
-	// Update time every second (only on client)
 	useEffect(() => {
 		if (!isClient) return;
 
@@ -112,7 +107,6 @@ export default function TVDashboard() {
 		return () => clearInterval(timeInterval);
 	}, [isClient]);
 
-	// Rotate quotes with fade effect
 	useEffect(() => {
 		const quoteInterval = setInterval(() => {
 			setQuoteFade(false);
@@ -140,8 +134,6 @@ export default function TVDashboard() {
 			if (isResettingRef.current) return;
 
 			let currentVisibleDept: string | null = null;
-
-			// Get all department sections (both first and second cycle)
 			const allSections = scrollContainer.querySelectorAll(
 				".department-section",
 			);
@@ -152,13 +144,11 @@ export default function TVDashboard() {
 				const sectionTop = sectionRect.top;
 				const sectionBottom = sectionRect.bottom;
 
-				// Department is active if its content is visible in the viewport
 				const isContentVisible =
 					sectionBottom > viewportTop &&
 					sectionTop < window.innerHeight;
 
 				if (isContentVisible) {
-					// Get department name from the header inside the section
 					const deptHeader = section.querySelector(
 						".original-dept-header h2",
 					);
@@ -170,7 +160,6 @@ export default function TVDashboard() {
 				}
 			}
 
-			// Update sticky header when department changes
 			if (
 				currentVisibleDept &&
 				currentVisibleDept !== lastVisibleDeptRef.current
@@ -183,7 +172,6 @@ export default function TVDashboard() {
 				}, 50);
 			}
 
-			// Ensure first department is set initially
 			if (!lastVisibleDeptRef.current && departmentList.length > 0) {
 				const firstDept = departmentList[0];
 				setActiveStickyDept(firstDept);
@@ -191,14 +179,9 @@ export default function TVDashboard() {
 			}
 		};
 
-		// Initial setup
 		setTimeout(checkVisibleDepartments, 100);
-
-		// Check visible departments on scroll
 		scrollContainer.addEventListener("scroll", checkVisibleDepartments);
 		window.addEventListener("resize", checkVisibleDepartments);
-
-		// Also check periodically to ensure accuracy during auto-scroll
 		const intervalId = setInterval(checkVisibleDepartments, 100);
 
 		return () => {
@@ -211,7 +194,7 @@ export default function TVDashboard() {
 		};
 	}, [isClient, departmentListKey]);
 
-	// Smooth continuous auto-scroll functionality with seamless looping
+	// Auto-scroll functionality
 	useEffect(() => {
 		if (
 			!isClient ||
@@ -231,26 +214,18 @@ export default function TVDashboard() {
 			let newScrollTop =
 				scrollContainer.scrollTop + scrollSpeedRef.current;
 
-			// Check if we're near the end of the second cycle
 			if (newScrollTop >= maxScrollTop) {
-				// Calculate the height of one complete cycle (all departments once)
 				const singleCycleHeight = maxScrollTop / 2;
-
-				// Reset to the start of the first cycle seamlessly
 				isResettingRef.current = true;
-				scrollContainer.scrollTop = singleCycleHeight / 2; // Reset to middle of first cycle
+				scrollContainer.scrollTop = singleCycleHeight / 2;
 				isResettingRef.current = false;
-
-				// Continue animation
 				animationRef.current = requestAnimationFrame(autoScroll);
 			} else {
 				scrollContainer.scrollTop = newScrollTop;
-				// Continue animation
 				animationRef.current = requestAnimationFrame(autoScroll);
 			}
 		};
 
-		// Start auto-scroll immediately
 		isAutoScrollingRef.current = true;
 		animationRef.current = requestAnimationFrame(autoScroll);
 
@@ -262,14 +237,15 @@ export default function TVDashboard() {
 		};
 	}, [isClient, employees, loopedDepartments]);
 
-	// Load data
+	// Load data with more frequent refresh and proper status calculation
 	useEffect(() => {
 		if (!isClient) return;
 
 		dataStore.init();
 		loadData();
 
-		const refreshInterval = setInterval(loadData, 30000);
+		// Refresh every 5 seconds instead of 30 for real-time updates
+		const refreshInterval = setInterval(loadData, 5000);
 		return () => clearInterval(refreshInterval);
 	}, [isClient]);
 
@@ -279,20 +255,36 @@ export default function TVDashboard() {
 			.filter((e) => e.status === "Active");
 		setEmployees(emps);
 
-		const attendance = dataStore.getAttendance();
+		// Get ALL attendance records for today, not just filtered
+		const allAttendance = dataStore.getAttendance();
 		const attendanceMap = new Map<string, AttendanceRecord>();
-		attendance.forEach((record) => {
-			if (record.date === today) {
+
+		// Log for debugging
+		console.log("Today's date:", today);
+		console.log("Total attendance records:", allAttendance.length);
+
+		allAttendance.forEach((record) => {
+			// Compare dates properly - handle potential timezone issues
+			const recordDate = record.date.split("T")[0]; // Ensure we only compare date part
+			if (recordDate === today) {
 				attendanceMap.set(record.employeeId, record);
+				console.log(
+					`Found attendance for employee ${record.employeeId}:`,
+					record,
+				);
 			}
 		});
+
 		setAttendanceRecords(attendanceMap);
 
-		const leaves = dataStore.getLeaveRequests();
+		const allLeaves = dataStore.getLeaveRequests();
+		setLeaveRequests(allLeaves);
 
+		// Calculate status for each employee
 		const statuses = new Map();
 		emps.forEach((emp) => {
-			const activeLeave = leaves.find(
+			// Check for active leave first
+			const activeLeave = allLeaves.find(
 				(l) =>
 					l.employeeId === emp.id &&
 					l.startDate <= today &&
@@ -310,30 +302,46 @@ export default function TVDashboard() {
 				});
 			} else {
 				const attendanceRecord = attendanceMap.get(emp.id);
+
+				// CRITICAL FIX: Proper status determination
 				if (!attendanceRecord) {
 					statuses.set(emp.id, {
 						status: "Absent",
 						remarks: "Not checked in today",
 					});
+				} else if (attendanceRecord.checkOut) {
+					// Employee has checked out - still shows as Present for the day
+					statuses.set(emp.id, {
+						status: "Present",
+						remarks: `Checked in at ${attendanceRecord.checkIn}, checked out at ${attendanceRecord.checkOut}`,
+					});
 				} else if (attendanceRecord.status === "Late") {
 					statuses.set(emp.id, {
 						status: "Late",
-						remarks: `Arrived at ${attendanceRecord.checkIn}`,
+						remarks: `Arrived late at ${attendanceRecord.checkIn}`,
 					});
-				} else if (attendanceRecord.status === "Present") {
+				} else if (
+					attendanceRecord.status === "Present" ||
+					attendanceRecord.checkIn
+				) {
 					statuses.set(emp.id, {
 						status: "Present",
 						remarks: `Checked in at ${attendanceRecord.checkIn}`,
 					});
 				} else {
 					statuses.set(emp.id, {
-						status: attendanceRecord.status,
-						remarks: attendanceRecord.remarks || "On time",
+						status: "Absent",
+						remarks: "No check-in record found",
 					});
 				}
 			}
 		});
+
 		setEmployeeStatuses(statuses);
+		console.log(
+			"Employee statuses calculated:",
+			Array.from(statuses.entries()),
+		);
 	};
 
 	const formatTime = (date: Date) => {
@@ -416,7 +424,6 @@ export default function TVDashboard() {
 		);
 	}
 
-	// Render departments in a loop for infinite scrolling
 	const renderLoopContent = () => {
 		return loopedDepartments.map((department, idx) => {
 			const deptEmployees = groupedEmployees[department];
@@ -555,7 +562,7 @@ export default function TVDashboard() {
 			<BackgroundPattern />
 
 			<div className="relative z-10 flex flex-col h-screen p-8">
-				{/* ===== HEADER SECTION ===== */}
+				{/* Header Section */}
 				<div className="flex-shrink-0 mb-8">
 					<div className="flex justify-between items-start">
 						<div className="flex items-center gap-4">
@@ -592,12 +599,13 @@ export default function TVDashboard() {
 					<div className="inline-flex items-center gap-2 px-3 py-1 bg-[#0B2E4F]/10 rounded-full backdrop-blur-sm">
 						<div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
 						<span className="text-xs text-slate-600 font-medium">
-							Live Auto-Scrolling Display
+							Live Auto-Scrolling Display (Updates every 5
+							seconds)
 						</span>
 					</div>
 				</div>
 
-				{/* ===== STICKY DEPARTMENT HEADER ===== */}
+				{/* Sticky Department Header */}
 				{activeStickyDept && (
 					<div
 						className={`sticky-header-container flex-shrink-0 z-30 mb-4 transition-all duration-500 ${
@@ -618,11 +626,17 @@ export default function TVDashboard() {
 								<div className="flex-1 h-px bg-gradient-to-r from-[#0B2E4F]/30 to-transparent" />
 
 								<div className="flex items-center gap-3">
-									{/* <div className="flex items-center gap-2 px-4 py-2 bg-[#0B2E4F]/10 rounded-full backdrop-blur-sm">
-                    <span className="text-xl"></span>
-                    <span className="text-2xl font-bold text-[#0B2E4F]">{getDepartmentCount(activeStickyDept)}</span>
-                    <span className="text-base text-slate-600">members</span>
-                  </div> */}
+									<div className="flex items-center gap-2 px-4 py-2 bg-[#0B2E4F]/10 rounded-full backdrop-blur-sm">
+										<span className="text-xl"></span>
+										<span className="text-2xl font-bold text-[#0B2E4F]">
+											{getDepartmentCount(
+												activeStickyDept,
+											)}
+										</span>
+										<span className="text-base text-slate-600">
+											members
+										</span>
+									</div>
 									<div className="flex items-center gap-1.5">
 										{departmentList.map((dept, idx) => (
 											<div
@@ -644,7 +658,7 @@ export default function TVDashboard() {
 					</div>
 				)}
 
-				{/* ===== MAIN ATTENDANCE SECTION ===== */}
+				{/* Main Attendance Section */}
 				<div className="flex-1 min-h-0">
 					<div
 						ref={scrollContainerRef}
@@ -665,7 +679,7 @@ export default function TVDashboard() {
 					</div>
 				</div>
 
-				{/* ===== QUOTE SECTION ===== */}
+				{/* Quote Section */}
 				<div className="flex-shrink-0 space-y-4 mt-8">
 					<div
 						className={`relative overflow-hidden rounded-xl bg-slate-800/80 backdrop-blur-md border border-slate-600/50 p-6 transition-all duration-500 ${quoteFade ? "opacity-100 transform translate-y-0" : "opacity-0 transform translate-y-4"}`}
