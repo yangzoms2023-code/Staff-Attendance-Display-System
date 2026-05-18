@@ -1,49 +1,48 @@
-import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
-import { AuthProvider } from '@/lib/auth-context'
-import { BackgroundPattern } from '@/components/background-pattern'
-import './globals.css'
+import type { Metadata, Viewport } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { SessionProvider } from "@/lib/session-provider";
+import { BackgroundPattern } from "@/components/background-pattern";
+import { Toaster } from "sonner"; // 👈 import
+import "./globals.css";
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Thimphu Dzongkhag Attendance System',
-  description: 'Attendance Management System for ThimphuDzongkhag Administration',
-
-  
-  icons: {
-  icon: [
-    { url: '/icon.png', sizes: '512x512', type: 'image/png' },
-  ],
-  shortcut: '/icon.png',
-  apple: '/icon.png',
-  }
-}
+	title: "Thimphu Dzongkhag Attendance System",
+	description:
+		"Attendance Management System for ThimphuDzongkhag Administration",
+	icons: {
+		icon: [{ url: "/icon.png", sizes: "512x512", type: "image/png" }],
+		shortcut: "/icon.png",
+		apple: "/icon.png",
+	},
+};
 
 export const viewport: Viewport = {
-  themeColor: '#1a1f36',
-  width: 'device-width',
-  initialScale: 1,
-}
+	themeColor: "#1a1f36",
+	width: "device-width",
+	initialScale: 1,
+};
 
 export default function RootLayout({
-  children,
+	children,
 }: Readonly<{
-  children: React.ReactNode
+	children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en" className="bg-background">
-      <body className="font-sans antialiased">
-        <BackgroundPattern />
-        <AuthProvider>
-          <div className="bg-pattern-container min-h-screen">
-            {children}
-          </div>
-        </AuthProvider>
-        {process.env.NODE_ENV === 'production' && <Analytics />}
-      </body>
-    </html>
-  )
+	return (
+		<html lang="en" className="bg-background">
+			<body className="font-sans antialiased">
+				<BackgroundPattern />
+				<SessionProvider>
+					<div className="bg-pattern-container min-h-screen">
+						{children}
+					</div>
+					<Toaster richColors position="top-right" /> {/* 👈 added */}
+				</SessionProvider>
+				{process.env.NODE_ENV === "production" && <Analytics />}
+			</body>
+		</html>
+	);
 }

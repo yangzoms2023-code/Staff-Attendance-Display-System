@@ -93,7 +93,7 @@ export default function ReportsPage() {
     const [year, monthNum] = month.split('-')
     const firstDay = new Date(parseInt(year), parseInt(monthNum) - 1, 1)
     const lastDay = new Date(parseInt(year), parseInt(monthNum), 0)
-    
+
     setStartDate(firstDay.toISOString().split("T")[0])
     setEndDate(lastDay.toISOString().split("T")[0])
   }
@@ -102,19 +102,19 @@ export default function ReportsPage() {
   const getAvailableMonths = () => {
     const months: string[] = []
     const today = new Date()
-    
+
     for (let i = 0; i < 12; i++) {
       const date = new Date(today.getFullYear(), today.getMonth() - i, 1)
       const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
       months.push(monthStr)
     }
-    
+
     return months
   }
 
   const generateReport = () => {
     let filteredEmployees = [...employees]
-    
+
     if (departmentFilter !== "all") {
       filteredEmployees = filteredEmployees.filter(e => e.department === departmentFilter)
     }
@@ -136,7 +136,7 @@ export default function ReportsPage() {
       const lateDays = records.filter(r => r.status === "Late").length
       const absentDays = records.filter(r => r.status === "Absent").length
       const leaveDays = records.filter(r => r.status === "Leave").length
-      
+
       // Calculate attendance percentage based on working days only
       const attendancePercentage = totalWorkingDays > 0
         ? Math.round(((presentDays + lateDays) / totalWorkingDays) * 100)
@@ -159,7 +159,7 @@ export default function ReportsPage() {
 
   const generateTrendData = (filteredEmployees: Employee[], allAttendance: AttendanceRecord[], workingDays: string[]) => {
     const trend: { date: string; present: number; absent: number; late: number }[] = []
-    
+
     workingDays.forEach((dateStr) => {
       const records = allAttendance.filter(
         (a) =>
@@ -171,8 +171,8 @@ export default function ReportsPage() {
       trend.push({
         date: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
         present: records.filter(r => r.status === "Present").length,
-        absent: records.filter(r => r.status === "Absent").length + 
-                (filteredEmployees.length - records.filter(r => r.status === "Present" || r.status === "Late").length),
+        absent: records.filter(r => r.status === "Absent").length +
+          (filteredEmployees.length - records.filter(r => r.status === "Present" || r.status === "Late").length),
         late: records.filter(r => r.status === "Late").length,
       })
     })
@@ -182,7 +182,7 @@ export default function ReportsPage() {
 
   const exportToCSV = () => {
     const workingDays = getWorkingDaysList(startDate, endDate)
-    
+
     const headers = [
       "Employee ID",
       "Name",
@@ -220,23 +220,23 @@ export default function ReportsPage() {
     const avgAttendance =
       deptEmployees.length > 0
         ? Math.round(
-            deptEmployees.reduce((sum, r) => sum + r.attendancePercentage, 0) /
-              deptEmployees.length
-          )
+          deptEmployees.reduce((sum, r) => sum + r.attendancePercentage, 0) /
+          deptEmployees.length
+        )
         : 0
     return { department: dept, employees: deptEmployees.length, avgAttendance }
   }).filter((d) => d.employees > 0)
 
   const workingDaysCount = getWorkingDaysList(startDate, endDate).length
-  
+
   const overallStats = {
     totalEmployees: reportData.length,
     avgAttendance:
       reportData.length > 0
         ? Math.round(
-            reportData.reduce((sum, r) => sum + r.attendancePercentage, 0) /
-              reportData.length
-          )
+          reportData.reduce((sum, r) => sum + r.attendancePercentage, 0) /
+          reportData.length
+        )
         : 0,
     totalPresent: reportData.reduce((sum, r) => sum + r.presentDays + r.lateDays, 0),
     totalAbsent: reportData.reduce((sum, r) => sum + r.absentDays, 0),
@@ -278,8 +278,8 @@ export default function ReportsPage() {
             Generate monthly attendance reports (Monday-Friday working days only)
           </p>
         </div>
-        <Button 
-          onClick={exportToCSV} 
+        <Button
+          onClick={exportToCSV}
           className="gap-2 bg-[#0B2E4F] text-white hover:bg-white hover:text-[#0B2E4F] border border-[#0B2E4F]
           shadow-sm h-9 sm:h-10 px-4 sm:px-5 shrink-0 self-start sm:self-auto w-full sm:w-auto transition-colors"
         >
@@ -305,8 +305,8 @@ export default function ReportsPage() {
                     const date = new Date(parseInt(year), parseInt(monthNum) - 1, 1)
                     const monthName = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
                     return (
-                      <SelectItem 
-                        key={month} 
+                      <SelectItem
+                        key={month}
                         value={month}
                         className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] focus:text-white transition-colors"
                       >
@@ -326,15 +326,15 @@ export default function ReportsPage() {
                 <SelectValue placeholder="Department" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem 
+                <SelectItem
                   value="all"
                   className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] focus:text-white transition-colors"
                 >
                   All Departments
                 </SelectItem>
                 {DEPARTMENTS.map((dept) => (
-                  <SelectItem 
-                    key={dept} 
+                  <SelectItem
+                    key={dept}
                     value={dept}
                     className="cursor-pointer hover:bg-[#0B2E4F] hover:text-white focus:bg-[#0B2E4F] focus:text-white transition-colors"
                   >
@@ -452,7 +452,7 @@ export default function ReportsPage() {
                 </div>
               ) : (
                 reportData.map((report, index) => (
-                  <div 
+                  <div
                     key={report.employee.id}
                     className={cn(
                       "grid grid-cols-[80px_1.5fr_1.2fr_0.8fr_0.8fr_0.8fr_0.8fr_1fr] gap-3 items-center border-l border-r border-b border-slate-200 transition-colors px-4",

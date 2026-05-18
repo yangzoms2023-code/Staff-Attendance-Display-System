@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { dataStore } from "@/lib/data-store"
 import type { Employee } from "@/lib/types"
-import { 
-  Mail, Phone, MapPin, Briefcase, 
-  Calendar, ShieldCheck, ArrowLeft, 
-  Camera, Edit2, Save, X, 
+import {
+  Mail, Phone, MapPin, Briefcase,
+  Calendar, ShieldCheck, ArrowLeft,
+  Camera, Edit2, Save, X,
   Award, Clock, CheckCircle2, ChevronRight,
   User, Building2, CreditCard
 } from "lucide-react"
@@ -40,25 +40,25 @@ export default function ProfilePage() {
       router.push("/")
       return
     }
-    
+
     if (user.role !== "employee") {
       router.push("/dashboard")
       return
     }
 
     dataStore.init()
-    
+
     const employees = dataStore.getEmployees()
     let emp: Employee | undefined
-    
+
     if (user.employeeId) {
       emp = employees.find(e => e.employeeId === user.employeeId || e.id === user.employeeId)
     }
-    
+
     if (!emp && user.username) {
       emp = employees.find(e => e.name === user.name)
     }
-    
+
     if (emp) {
       setEmployee(emp)
       setFormData({
@@ -70,7 +70,7 @@ export default function ProfilePage() {
         designation: emp.designation
       })
     }
-    
+
     setLoading(false)
   }, [user, router])
 
@@ -131,7 +131,7 @@ export default function ProfilePage() {
   // Calculate stats
   const attendanceHistory = dataStore.getAttendanceByEmployee(employee.id)
   const presentCount = attendanceHistory.filter(a => a.status === "Present").length
-  const attendanceRate = attendanceHistory.length > 0 
+  const attendanceRate = attendanceHistory.length > 0
     ? Math.round((presentCount / attendanceHistory.length) * 100)
     : 0
   const approvedOutings = dataStore.getOutingRequestsByEmployee(employee.id).filter(r => r.status === "approved").length
@@ -143,21 +143,21 @@ export default function ProfilePage() {
       {/* Slim Navbar */}
       <nav className="w-full bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 h-12 flex items-center justify-between">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="sm"
-            onClick={() => router.push("/staff")} 
+            onClick={() => router.push("/staff")}
             className="text-slate-500 hover:text-[#ffffff] hover:bg-[#0B2E4F]"
           >
             <ArrowLeft className="h-3.5 w-3.5 mr-2" />
             <span className="font-bold text-[11px] uppercase tracking-wider">Dashboard</span>
           </Button>
-          
+
           <div className="flex items-center gap-2">
             {!isEditing ? (
-              <Button 
+              <Button
                 size="sm"
-                onClick={() => setIsEditing(true)} 
+                onClick={() => setIsEditing(true)}
                 className="bg-[#0B2E4F] h-8 text-[11px] font-bold hover:bg-[#1a456b]"
               >
                 <Edit2 className="h-3 w-3 mr-2" /> EDIT PROFILE
@@ -177,7 +177,7 @@ export default function ProfilePage() {
       </nav>
 
       <main className="max-w-6xl mx-auto p-4 space-y-4">
-        
+
         {/* Compact Hero Section */}
         <section className="relative rounded-2xl overflow-hidden bg-white shadow-sm border border-slate-200">
           <div className="h-24 w-full bg-gradient-to-r from-[#0B2E4F] to-[#1a5a92]" />
@@ -195,7 +195,7 @@ export default function ProfilePage() {
                   </button>
                 )}
               </div>
-              
+
               <div className="flex-1 pt-8">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-xl font-black text-slate-900 tracking-tight">{employee.name}</h1>
@@ -211,7 +211,7 @@ export default function ProfilePage() {
 
         {/* Tight Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          
+
           {/* Left Column: Metadata & Stats */}
           <div className="lg:col-span-4 space-y-4">
             {/* Condensed Stats */}
@@ -253,10 +253,10 @@ export default function ProfilePage() {
                 <div>
                   <p className="text-[9px] font-bold text-slate-400 uppercase">Joining Date</p>
                   <p className="text-xs font-semibold text-slate-700">
-                    {new Date(employee.joiningDate).toLocaleDateString("en-US", { 
-                      year: "numeric", 
-                      month: "long", 
-                      day: "numeric" 
+                    {new Date(employee.joiningDate).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric"
                     })}
                   </p>
                 </div>
@@ -285,7 +285,7 @@ export default function ProfilePage() {
 
               <CardContent className="p-8 flex-1">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-                  
+
                   {/* Name Field - Read-only */}
                   <div className="space-y-2.5">
                     <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em]">
@@ -307,7 +307,7 @@ export default function ProfilePage() {
                       <span className="text-sm font-semibold text-slate-700">{formData.department}</span>
                     </div>
                   </div>
-                  
+
                   {/* Email Field */}
                   <div className="space-y-2.5 group">
                     <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] ml-0.5 group-focus-within:text-indigo-500 transition-colors">
@@ -318,7 +318,7 @@ export default function ProfilePage() {
                         "h-4 w-4 flex-shrink-0 transition-colors duration-300",
                         isEditing ? "text-indigo-500" : "text-slate-400"
                       )} />
-                      <input 
+                      <input
                         readOnly={!isEditing}
                         value={formData.email}
                         onChange={(e) => handleChange("email", e.target.value)}
@@ -340,7 +340,7 @@ export default function ProfilePage() {
                         "h-4 w-4 flex-shrink-0 transition-colors duration-300",
                         isEditing ? "text-indigo-500" : "text-slate-400"
                       )} />
-                      <input 
+                      <input
                         readOnly={!isEditing}
                         value={formData.phone}
                         onChange={(e) => handleChange("phone", e.target.value)}
@@ -374,7 +374,7 @@ export default function ProfilePage() {
                         "h-4 w-4 flex-shrink-0 transition-colors duration-300",
                         isEditing ? "text-indigo-500" : "text-slate-400"
                       )} />
-                      <input 
+                      <input
                         readOnly={!isEditing}
                         value={formData.address}
                         onChange={(e) => handleChange("address", e.target.value)}
