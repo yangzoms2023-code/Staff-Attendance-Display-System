@@ -1,365 +1,768 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef } from "react"
-import { dataStore } from "@/lib/data-store"
-import type { Employee, LeaveRequest } from "@/lib/types"
-import { BackgroundPattern } from '@/components/background-pattern'
+import { useState, useEffect, useRef, useMemo } from "react";
+import { dataStore } from "@/lib/data-store";
+import type { Employee, AttendanceRecord, LeaveRequest } from "@/lib/types";
+import { BackgroundPattern } from "@/components/background-pattern";
+
+// Bhutanese Proverbs
+const PROVERBS = [
+	{
+		text: "Individual success depends on success as a nation – no one succeeds when the nation has failed.",
+		author: "Jigme Khesar Namgyel Wangchuck",
+	},
+	{
+		text: "Our size is our greatest strength.",
+		author: "Jigme Khesar Namgyel Wangchuck",
+	},
+	{
+		text: "Rise to the challenge, change our mindset, think big and work hard.",
+		author: "Jigme Khesar Namgyel Wangchuck",
+	},
+	{
+		text: "We cannot change the past, but we can shape the future.",
+		author: "Jigme Khesar Namgyel Wangchuck",
+	},
+	{
+		text: "The strength of a nation lies in its people, their dreams, and their determination.",
+		author: "Jigme Khesar Namgyel Wangchuck",
+	},
+	{
+		text: "We cannot afford to be timid, avoid what we don’t yet understand and hope for the best. Such an attitude will cost us our national objective of self-reliance.",
+		author: "Jigme Khesar Namgyel Wangchuck",
+	},
+];
 
 export default function TVDashboard() {
-  const [employees, setEmployees] = useState<Employee[]>([])
-  const [employeeStatuses, setEmployeeStatuses] = useState<Map<string, { status: string; remarks: string }>>(new Map())
-  const [currentTime, setCurrentTime] = useState(new Date())
-  const [selectedDepartment, setSelectedDepartment] = useState<string>("All")
-  const [isAutoScrolling, setIsAutoScrolling] = useState(true)
-  const [isChangingDepartment, setIsChangingDepartment] = useState(false)
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const autoScrollIntervalRef = useRef<NodeJS.Timeout | null>(null)
-  const departmentTimerRef = useRef<NodeJS.Timeout | null>(null)
+	const [employees, setEmployees] = useState<Employee[]>([]);
+	const [attendanceRecords, setAttendanceRecords] = useState<
+		Map<string, AttendanceRecord>
+	>(new Map());
+	const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
+	const [employeeStatuses, setEmployeeStatuses] = useState<
+		Map<string, { status: string; remarks: string }>
+	>(new Map());
+	const [currentTime, setCurrentTime] = useState<Date | null>(null);
+	const [currentProverbIndex, setCurrentProverbIndex] = useState(0);
+	const [quoteFade, setQuoteFade] = useState(true);
+	const [isClient, setIsClient] = useState(false);
+	const [activeStickyDept, setActiveStickyDept] = useState<string | null>(
+		null,
+	);
+	const [headerTransitioning, setHeaderTransitioning] = useState(false);
+	const scrollContainerRef = useRef<HTMLDivElement>(null);
+	const animationRef = useRef<number | null>(null);
+	const lastVisibleDeptRef = useRef<string | null>(null);
+	const isAutoScrollingRef = useRef(true);
+	const scrollSpeedRef = useRef(0.8); // Slightly slower for better readability
+	const isResettingRef = useRef(false);
 
-  const today = new Date().toISOString().split("T")[0]
+	const today = new Date().toISOString().split("T")[0];
 
-  const departments = ["All", ...Array.from(new Set(employees.map(e => e.department)))]
+	// Group employees by department - memoized to prevent recreation
+	const groupedEmployees = useMemo(() => {
+		return employees.reduce(
+			(acc, employee) => {
+				const dept = employee.department;
+				if (!acc[dept]) acc[dept] = [];
+				acc[dept].push(employee);
+				return acc;
+			},
+			{} as Record<string, Employee[]>,
+		);
+	}, [employees]);
 
-  useEffect(() => {
-    dataStore.init()
-    loadData()
+	const departmentList = useMemo(
+		() => Object.keys(groupedEmployees),
+		[groupedEmployees],
+	);
 
-    const timeInterval = setInterval(() => setCurrentTime(new Date()), 1000)
-    const refreshInterval = setInterval(loadData, 30000)
+	// Create a stable string representation of departmentList for comparison
+	const departmentListKey = departmentList.join(",");
 
-    return () => {
-      clearInterval(timeInterval)
-      clearInterval(refreshInterval)
-      if (autoScrollIntervalRef.current) clearInterval(autoScrollIntervalRef.current)
-      if (departmentTimerRef.current) clearTimeout(departmentTimerRef.current)
-    }
-  }, [])
+	// Create looped content for infinite scroll (2 cycles is enough for seamless loop)
+	const loopedDepartments = useMemo(() => {
+		if (departmentList.length === 0) return [];
+		return [...departmentList, ...departmentList];
+	}, [departmentListKey, departmentList.length]);
 
-  const loadData = () => {
-    const emps = dataStore.getEmployees().filter(e => e.status === "Active")
-    setEmployees(emps)
+	// Fix hydration by setting client-side only after mount
+	useEffect(() => {
+		setIsClient(true);
+		setCurrentTime(new Date());
+	}, []);
 
-    // Get all leave requests
-    const leaveRequests: LeaveRequest[] = dataStore.getLeaveRequests()
+	// Update time every second (only on client)
+	useEffect(() => {
+		if (!isClient) return;
 
-    const statuses = new Map()
-    emps.forEach(emp => {
-      // Check if employee is on leave today
-      const activeLeave = leaveRequests.find(l =>
-        l.employeeId === emp.id && l.startDate <= today && l.endDate >= today
-      )
+		const timeInterval = setInterval(() => {
+			setCurrentTime(new Date());
+		}, 1000);
+		return () => clearInterval(timeInterval);
+	}, [isClient]);
 
-      if (activeLeave) {
-        // Format dates for display
-        const start = new Date(activeLeave.startDate).toLocaleDateString()
-        const end = new Date(activeLeave.endDate).toLocaleDateString()
-        statuses.set(emp.id, {
-          status: "On Leave",
-          remarks: `Leave from ${start} to ${end}`
-        })
-      } else {
-        // Use regular attendance/outing status
-        const status = dataStore.getEmployeeCurrentStatus(emp.id, today)
-        statuses.set(emp.id, status)
-      }
-    })
-    setEmployeeStatuses(statuses)
-  }
+	// Rotate quotes with fade effect
+	useEffect(() => {
+		const quoteInterval = setInterval(() => {
+			setQuoteFade(false);
+			setTimeout(() => {
+				setCurrentProverbIndex((prev) => (prev + 1) % PROVERBS.length);
+				setQuoteFade(true);
+			}, 500);
+		}, 8000);
+		return () => clearInterval(quoteInterval);
+	}, []);
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: true
-    })
-  }
+	// Setup scroll listener for sticky header detection
+	useEffect(() => {
+		if (
+			!isClient ||
+			!scrollContainerRef.current ||
+			departmentList.length === 0
+		)
+			return;
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric"
-    }).toUpperCase()
-  }
+		const scrollContainer = scrollContainerRef.current;
+		const viewportTop = scrollContainer.getBoundingClientRect().top;
 
-  const filteredEmployees = selectedDepartment === "All"
-    ? employees
-    : employees.filter(e => e.department === selectedDepartment)
+		const checkVisibleDepartments = () => {
+			if (isResettingRef.current) return;
 
-  const startVerticalScrolling = () => {
-    if (!scrollContainerRef.current || filteredEmployees.length === 0) return
+			let currentVisibleDept: string | null = null;
 
-    const scrollContainer = scrollContainerRef.current
-    let scrollAmount = scrollContainer.scrollTop
-    const scrollStep = 1
-    const scrollInterval = 30
+			// Get all department sections (both first and second cycle)
+			const allSections = scrollContainer.querySelectorAll(
+				".department-section",
+			);
 
-    if (autoScrollIntervalRef.current) clearInterval(autoScrollIntervalRef.current)
+			for (let i = 0; i < allSections.length; i++) {
+				const section = allSections[i] as HTMLDivElement;
+				const sectionRect = section.getBoundingClientRect();
+				const sectionTop = sectionRect.top;
+				const sectionBottom = sectionRect.bottom;
 
-    const totalScrollHeight = scrollContainer.scrollHeight - scrollContainer.clientHeight
+				// Department is active if its content is visible in the viewport
+				const isContentVisible =
+					sectionBottom > viewportTop &&
+					sectionTop < window.innerHeight;
 
-    if (totalScrollHeight <= 0) {
-      setIsAutoScrolling(false)
-      startDepartmentHoldTimer()
-      return
-    }
+				if (isContentVisible) {
+					// Get department name from the header inside the section
+					const deptHeader = section.querySelector(
+						".original-dept-header h2",
+					);
+					if (deptHeader) {
+						currentVisibleDept =
+							deptHeader.textContent?.trim() || null;
+						break;
+					}
+				}
+			}
 
-    autoScrollIntervalRef.current = setInterval(() => {
-      if (scrollContainer && isAutoScrolling && !isChangingDepartment) {
-        scrollAmount += scrollStep
+			// Update sticky header when department changes
+			if (
+				currentVisibleDept &&
+				currentVisibleDept !== lastVisibleDeptRef.current
+			) {
+				setHeaderTransitioning(true);
+				setTimeout(() => {
+					setActiveStickyDept(currentVisibleDept);
+					lastVisibleDeptRef.current = currentVisibleDept;
+					setTimeout(() => setHeaderTransitioning(false), 400);
+				}, 50);
+			}
 
-        if (scrollAmount >= totalScrollHeight) {
-          clearInterval(autoScrollIntervalRef.current!)
-          autoScrollIntervalRef.current = null
-          setIsAutoScrolling(false)
-          startDepartmentHoldTimer()
-        } else {
-          scrollContainer.scrollTop = scrollAmount
-        }
-      }
-    }, scrollInterval)
-  }
+			// Ensure first department is set initially
+			if (!lastVisibleDeptRef.current && departmentList.length > 0) {
+				const firstDept = departmentList[0];
+				setActiveStickyDept(firstDept);
+				lastVisibleDeptRef.current = firstDept;
+			}
+		};
 
-  const startDepartmentHoldTimer = () => {
-    if (departmentTimerRef.current) clearTimeout(departmentTimerRef.current)
+		// Initial setup
+		setTimeout(checkVisibleDepartments, 100);
 
-    departmentTimerRef.current = setTimeout(() => {
-      moveToNextDepartment()
-    }, 10000)
-  }
+		// Check visible departments on scroll
+		scrollContainer.addEventListener("scroll", checkVisibleDepartments);
+		window.addEventListener("resize", checkVisibleDepartments);
 
-  const stopDepartmentHoldTimer = () => {
-    if (departmentTimerRef.current) {
-      clearTimeout(departmentTimerRef.current)
-      departmentTimerRef.current = null
-    }
-  }
+		// Also check periodically to ensure accuracy during auto-scroll
+		const intervalId = setInterval(checkVisibleDepartments, 100);
 
-  const moveToNextDepartment = () => {
-    if (isChangingDepartment) return
+		return () => {
+			scrollContainer.removeEventListener(
+				"scroll",
+				checkVisibleDepartments,
+			);
+			window.removeEventListener("resize", checkVisibleDepartments);
+			clearInterval(intervalId);
+		};
+	}, [isClient, departmentListKey]);
 
-    setIsChangingDepartment(true)
-    setIsAutoScrolling(false)
-    stopDepartmentHoldTimer()
+	// Smooth continuous auto-scroll functionality with seamless looping
+	useEffect(() => {
+		if (
+			!isClient ||
+			employees.length === 0 ||
+			loopedDepartments.length === 0
+		)
+			return;
 
-    if (autoScrollIntervalRef.current) {
-      clearInterval(autoScrollIntervalRef.current)
-      autoScrollIntervalRef.current = null
-    }
+		const scrollContainer = scrollContainerRef.current;
+		if (!scrollContainer) return;
 
-    const currentIndex = departments.indexOf(selectedDepartment)
-    const nextIndex = (currentIndex + 1) % departments.length
-    const nextDepartment = departments[nextIndex]
+		const autoScroll = () => {
+			if (!scrollContainer || !isAutoScrollingRef.current) return;
 
-    setSelectedDepartment(nextDepartment)
+			const maxScrollTop =
+				scrollContainer.scrollHeight - scrollContainer.clientHeight;
+			let newScrollTop =
+				scrollContainer.scrollTop + scrollSpeedRef.current;
 
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = 0
-    }
+			// Check if we're near the end of the second cycle
+			if (newScrollTop >= maxScrollTop) {
+				// Calculate the height of one complete cycle (all departments once)
+				const singleCycleHeight = maxScrollTop / 2;
 
-    setIsChangingDepartment(false)
-    setIsAutoScrolling(true)
-  }
+				// Reset to the start of the first cycle seamlessly
+				isResettingRef.current = true;
+				scrollContainer.scrollTop = singleCycleHeight / 2; // Reset to middle of first cycle
+				isResettingRef.current = false;
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (filteredEmployees.length > 0 && isAutoScrolling && !isChangingDepartment) {
-        if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0
-        startVerticalScrolling()
-      } else if (filteredEmployees.length > 0 && !isAutoScrolling && !isChangingDepartment && !departmentTimerRef.current) {
-        startDepartmentHoldTimer()
-      }
-    }, 200)
+				// Continue animation
+				animationRef.current = requestAnimationFrame(autoScroll);
+			} else {
+				scrollContainer.scrollTop = newScrollTop;
+				// Continue animation
+				animationRef.current = requestAnimationFrame(autoScroll);
+			}
+		};
 
-    return () => clearTimeout(timer)
-  }, [filteredEmployees.length, selectedDepartment])
+		// Start auto-scroll immediately
+		isAutoScrollingRef.current = true;
+		animationRef.current = requestAnimationFrame(autoScroll);
 
-  const handleMouseEnter = () => {
-    setIsAutoScrolling(false)
-    stopDepartmentHoldTimer()
-    if (autoScrollIntervalRef.current) clearInterval(autoScrollIntervalRef.current)
-  }
+		return () => {
+			if (animationRef.current) {
+				cancelAnimationFrame(animationRef.current);
+			}
+			isAutoScrollingRef.current = false;
+		};
+	}, [isClient, employees, loopedDepartments]);
 
-  const handleMouseLeave = () => {
-    if (!isChangingDepartment) setIsAutoScrolling(true)
-  }
+	// Load data
+	useEffect(() => {
+		if (!isClient) return;
 
-  const handleDepartmentClick = (dept: string) => {
-    if (isChangingDepartment || dept === selectedDepartment) return
+		dataStore.init();
+		loadData();
 
-    setIsChangingDepartment(true)
-    setIsAutoScrolling(false)
-    stopDepartmentHoldTimer()
-    if (autoScrollIntervalRef.current) clearInterval(autoScrollIntervalRef.current)
+		const refreshInterval = setInterval(loadData, 30000);
+		return () => clearInterval(refreshInterval);
+	}, [isClient]);
 
-    setSelectedDepartment(dept)
-    if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0
+	const loadData = () => {
+		const emps = dataStore
+			.getEmployees()
+			.filter((e) => e.status === "Active");
+		setEmployees(emps);
 
-    setTimeout(() => {
-      setIsChangingDepartment(false)
-      setIsAutoScrolling(true)
-    }, 100)
-  }
+		const attendance = dataStore.getAttendance();
+		const attendanceMap = new Map<string, AttendanceRecord>();
+		attendance.forEach((record) => {
+			if (record.date === today) {
+				attendanceMap.set(record.employeeId, record);
+			}
+		});
+		setAttendanceRecords(attendanceMap);
 
-  return (
-    <div className="flex min-h-screen flex-col bg-[#fafafa]">
-      <BackgroundPattern />
-      <header className="px-10 py-3 bg-transparent bg-white/50 backdrop-blur-sm border-b border-border flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <img src="/icon.png" alt="Logo" className="h-18 w-18 object-contain" />
-            <div>
-              <h1 className="text-xl font-bold text-[#0B2E4F]">Staff Information Display</h1>
-              <p className="text-sm text-slate-800 font-semibold">Thimphu Dzongkhag Administration</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className={`h-2 w-2 rounded-full ${!isChangingDepartment ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`} />
-              <span className="text-xs font-medium text-[#0B2E4F]">
-                {isChangingDepartment ? 'Switching...' : (isAutoScrolling ? 'Scrolling' : 'Holding')}
-              </span>
-            </div>
-            <span className="text-lg font-semibold text-[#0B2E4F]">{formatDate(currentTime)}</span>
-            <div className="h-6 w-px bg-slate-500" />
-            <span className="text-lg font-semibold tabular-nums text-[#0B2E4F]">{formatTime(currentTime)}</span>
-          </div>
-        </div>
-      </header>
+		const leaves = dataStore.getLeaveRequests();
 
-      <div className="flex items-center justify-center gap-4 pt-10 pb-6 flex-shrink-0">
-        <h2 className="text-2xl font-bold text-[#0B2E4F] transition-all duration-300">
-          {selectedDepartment === "All" ? "ALL DEPARTMENTS" : `${selectedDepartment} DEPARTMENT`}
-        </h2>
-      </div>
+		const statuses = new Map();
+		emps.forEach((emp) => {
+			const activeLeave = leaves.find(
+				(l) =>
+					l.employeeId === emp.id &&
+					l.startDate <= today &&
+					l.endDate >= today,
+			);
 
-      <div className="flex justify-center gap-2 px-8 pb-4 flex-shrink-0 overflow-x-auto">
-        {departments.map(dept => (
-          <button
-            key={dept}
-            onClick={() => handleDepartmentClick(dept)}
-            disabled={isChangingDepartment}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all whitespace-nowrap 
-              ${selectedDepartment === dept
-                ? "bg-[#0B2E4F] text-white shadow-lg scale-105"
-                : "bg-white text-[#0B2E4F] hover:bg-slate-100 border border-slate-200"
-              } ${isChangingDepartment ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            {dept}
-          </button>
-        ))}
-      </div>
+			if (activeLeave) {
+				const start = new Date(
+					activeLeave.startDate,
+				).toLocaleDateString();
+				const end = new Date(activeLeave.endDate).toLocaleDateString();
+				statuses.set(emp.id, {
+					status: "On Leave",
+					remarks: `Leave from ${start} to ${end}`,
+				});
+			} else {
+				const attendanceRecord = attendanceMap.get(emp.id);
+				if (!attendanceRecord) {
+					statuses.set(emp.id, {
+						status: "Absent",
+						remarks: "Not checked in today",
+					});
+				} else if (attendanceRecord.status === "Late") {
+					statuses.set(emp.id, {
+						status: "Late",
+						remarks: `Arrived at ${attendanceRecord.checkIn}`,
+					});
+				} else if (attendanceRecord.status === "Present") {
+					statuses.set(emp.id, {
+						status: "Present",
+						remarks: `Checked in at ${attendanceRecord.checkIn}`,
+					});
+				} else {
+					statuses.set(emp.id, {
+						status: attendanceRecord.status,
+						remarks: attendanceRecord.remarks || "On time",
+					});
+				}
+			}
+		});
+		setEmployeeStatuses(statuses);
+	};
 
-      <div className="flex-1 px-8 pb-4 min-h-0">
-        <div className="overflow-hidden rounded-lg bg-white shadow-sm h-full flex flex-col">
-          <div className="overflow-x-auto flex-1">
-            <div
-              ref={scrollContainerRef}
-              className="h-[550px] overflow-y-auto transition-opacity duration-300"
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
-            >
-              <table className="w-full">
-                <thead className="sticky top-0 bg-[#0B2E4F] z-10">
-                  <tr className="bg-[#0B2E4F] text-white">
-                    <th className="px-4 py-3 text-left text-sm font-semibold w-32">Employee ID</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Name of Official</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Contact Number</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Status</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Remarks</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredEmployees.map((employee, index) => {
-                    const status = employeeStatuses.get(employee.id) || { status: "Out of Office", remarks: "Unknown" }
+	const formatTime = (date: Date) => {
+		return date.toLocaleTimeString("en-US", {
+			hour: "2-digit",
+			minute: "2-digit",
+			second: "2-digit",
+			hour12: false,
+		});
+	};
 
-                    return (
-                      <tr key={employee.id} className={`${index % 2 === 0 ? "bg-white" : "bg-slate-50"} hover:bg-
-                      slate-100 transition-colors`}>
-                        <td className="px-4 py-3 text-sm font-medium text-slate-700 font-mono">
-                          {employee.employeeId}
-                        </td>
-                        <td className="px-4 py-3 text-sm font-medium text-slate-900">{employee.name}</td>
-                        <td className="px-4 py-3 text-sm text-slate-600">{employee.contactNumber || "-"}</td>
-                        <td className="px-4 py-3">
-                          <StatusBadge status={status.status as "In Office" | "On Duty" | "Out of Office" | "On Leave"} />
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">{status.remarks}</td>
-                      </tr>
-                    )
-                  })}
-                  {filteredEmployees.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
-                        No staff members found in {selectedDepartment} department
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+	const formatDate = (date: Date) => {
+		return date
+			.toLocaleDateString("en-US", {
+				weekday: "long",
+				month: "long",
+				day: "numeric",
+				year: "numeric",
+			})
+			.toUpperCase();
+	};
 
-        <div className="mt-4 flex justify-center items-center gap-2">
-          <div className="text-xs text-slate-500 text-center">
-            <span className="inline-flex items-center gap-2">
-              <span className={`animate-pulse ${isChangingDepartment ? 'text-yellow-500' : ''}`}>↻</span>
-              {isChangingDepartment ? 'Switching department...' :
-                (isAutoScrolling ? 'Auto-scrolling • Hover to pause' : 'Holding for 10 seconds')}
-            </span>
-          </div>
-        </div>
-      </div>
+	const getEmployeeStatusBadge = (
+		employee: Employee,
+	): { status: string; time: string; badgeClass: string } => {
+		const status = employeeStatuses.get(employee.id);
 
-      <footer className="mt-auto bg-[#0B2E4F] py-2 flex-shrink-0">
-        <div className="flex justify-center items-center gap-6">
-          <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-            <span className="text-xs text-white">In Office</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
-            <span className="text-xs text-white">On Duty</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-rose-500" />
-            <span className="text-xs text-white">Out of Office</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-purple-500" />
-            <span className="text-xs text-white">On Leave</span>
-          </div>
-          <div className="h-4 w-px bg-white/30" />
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-white/80">Auto-updating every 30 seconds</span>
-          </div>
-        </div>
-      </footer>
-    </div>
-  )
-}
+		if (status?.status === "On Leave") {
+			return {
+				status: "On Leave",
+				time: "-",
+				badgeClass: "bg-purple-800 text-white border-purple-400/50",
+			};
+		}
 
-function StatusBadge({ status }: { status: "In Office" | "On Duty" | "Out of Office" | "On Leave" }) {
-  const styles = {
-    "In Office": "bg-emerald-50 text-emerald-600 border-emerald-200",
-    "On Duty": "bg-amber-50 text-amber-600 border-amber-200",
-    "Out of Office": "bg-red-50 text-red-600 border-red-200",
-    "On Leave": "bg-purple-50 text-purple-600 border-purple-200"
-  }
+		if (status?.status === "Late") {
+			const time = status.remarks?.match(/\d{1,2}:\d{2}/)?.[0] || "-";
+			return {
+				status: "Late",
+				time: time,
+				badgeClass: "bg-amber-800 text-amber-300 border-amber-400/50",
+			};
+		}
 
-  const dotStyles = {
-    "In Office": "bg-emerald-500",
-    "On Duty": "bg-amber-500",
-    "Out of Office": "bg-red-500",
-    "On Leave": "bg-purple-500"
-  }
+		if (status?.status === "Present") {
+			const time = status.remarks?.match(/\d{1,2}:\d{2}/)?.[0] || "-";
+			return {
+				status: "Present",
+				time: time,
+				badgeClass: "bg-emerald-800 text-white border-emerald-400/50",
+			};
+		}
 
-  return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${styles[status]}`}>
-      <span className={`h-1.5 w-1.5 rounded-full ${dotStyles[status]}`} />
-      {status}
-    </span>
-  )
+		return {
+			status: "Absent",
+			time: "-",
+			badgeClass: "bg-red-800 text-white border-red-400/50",
+		};
+	};
+
+	const getDepartmentCount = (dept: string): number => {
+		return groupedEmployees[dept]?.length || 0;
+	};
+
+	const getCurrentDeptIndex = (): number => {
+		if (!activeStickyDept) return 0;
+		return departmentList.indexOf(activeStickyDept);
+	};
+
+	if (!isClient || !currentTime) {
+		return (
+			<div className="relative min-h-screen overflow-hidden">
+				<BackgroundPattern />
+				<div className="flex items-center justify-center h-screen relative z-10">
+					<div className="text-3xl text-cyan-400 animate-pulse">
+						Loading Display...
+					</div>
+				</div>
+			</div>
+		);
+	}
+
+	// Render departments in a loop for infinite scrolling
+	const renderLoopContent = () => {
+		return loopedDepartments.map((department, idx) => {
+			const deptEmployees = groupedEmployees[department];
+			if (!deptEmployees) return null;
+
+			return (
+				<div
+					key={`${department}-${idx}`}
+					className="animate-fadeIn department-section"
+					style={{ animationDuration: "0.6s" }}
+				>
+					<div className="original-dept-header mb-5">
+						<div className="flex items-center gap-4">
+							<div className="w-1.5 h-12 bg-gradient-to-b from-[#0B2E4F] to-[#1a5a92] rounded-full" />
+							<h2 className="text-3xl font-bold text-[#0B2E4F] tracking-wider">
+								{department.toUpperCase()}
+							</h2>
+							<div className="flex-1 h-px bg-gradient-to-r from-[#0B2E4F]/30 to-transparent" />
+							<div className="text-2xl font-bold text-slate-400">
+								{deptEmployees.length}
+							</div>
+						</div>
+					</div>
+
+					<div className="space-y-4">
+						{deptEmployees.map((employee, empIdx) => {
+							const { status, time, badgeClass } =
+								getEmployeeStatusBadge(employee);
+							const statusData = employeeStatuses.get(
+								employee.id,
+							);
+							const remarks =
+								statusData?.remarks ||
+								"No additional information";
+
+							return (
+								<div
+									key={`${employee.id}-${idx}`}
+									className="group relative overflow-hidden rounded-xl bg-white/95 backdrop-blur-sm border border-slate-200 hover:border-cyan-500/70 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/20"
+									style={{
+										animation: `slideIn 0.4s ease-out ${empIdx * 0.03}s both`,
+									}}
+								>
+									<div className="relative px-6 pt-4 pb-3 flex items-center gap-6">
+										<div className="flex-shrink-0">
+											<div className="w-20 h-20 rounded-xl bg-gradient-to-br from-[#0B2E4F] to-[#1a5a92] flex items-center justify-center shadow-lg">
+												<span className="text-3xl font-bold text-white">
+													{employee.name
+														.charAt(0)
+														.toUpperCase()}
+												</span>
+											</div>
+										</div>
+
+										<div className="flex-1 flex items-center gap-8 min-w-0">
+											<div className="min-w-[180px] max-w-[260px]">
+												<div className="relative overflow-hidden group/name">
+													<h3 className="text-xl font-bold text-black tracking-tight whitespace-nowrap hover:animate-marquee">
+														{employee.name}
+													</h3>
+												</div>
+											</div>
+
+											<div className="min-w-[180px] max-w-[240px]">
+												<div className="relative overflow-hidden group/designation">
+													<p className="text-lg text-slate-700 whitespace-nowrap hover:animate-marquee">
+														{employee.designation}
+													</p>
+												</div>
+											</div>
+
+											<div className="flex items-center gap-2 min-w-[160px]">
+												<span className="text-xl text-[#0B2E4F]">
+													📞
+												</span>
+												<span className="text-xl text-[#0B2E4F] font-bold tracking-wide">
+													{employee.contactNumber ||
+														"—"}
+												</span>
+											</div>
+										</div>
+
+										<div className="flex-shrink-0">
+											<div
+												className={`flex items-center gap-3 px-5 py-2.5 rounded-full border backdrop-blur-sm shadow-md ${badgeClass}`}
+											>
+												<div className="flex items-center gap-2">
+													<div
+														className={`w-2.5 h-2.5 rounded-full animate-pulse ${
+															status === "Present"
+																? "bg-emerald-400"
+																: status ===
+																	  "Late"
+																	? "bg-amber-400"
+																	: status ===
+																		  "On Leave"
+																		? "bg-purple-400"
+																		: "bg-red-400"
+														}`}
+													/>
+													<div className="text-right">
+														<div className="text-xl font-bold leading-tight">
+															{status}
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+
+									<div className="relative px-6 pb-4 pt-1">
+										<div className="flex items-center gap-3 bg-slate-50/80 rounded-lg px-4 py-2.5 border-l-4 border-l-[#0B2E4F]">
+											<div className="flex-shrink-0">
+												<span className="text-base text-slate-500">
+													💬
+												</span>
+											</div>
+											<div className="flex-1">
+												<p className="text-base text-slate-700 font-medium">
+													{remarks}
+												</p>
+											</div>
+										</div>
+									</div>
+								</div>
+							);
+						})}
+					</div>
+				</div>
+			);
+		});
+	};
+
+	return (
+		<div className="relative min-h-screen overflow-hidden">
+			<BackgroundPattern />
+
+			<div className="relative z-10 flex flex-col h-screen p-8">
+				{/* ===== HEADER SECTION ===== */}
+				<div className="flex-shrink-0 mb-8">
+					<div className="flex justify-between items-start">
+						<div className="flex items-center gap-4">
+							<img
+								src="/icon.png"
+								alt="Logo"
+								className="h-30 w-30 object-contain"
+							/>
+							<div>
+								<h1 className="text-4xl font-bold text-[#0B2E4F] tracking-tight">
+									Staff Information Display
+								</h1>
+								<p className="text-2xl text-slate-700 font-semibold mt-1">
+									Thimphu Dzongkhag Administration
+								</p>
+							</div>
+						</div>
+
+						<div className="text-right">
+							<div className="text-4xl font-black tabular-nums text-[#0B2E4F]">
+								{formatTime(currentTime)}
+							</div>
+							<div className="text-xl font-bold text-[#0B2E4F] mt-3 tracking-wide">
+								{formatDate(currentTime)}
+							</div>
+						</div>
+					</div>
+
+					<div className="mt-8 h-px bg-gradient-to-r from-transparent via-[#0B2E4F]/50 to-transparent" />
+				</div>
+
+				{/* Auto-scroll indicator */}
+				<div className="flex-shrink-0 mb-2 text-center">
+					<div className="inline-flex items-center gap-2 px-3 py-1 bg-[#0B2E4F]/10 rounded-full backdrop-blur-sm">
+						<div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+						<span className="text-xs text-slate-600 font-medium">
+							Live Auto-Scrolling Display
+						</span>
+					</div>
+				</div>
+
+				{/* ===== STICKY DEPARTMENT HEADER ===== */}
+				{activeStickyDept && (
+					<div
+						className={`sticky-header-container flex-shrink-0 z-30 mb-4 transition-all duration-500 ${
+							headerTransitioning
+								? "opacity-90 scale-[0.98] -translate-y-1"
+								: "opacity-100 scale-100 translate-y-0"
+						}`}
+					>
+						<div className="relative">
+							<div className="absolute inset-0 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-200/50" />
+							<div className="absolute inset-0 bg-gradient-to-r from-[#0B2E4F]/5 via-transparent to-[#0B2E4F]/5 rounded-2xl" />
+
+							<div className="relative px-6 py-4 flex items-center gap-4">
+								<div className="w-2 h-12 bg-gradient-to-b from-[#0B2E4F] to-[#1a5a92] rounded-full animate-pulse" />
+								<h2 className="text-3xl font-bold text-[#0B2E4F] tracking-wider">
+									{activeStickyDept.toUpperCase()}
+								</h2>
+								<div className="flex-1 h-px bg-gradient-to-r from-[#0B2E4F]/30 to-transparent" />
+
+								<div className="flex items-center gap-3">
+									{/* <div className="flex items-center gap-2 px-4 py-2 bg-[#0B2E4F]/10 rounded-full backdrop-blur-sm">
+                    <span className="text-xl"></span>
+                    <span className="text-2xl font-bold text-[#0B2E4F]">{getDepartmentCount(activeStickyDept)}</span>
+                    <span className="text-base text-slate-600">members</span>
+                  </div> */}
+									<div className="flex items-center gap-1.5">
+										{departmentList.map((dept, idx) => (
+											<div
+												key={dept}
+												className={`h-1.5 rounded-full transition-all duration-500 ${
+													dept === activeStickyDept
+														? "w-8 bg-[#0B2E4F] shadow-lg"
+														: idx <
+															  getCurrentDeptIndex()
+															? "w-3 bg-[#0B2E4F]/40"
+															: "w-3 bg-slate-300/50"
+												}`}
+											/>
+										))}
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				)}
+
+				{/* ===== MAIN ATTENDANCE SECTION ===== */}
+				<div className="flex-1 min-h-0">
+					<div
+						ref={scrollContainerRef}
+						className="h-full overflow-y-auto hide-scrollbar"
+						style={{ scrollBehavior: "auto" }}
+					>
+						<div className="space-y-8 pb-6">
+							{renderLoopContent()}
+
+							{employees.length === 0 && (
+								<div className="text-center py-20">
+									<p className="text-2xl text-black">
+										Loading staff data...
+									</p>
+								</div>
+							)}
+						</div>
+					</div>
+				</div>
+
+				{/* ===== QUOTE SECTION ===== */}
+				<div className="flex-shrink-0 space-y-4 mt-8">
+					<div
+						className={`relative overflow-hidden rounded-xl bg-slate-800/80 backdrop-blur-md border border-slate-600/50 p-6 transition-all duration-500 ${quoteFade ? "opacity-100 transform translate-y-0" : "opacity-0 transform translate-y-4"}`}
+					>
+						<div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-cyan-500/10 to-purple-500/10 rounded-full blur-3xl animate-pulse" />
+						<div className="relative flex items-center gap-5">
+							<div className="flex-shrink-0">
+								<div className="w-14 h-14 rounded-full bg-[#0B2E4F] flex items-center justify-center shadow-lg shadow-gray-200/20">
+									<span className="text-3xl">💬</span>
+								</div>
+							</div>
+							<div className="flex-1">
+								<p className="text-2xl font-medium text-white leading-relaxed">
+									"{PROVERBS[currentProverbIndex].text}"
+								</p>
+								<p className="text-base text-gray-100 mt-2 font-medium">
+									— {PROVERBS[currentProverbIndex].author}
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<style jsx global>{`
+				.hide-scrollbar {
+					-ms-overflow-style: none;
+					scrollbar-width: none;
+				}
+				.hide-scrollbar::-webkit-scrollbar {
+					display: none;
+				}
+
+				@keyframes fadeIn {
+					from {
+						opacity: 0;
+						transform: translateY(20px);
+					}
+					to {
+						opacity: 1;
+						transform: translateY(0);
+					}
+				}
+
+				@keyframes slideIn {
+					from {
+						opacity: 0;
+						transform: translateX(-20px);
+					}
+					to {
+						opacity: 1;
+						transform: translateX(0);
+					}
+				}
+
+				@keyframes marquee {
+					0% {
+						transform: translateX(0);
+					}
+					100% {
+						transform: translateX(-100%);
+					}
+				}
+
+				.animate-marquee {
+					animation: marquee 8s linear infinite;
+					display: inline-block;
+					padding-left: 100%;
+				}
+
+				.animate-fadeIn {
+					animation: fadeIn 0.8s ease-out forwards;
+				}
+
+				.group\/name:hover .whitespace-nowrap,
+				.group\/designation:hover .whitespace-nowrap {
+					animation: marquee 6s linear infinite;
+				}
+
+				.sticky-header-container {
+					animation: slideDown 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+				}
+
+				@keyframes slideDown {
+					from {
+						opacity: 0;
+						transform: translateY(-30px);
+					}
+					to {
+						opacity: 1;
+						transform: translateY(0);
+					}
+				}
+
+				.department-section {
+					scroll-margin-top: 80px;
+				}
+
+				.original-dept-header {
+					visibility: visible;
+					opacity: 1;
+				}
+
+				.overflow-y-auto {
+					scroll-behavior: auto;
+				}
+			`}</style>
+		</div>
+	);
 }
