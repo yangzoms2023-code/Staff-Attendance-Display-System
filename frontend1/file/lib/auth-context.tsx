@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react"
 import type { User } from "./types"
+import { setAccessToken as setApiAccessToken } from "./api-client"
 
 interface Session {
   accessToken: string
@@ -44,15 +45,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (isValid) {
           setSession(parsedSession)
+          setApiAccessToken(parsedSession.accessToken)
           console.log("Session restored for user:", parsedSession.user?.name)
         } else {
           console.log("Session expired, clearing")
           localStorage.removeItem("auth_session")
+          setApiAccessToken(null)
         }
       }
     } catch (error) {
       console.error("Failed to restore session", error)
       localStorage.removeItem("auth_session")
+      setApiAccessToken(null)
     }
     setIsLoading(false)
   }, [])
@@ -60,9 +64,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (session) {
       localStorage.setItem("auth_session", JSON.stringify(session))
+      setApiAccessToken(session.accessToken)
       console.log("Session saved for user:", session.user?.name)
     } else {
       localStorage.removeItem("auth_session")
+      setApiAccessToken(null)
       console.log("Session cleared from storage")
     }
   }, [session])
@@ -87,6 +93,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log(`Attempting ${role} login with:`, role === "admin" ? username : `CID: ${username}`)
       console.log("Request body:", requestBody)
+      console.log("API Base URL:", API_BASE)
+      console.log("Full endpoint:", `${API_BASE}${endpoint}`)
       
       const response = await fetch(`${API_BASE}${endpoint}`, {
         method: "POST",
@@ -96,12 +104,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify(requestBody),
       })
 
-      const data = await response.json()
       console.log("Login response status:", response.status)
+      console.log("Login response status text:", response.statusText)
+      
+      let data
+      try {
+        data = await response.json()
+      } catch (parseError) {
+        console.error("Failed to parse response as JSON", parseError)
+        data = { error: "Invalid JSON response from server" }
+      }
+      
       console.log("Login response data:", JSON.stringify(data, null, 2))
 
       if (!response.ok) {
-        console.error("Auth login failed", data)
+        console.error("Auth login failed with status", response.status, ":", data)
         return false
       }
 
@@ -161,6 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log("Logging out, clearing session")
     setSession(null)
     localStorage.removeItem("auth_session")
+    setApiAccessToken(null)
     sessionStorage.clear()
   }, [])
 

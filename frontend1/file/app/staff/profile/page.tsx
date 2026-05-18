@@ -161,6 +161,13 @@ export default function ProfilePage() {
     
     try {
       const staffId = extendedUser?.id || ""
+      
+      if (!staffId) {
+        setError("User ID not available. Please log in again.")
+        setLoading(false)
+        return
+      }
+      
       const profile = await fetchEmployeeProfile(authHeaders, staffId)
       
       if (profile) {

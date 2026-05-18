@@ -84,33 +84,43 @@ export async function getValidHeaders(
 
 export async function fetchEmployeeProfile(headers: Record<string, string>, staffId: string): Promise<EmployeeProfile | null> {
   try {
+    if (!staffId) {
+      console.error("staffId is empty, cannot fetch profile")
+      return null
+    }
+    
+    console.log("Fetching profile for staffId:", staffId)
     const response = await fetch(`${API_BASE}/staff/${staffId}`, { 
       headers,
       credentials: 'include'
     })
     
-    if (response.ok) {
-      const data = await response.json()
-      
-      return {
-        id: data.id || "",
-        employee_id: data.employee_id || data.employeeId || data.staffId || "",
-        cid_no: data.cid_no || data.cidNo || data.cid || "",
-        name: data.name || "",
-        contact_no: data.contact_no || data.contactNo || data.phone || "",
-        email: data.email || "",
-        employment_type: data.employment_type || data.employmentType || "regular",
-        is_active: data.is_active !== undefined ? data.is_active : true,
-        created_at: data.created_at || data.createdAt || data.joinDate || new Date().toISOString(),
-        last_login_at: data.last_login_at || data.lastLoginAt || null,
-        photo: data.photo || null,
-        address: data.address || "",
-        designation: data.designation || "",
-        officeId: data.officeId || "",
-        departmentId: data.departmentId || ""
-      }
+    if (!response.ok) {
+      console.error("Profile fetch failed with status", response.status)
+      const errorText = await response.text()
+      console.error("Error response:", errorText)
+      return null
     }
-    return null
+    
+    const data = await response.json()
+      
+    return {
+      id: data.id || "",
+      employee_id: data.employee_id || data.employeeId || data.staffId || "",
+      cid_no: data.cid_no || data.cidNo || data.cid || "",
+      name: data.name || "",
+      contact_no: data.contact_no || data.contactNo || data.phone || "",
+      email: data.email || "",
+      employment_type: data.employment_type || data.employmentType || "regular",
+      is_active: data.is_active !== undefined ? data.is_active : true,
+      created_at: data.created_at || data.createdAt || data.joinDate || new Date().toISOString(),
+      last_login_at: data.last_login_at || data.lastLoginAt || null,
+      photo: data.photo || null,
+      address: data.address || "",
+      designation: data.designation || "",
+      officeId: data.officeId || "",
+      departmentId: data.departmentId || ""
+    }
   } catch (error) {
     console.error("Error fetching profile:", error)
     return null

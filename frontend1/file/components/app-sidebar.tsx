@@ -25,7 +25,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useSession } from "@/lib/session-provider"; // ✅ changed from useAuth
+import { useAuth } from "@/lib/auth-context";
 import { PartyPopper } from "lucide-react";
 import {
 	Building2,
@@ -82,7 +82,7 @@ const navItems = [
 
 export function AppSidebar() {
 	const pathname = usePathname();
-	const { user, logout } = useSession(); // ✅ changed
+	const { user, logout } = useAuth();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
 	// Function to close mobile menu
