@@ -33,6 +33,16 @@ const PROVERBS = [
 	},
 ];
 
+// Bhutanese Proverbs
+const PROVERBS = [
+  { text: "Individual success depends on success as a nation – no one succeeds when the nation has failed.", author: "Jigme Khesar Namgyel Wangchuck" },
+  { text: "Our size is our greatest strength.", author: "Jigme Khesar Namgyel Wangchuck" },
+  { text: "Rise to the challenge, change our mindset, think big and work hard.", author: "Jigme Khesar Namgyel Wangchuck" },
+  { text: "We cannot change the past, but we can shape the future.", author: "Jigme Khesar Namgyel Wangchuck" },
+  { text: "The strength of a nation lies in its people, their dreams, and their determination.", author: "Jigme Khesar Namgyel Wangchuck" },
+  { text: "We cannot afford to be timid, avoid what we don’t yet understand and hope for the best. Such an attitude will cost us our national objective of self-reliance.", author: "Jigme Khesar Namgyel Wangchuck" },
+]
+
 export default function TVDashboard() {
 	const [employees, setEmployees] = useState<Employee[]>([]);
 	const [attendanceRecords, setAttendanceRecords] = useState<
