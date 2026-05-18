@@ -93,7 +93,6 @@ export default function ReportsPage() {
     const [year, monthNum] = month.split('-')
     const firstDay = new Date(parseInt(year), parseInt(monthNum) - 1, 1)
     const lastDay = new Date(parseInt(year), parseInt(monthNum), 0)
-
     setStartDate(firstDay.toISOString().split("T")[0])
     setEndDate(lastDay.toISOString().split("T")[0])
   }
@@ -102,19 +101,16 @@ export default function ReportsPage() {
   const getAvailableMonths = () => {
     const months: string[] = []
     const today = new Date()
-
     for (let i = 0; i < 12; i++) {
       const date = new Date(today.getFullYear(), today.getMonth() - i, 1)
       const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
       months.push(monthStr)
     }
-
     return months
   }
 
   const generateReport = () => {
     let filteredEmployees = [...employees]
-
     if (departmentFilter !== "all") {
       filteredEmployees = filteredEmployees.filter(e => e.department === departmentFilter)
     }
@@ -136,7 +132,6 @@ export default function ReportsPage() {
       const lateDays = records.filter(r => r.status === "Late").length
       const absentDays = records.filter(r => r.status === "Absent").length
       const leaveDays = records.filter(r => r.status === "Leave").length
-
       // Calculate attendance percentage based on working days only
       const attendancePercentage = totalWorkingDays > 0
         ? Math.round(((presentDays + lateDays) / totalWorkingDays) * 100)
@@ -159,7 +154,6 @@ export default function ReportsPage() {
 
   const generateTrendData = (filteredEmployees: Employee[], allAttendance: AttendanceRecord[], workingDays: string[]) => {
     const trend: { date: string; present: number; absent: number; late: number }[] = []
-
     workingDays.forEach((dateStr) => {
       const records = allAttendance.filter(
         (a) =>
@@ -182,7 +176,6 @@ export default function ReportsPage() {
 
   const exportToCSV = () => {
     const workingDays = getWorkingDaysList(startDate, endDate)
-
     const headers = [
       "Employee ID",
       "Name",
@@ -228,7 +221,6 @@ export default function ReportsPage() {
   }).filter((d) => d.employees > 0)
 
   const workingDaysCount = getWorkingDaysList(startDate, endDate).length
-
   const overallStats = {
     totalEmployees: reportData.length,
     avgAttendance:

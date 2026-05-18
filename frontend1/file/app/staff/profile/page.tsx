@@ -1,407 +1,795 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
-import { dataStore } from "@/lib/data-store"
-import type { Employee } from "@/lib/types"
-import {
-  Mail, Phone, MapPin, Briefcase,
-  Calendar, ShieldCheck, ArrowLeft,
-  Camera, Edit2, Save, X,
-  Award, Clock, CheckCircle2, ChevronRight,
-  User, Building2, CreditCard
+import { EmployeeAvatar } from "@/components/employee/employee-avatar"
+import { 
+  Mail, Phone, MapPin, Briefcase, 
+  Calendar, ArrowLeft, Edit2, X, 
+  User, Clock, Camera, AlertCircle, CheckCircle,
+  Eye, EyeOff, Key, Save
 } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
-import Image from "next/image"
+import { 
+  fetchEmployeeProfile, 
+  updateStaffProfile,
+  updateStaffPassword,
+  fetchEmployeeStats,
+  getValidHeaders,
+  type EmployeeProfile,
+  type UpdateProfileData
+} from "@/lib/employee-api"
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:9001"
+
+interface ExtendedUser {
+  id?: string
+  employee_id?: string
+  employeeId?: string
+  cid_no?: string
+  cidNo?: string
+  name?: string
+  contact_no?: string
+  contactNo?: string
+  email?: string
+  employment_type?: string
+  created_at?: string
+  address?: string
+  role?: string
+}
 
 export default function ProfilePage() {
   const router = useRouter()
-  const { user } = useAuth()
-  const [employee, setEmployee] = useState<Employee | null>(null)
+  const { user, getAuthHeaders, refreshAccessToken } = useAuth()
+  const extendedUser = user as ExtendedUser | null
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  const [employee, setEmployee] = useState<EmployeeProfile | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [formData, setFormData] = useState({
+  const [saving, setSaving] = useState(false)
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const [headers, setHeaders] = useState<Record<string, string> | null>(null)
+  const [avatarRefreshKey, setAvatarRefreshKey] = useState(0)
+  
+  const [showPasswordForm, setShowPasswordForm] = useState(false)
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: ""
+  })
+  const [changingPassword, setChangingPassword] = useState(false)
+  
+  const [stats, setStats] = useState({
+    attendanceRate: 0,
+    leaveBalance: 18,
+    yearsOfService: 0,
+    approvedOutings: 0
+  })
+  
+  const [formData, setFormData] = useState<UpdateProfileData>({
     name: "",
     email: "",
-    phone: "",
-    address: "",
-    department: "",
-    designation: ""
+    contact_no: "",
+    address: ""
   })
+
+  // Helper functions for localStorage
+  const savePhotoToLocalStorage = (employeeId: string, photoDataUrl: string) => {
+  try {
+    // Compress the photo if it's too large
+    localStorage.setItem(`staff_photo_${employeeId}`, photoDataUrl)
+    console.log("Photo saved to localStorage for employee:", employeeId)
+  } catch (e) {
+    console.error("Failed to save photo to localStorage", e)
+    // If storage is full, try to compress or show error
+    if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+      setError("Photo is too large. Please try a smaller image.")
+    }
+  }
+}
+
+  const loadPhotoFromLocalStorage = (employeeId: string): string | null => {
+    try {
+      const photo = localStorage.getItem(`staff_photo_${employeeId}`)
+      if (photo) {
+        console.log("Photo loaded from localStorage for employee:", employeeId)
+      }
+      return photo
+    } catch (e) {
+      console.error("Failed to load photo from localStorage", e)
+      return null
+    }
+  }
+
+  const deletePhotoFromLocalStorage = (employeeId: string) => {
+    try {
+      localStorage.removeItem(`staff_photo_${employeeId}`)
+      console.log("Photo deleted from localStorage for employee:", employeeId)
+    } catch (e) {
+      console.error("Failed to delete photo from localStorage", e)
+    }
+  }
 
   useEffect(() => {
     if (!user) {
       router.push("/")
       return
     }
-
-    if (user.role !== "employee") {
+    if (extendedUser?.role !== "employee") {
       router.push("/dashboard")
       return
     }
+    init()
+  }, [user, router, extendedUser?.role])
 
-    dataStore.init()
-
-    const employees = dataStore.getEmployees()
-    let emp: Employee | undefined
-
-    if (user.employeeId) {
-      emp = employees.find(e => e.employeeId === user.employeeId || e.id === user.employeeId)
-    }
-
-    if (!emp && user.username) {
-      emp = employees.find(e => e.name === user.name)
-    }
-
-    if (emp) {
-      setEmployee(emp)
-      setFormData({
-        name: emp.name,
-        email: emp.email,
-        phone: emp.contactNumber || "",
-        address: emp.address || "",
-        department: emp.department,
-        designation: emp.designation
-      })
-    }
-
-    setLoading(false)
-  }, [user, router])
-
-  const handleSave = () => {
-    if (employee) {
-      const updatedEmployee = {
-        ...employee,
-        name: formData.name,
-        email: formData.email,
-        contactNumber: formData.phone,
-        address: formData.address,
-        updatedAt: new Date().toISOString()
+  // Load saved photo from localStorage on component mount
+  useEffect(() => {
+    if (employee?.id) {
+      const savedPhoto = loadPhotoFromLocalStorage(employee.id)
+      if (savedPhoto) {
+        setPhotoPreview(savedPhoto)
       }
-      // FIX: Pass both the employee ID and the updated employee object
-      dataStore.updateEmployee(employee.id, updatedEmployee)
-      setEmployee(updatedEmployee)
-      setIsEditing(false)
+    }
+  }, [employee?.id])
+
+  const init = async () => {
+    const authHeaders = await getValidHeaders(getAuthHeaders, refreshAccessToken, router)
+    if (authHeaders) {
+      setHeaders(authHeaders)
+      await loadProfile(authHeaders)
+    } else {
+      setLoading(false)
+      setError("Could not authenticate")
     }
   }
 
-  const handleDiscard = () => {
+  const loadProfile = async (authHeaders: Record<string, string>) => {
+    setLoading(true)
+    setError("")
+    
+    try {
+      const staffId = extendedUser?.id || ""
+      
+      if (!staffId) {
+        setError("User ID not available. Please log in again.")
+        setLoading(false)
+        return
+      }
+      
+      const profile = await fetchEmployeeProfile(authHeaders, staffId)
+      
+      if (profile) {
+        setEmployee(profile)
+        setFormData({
+          name: profile.name || "",
+          email: profile.email || "",
+          contact_no: profile.contact_no || "",
+          address: profile.address || ""
+        })
+        
+        setAvatarRefreshKey(prev => prev + 1)
+        
+        let yearsOfService = 0
+        if (profile.created_at) {
+          const joinedDate = new Date(profile.created_at)
+          yearsOfService = Math.floor((new Date().getTime() - joinedDate.getTime()) / (1000 * 60 * 60 * 24 * 365))
+        }
+        
+        const employeeStats = await fetchEmployeeStats(authHeaders)
+        
+        setStats({
+          attendanceRate: employeeStats.attendanceRate,
+          leaveBalance: employeeStats.leaveBalance,
+          yearsOfService: yearsOfService,
+          approvedOutings: employeeStats.approvedOutings
+        })
+      } else {
+        setError("Failed to load profile data")
+      }
+    } catch (err) {
+      console.error("Error loading profile:", err)
+      setError("Failed to load profile data")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  // Validate file size (max 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    setError("File size must be less than 5MB")
+    return
+  }
+
+  // Validate file type
+  if (!file.type.startsWith('image/')) {
+    setError("Please select a valid image file (JPEG, PNG, etc.)")
+    return
+  }
+
+  setUploadingPhoto(true)
+  setError("")
+  setSuccess("")
+  
+  try {
+    if (employee) {
+      // Convert to base64 for localStorage
+      const reader = new FileReader()
+      
+      reader.onloadend = () => {
+        const base64Data = reader.result as string
+        
+        // Save to localStorage
+        savePhotoToLocalStorage(employee.id, base64Data)
+        setPhotoPreview(base64Data)
+        setAvatarRefreshKey(prev => prev + 1)
+        
+        setSuccess("Profile photo updated successfully!")
+        setTimeout(() => setSuccess(''), 3000)
+      }
+      
+      reader.readAsDataURL(file)
+    }
+  } catch (err) {
+    console.error("Error processing photo:", err)
+    setError("Error processing photo. Please try again.")
+  } finally {
+    setUploadingPhoto(false)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+}
+
+  const handleProfileSave = async () => {
+    if (!formData.email?.trim()) {
+      setError("Email is required")
+      return
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setError("Please enter a valid email address")
+      return
+    }
+    if (!formData.contact_no?.trim()) {
+      setError("Contact number is required")
+      return
+    }
+
+    setSaving(true)
+    setError("")
+    setSuccess("")
+    
+    try {
+      if (headers && employee) {
+        const result = await updateStaffProfile(headers, employee.id, formData)
+        
+        if (result.success) {
+          setIsEditing(false)
+          setSuccess(result.message || 'Profile updated successfully!')
+          await loadProfile(headers)
+          setTimeout(() => {
+            setSuccess('')
+          }, 3000)
+        } else {
+          setError(result.message || 'Failed to update profile')
+        }
+      }
+    } catch (err) {
+      console.error("Save error:", err)
+      setError('Failed to update profile')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!passwordData.currentPassword) {
+      setError("Current password is required")
+      return
+    }
+    if (!passwordData.newPassword) {
+      setError("New password is required")
+      return
+    }
+    if (passwordData.newPassword.length < 6) {
+      setError("New password must be at least 6 characters")
+      return
+    }
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setError("New passwords do not match")
+      return
+    }
+
+    setChangingPassword(true)
+    setError("")
+    setSuccess("")
+
+    try {
+      if (headers && employee) {
+        const result = await updateStaffPassword(headers, employee.id, passwordData)
+
+        if (result.success) {
+          setSuccess(result.message || "Password updated successfully!")
+          setPasswordData({
+            currentPassword: "",
+            newPassword: "",
+            confirmPassword: ""
+          })
+          setShowPasswordForm(false)
+          setTimeout(() => setSuccess(""), 3000)
+        } else {
+          setError(result.message || "Failed to update password")
+        }
+      }
+    } catch (err) {
+      setError("An error occurred. Please try again.")
+    } finally {
+      setChangingPassword(false)
+    }
+  }
+
+  const handleChange = (field: keyof UpdateProfileData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+    setError("")
+    setSuccess("")
+  }
+
+  const handlePasswordChange = (field: keyof typeof passwordData, value: string) => {
+    setPasswordData(prev => ({ ...prev, [field]: value }))
+    setError("")
+    setSuccess("")
+  }
+
+  const handleCancel = () => {
+    setIsEditing(false)
+    setShowPasswordForm(false)
     if (employee) {
       setFormData({
-        name: employee.name,
-        email: employee.email,
-        phone: employee.contactNumber || "",
-        address: employee.address || "",
-        department: employee.department,
-        designation: employee.designation
+        name: employee.name || "",
+        email: employee.email || "",
+        contact_no: employee.contact_no || "",
+        address: employee.address || ""
       })
-      setIsEditing(false)
     }
+    setPasswordData({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: ""
+    })
+    setError("")
+    setSuccess("")
   }
 
-  const handleChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+  const getEmployeeName = (): string => employee?.name || ""
+  const getEmployeeId = (): string => employee?.employee_id || "N/A"
+  const getCidNo = (): string => employee?.cid_no || "N/A"
+  const getEmploymentType = (): string => {
+    const type = employee?.employment_type || "regular"
+    return type.charAt(0).toUpperCase() + type.slice(1)
+  }
+  const getJoinDate = (): string => {
+    if (employee?.created_at) {
+      return new Date(employee.created_at).toLocaleDateString("en-US", { 
+        year: "numeric", 
+        month: "long", 
+        day: "numeric" 
+      })
+    }
+    return "Not available"
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
-        <div className="animate-pulse text-slate-500">Loading profile...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#0B2E4F] mx-auto mb-4"></div>
+          <p className="text-slate-600 font-medium">Loading profile...</p>
+        </div>
       </div>
     )
   }
-
-  if (!employee) {
+  
+  if (!employee || !headers) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
-        <div className="text-center">
-          <p className="text-slate-500 mb-4">Employee not found</p>
-          <Button onClick={() => router.push("/staff")}>Back to Dashboard</Button>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+        <div className="text-center max-w-md mx-auto p-8 bg-white rounded-2xl shadow-lg">
+          <div className="bg-red-100 rounded-full h-20 w-20 flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="h-10 w-10 text-red-600" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 mb-2">Profile Not Found</h2>
+          <p className="text-slate-600 mb-6">{error || "Unable to load employee profile data"}</p>
+          <Button onClick={() => router.push("/staff")} className="bg-[#0B2E4F] hover:bg-[#1a5a92]">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
         </div>
       </div>
     )
   }
 
-  // Calculate stats
-  const attendanceHistory = dataStore.getAttendanceByEmployee(employee.id)
-  const presentCount = attendanceHistory.filter(a => a.status === "Present").length
-  const attendanceRate = attendanceHistory.length > 0
-    ? Math.round((presentCount / attendanceHistory.length) * 100)
-    : 0
-  const approvedOutings = dataStore.getOutingRequestsByEmployee(employee.id).filter(r => r.status === "approved").length
-  const joinedDate = new Date(employee.joiningDate)
-  const yearsOfService = Math.floor((new Date().getTime() - joinedDate.getTime()) / (1000 * 60 * 60 * 24 * 365))
-
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-12 font-sans text-slate-900">
-      {/* Slim Navbar */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 pb-12">
       <nav className="w-full bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 h-12 flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push("/staff")}
-            className="text-slate-500 hover:text-[#ffffff] hover:bg-[#0B2E4F]"
-          >
-            <ArrowLeft className="h-3.5 w-3.5 mr-2" />
-            <span className="font-bold text-[11px] uppercase tracking-wider">Dashboard</span>
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+          <Button variant="ghost" size="sm" onClick={() => router.push("/staff")} className="hover:bg-slate-100">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
           </Button>
-
-          <div className="flex items-center gap-2">
-            {!isEditing ? (
-              <Button
-                size="sm"
-                onClick={() => setIsEditing(true)}
-                className="bg-[#0B2E4F] h-8 text-[11px] font-bold hover:bg-[#1a456b]"
-              >
-                <Edit2 className="h-3 w-3 mr-2" /> EDIT PROFILE
+          
+          <div className="flex gap-2">
+            {!isEditing && !showPasswordForm ? (
+              <Button size="sm" onClick={() => setIsEditing(true)} className="bg-[#0B2E4F] hover:bg-[#1a5a92]">
+                <Edit2 className="h-4 w-4 mr-2" />
+                Edit Profile
               </Button>
             ) : (
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={handleDiscard} className="h-8 text-[11px] font-bold hover:bg-[#1a456b]">
-                  <X className="h-3 w-3 mr-2" /> DISCARD
-                </Button>
-                <Button size="sm" onClick={handleSave} className="bg-[#1a456b] h-8 text-[11px] font-bold hover:bg-[#1a457b]">
-                  <Save className="h-3 w-3 mr-2" /> SAVE
-                </Button>
-              </div>
+              <Button variant="outline" size="sm" onClick={handleCancel} disabled={saving || uploadingPhoto || changingPassword}>
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
             )}
           </div>
         </div>
       </nav>
 
-      <main className="max-w-6xl mx-auto p-4 space-y-4">
+      <main className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-4 flex gap-3 shadow-sm">
+            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <p className="text-red-700 text-sm">{error}</p>
+          </div>
+        )}
+        {success && (
+          <div className="bg-green-50 border-l-4 border-green-500 rounded-lg p-4 flex gap-3 shadow-sm">
+            <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <p className="text-green-700 text-sm">{success}</p>
+          </div>
+        )}
 
-        {/* Compact Hero Section */}
-        <section className="relative rounded-2xl overflow-hidden bg-white shadow-sm border border-slate-200">
-          <div className="h-24 w-full bg-gradient-to-r from-[#0B2E4F] to-[#1a5a92]" />
-          <div className="px-6 pb-4">
-            <div className="relative flex flex-row items-center gap-4 -mt-8">
+        {/* Profile Header */}
+        <Card className="border-0 shadow-lg overflow-hidden">
+          <div className="h-24 w-full bg-gradient-to-r from-[#0B2E4F] to-[#1a5a92]"></div>
+          <CardContent className="px-6 pb-6 relative">
+            <div className="flex flex-col md:flex-row gap-6 -mt-16">
               <div className="relative group">
-                <div className="h-24 w-24 rounded-2xl bg-white p-1 shadow-lg border border-slate-100">
-                  <div className="h-full w-full rounded-xl bg-gradient-to-br from-[#0B2E4F] to-[#1a456b] flex items-center justify-center text-3xl font-bold text-white">
-                    {employee.name.charAt(0)}
+                {uploadingPhoto ? (
+                  <div className="h-32 w-32 rounded-2xl bg-gradient-to-br from-[#0B2E4F] to-[#1a5a92] flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
                   </div>
-                </div>
-                {isEditing && (
-                  <button className="absolute inset-0 m-1 flex items-center justify-center bg-black/40 rounded-xl text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Camera className="h-5 w-5" />
-                  </button>
+                ) : (
+                  <EmployeeAvatar 
+                    name={employee.name} 
+                    size="lg" 
+                    className="rounded-2xl"
+                    photoPreview={photoPreview}
+                  />
                 )}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingPhoto}
+                  className="absolute bottom-0 right-0 bg-[#0B2E4F] hover:bg-[#1a5a92] disabled:bg-gray-400 text-white rounded-full p-2 shadow-lg transition transform hover:scale-105"
+                >
+                  <Camera className="h-4 w-4" />
+                </button>
+                <input 
+                  ref={fileInputRef} 
+                  type="file" 
+                  accept="image/jpeg,image/png,image/jpg,image/gif" 
+                  onChange={handlePhotoChange} 
+                  className="hidden" 
+                  disabled={uploadingPhoto} 
+                />
               </div>
 
-              <div className="flex-1 pt-8">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-xl font-black text-slate-900 tracking-tight">{employee.name}</h1>
-                  <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 text-[9px] font-bold px-2 py-0 border-emerald-100">
-                    {employee.status === "Active" ? "ACTIVE" : "INACTIVE"}
+              <div className="flex-1 pt-4 md:pt-0">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+                  <div>
+                    <h1 className="text-2xl md:text-3xl font-bold text-white">{getEmployeeName()}</h1>
+                    <p className="text-slate-600 text-sm mt-1">{getEmploymentType()} Employee</p>
+                  </div>
+                  <Badge className={employee.is_active ? "bg-green-100 text-green-800 border-green-200" : "bg-red-100 text-red-800 border-red-200"} variant="secondary">
+                    {employee.is_active ? "● Active" : "● Inactive"}
                   </Badge>
                 </div>
-                <p className="text-slate-500 font-medium text-xs">{employee.designation} • {employee.department}</p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+                  <div className="bg-white rounded-xl p-3 shadow-sm border border-slate-100">
+                    <p className="text-xs text-slate-600 font-semibold uppercase tracking-wide">Attendance</p>
+                    <p className="text-2xl font-bold text-slate-900">{stats.attendanceRate}%</p>
+                  </div>
+                  <div className="bg-white rounded-xl p-3 shadow-sm border border-slate-100">
+                    <p className="text-xs text-slate-600 font-semibold uppercase tracking-wide">Leave Balance</p>
+                    <p className="text-2xl font-bold text-slate-900">{stats.leaveBalance} <span className="text-sm font-normal">days</span></p>
+                  </div>
+                  <div className="bg-white rounded-xl p-3 shadow-sm border border-slate-100">
+                    <p className="text-xs text-slate-600 font-semibold uppercase tracking-wide">Service</p>
+                    <p className="text-2xl font-bold text-slate-900">{stats.yearsOfService} <span className="text-sm font-normal">yrs</span></p>
+                  </div>
+                  <div className="bg-white rounded-xl p-3 shadow-sm border border-slate-100">
+                    <p className="text-xs text-slate-600 font-semibold uppercase tracking-wide">Outings</p>
+                    <p className="text-2xl font-bold text-slate-900">{stats.approvedOutings}</p>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </CardContent>
+        </Card>
 
-        {/* Tight Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        {/* Edit Form */}
+        {isEditing ? (
+          <Card className="border-0 shadow-lg">
+            <CardHeader className="border-b border-slate-100">
+              <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                <User className="h-5 w-5 text-[#0B2E4F]" />
+                Edit Profile Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                    <User className="h-4 w-4 text-slate-500" />
+                    Full Name
+                  </Label>
+                  <Input 
+                    type="text" 
+                    value={formData.name || ""} 
+                    onChange={(e) => handleChange("name", e.target.value)} 
+                    placeholder="Enter your full name" 
+                    className="border-slate-200 focus:border-[#0B2E4F]"
+                    disabled={saving}
+                  />
+                </div>
 
-          {/* Left Column: Metadata & Stats */}
-          <div className="lg:col-span-4 space-y-4">
-            {/* Condensed Stats */}
-            <Card className="border-none shadow-sm ring-1 ring-slate-200/60 p-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-2 bg-slate-50 rounded-lg border border-slate-100/50">
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Attendance</p>
-                  <p className="text-sm font-black text-emerald-600">{attendanceRate}%</p>
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-slate-500" />
+                    Email Address
+                  </Label>
+                  <Input 
+                    type="email" 
+                    value={formData.email || ""} 
+                    onChange={(e) => handleChange("email", e.target.value)} 
+                    placeholder="Enter your email" 
+                    className="border-slate-200 focus:border-[#0B2E4F]" 
+                    disabled={saving}
+                  />
                 </div>
-                <div className="p-2 bg-slate-50 rounded-lg border border-slate-100/50">
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Leave Bal.</p>
-                  <p className="text-sm font-black text-blue-600">18 Days</p>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-slate-500" />
+                    Contact Number
+                  </Label>
+                  <Input 
+                    type="tel" 
+                    value={formData.contact_no || ""} 
+                    onChange={(e) => handleChange("contact_no", e.target.value)} 
+                    placeholder="Enter your contact number" 
+                    className="border-slate-200 focus:border-[#0B2E4F]" 
+                    disabled={saving}
+                  />
                 </div>
-                <div className="p-2 bg-slate-50 rounded-lg border border-slate-100/50">
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Service</p>
-                  <p className="text-sm font-black text-amber-600">{yearsOfService} Yrs</p>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-slate-500" />
+                    Residential Address
+                  </Label>
+                  <textarea 
+                    value={formData.address || ""} 
+                    onChange={(e) => handleChange("address", e.target.value)} 
+                    placeholder="Enter your address" 
+                    rows={3} 
+                    className="w-full text-sm p-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0B2E4F] focus:border-transparent resize-none" 
+                    disabled={saving}
+                  />
                 </div>
-                <div className="p-2 bg-slate-50 rounded-lg border border-slate-100/50">
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Outings</p>
-                  <p className="text-sm font-black text-purple-600">{approvedOutings}</p>
+
+                <div className="flex gap-3 pt-4">
+                  <Button onClick={handleProfileSave} disabled={saving} className="bg-green-600 hover:bg-green-700">
+                    <Save className="h-4 w-4 mr-2" />
+                    {saving ? "Saving..." : "Save Changes"}
+                  </Button>
+                  <Button variant="outline" onClick={handleCancel} disabled={saving}>Cancel</Button>
                 </div>
               </div>
-            </Card>
+            </CardContent>
+          </Card>
+        ) : showPasswordForm ? (
+          <Card className="border-0 shadow-lg">
+            <CardHeader className="border-b border-slate-100">
+              <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                <Key className="h-5 w-5 text-[#0B2E4F]" />
+                Change Password
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Current Password</Label>
+                  <div className="relative">
+                    <Input 
+                      type={showCurrentPassword ? "text" : "password"} 
+                      value={passwordData.currentPassword} 
+                      onChange={(e) => handlePasswordChange("currentPassword", e.target.value)} 
+                      placeholder="Enter current password" 
+                      className="pr-10" 
+                      disabled={changingPassword}
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)} 
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                    >
+                      {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
 
-            {/* Metadata Card */}
-            <Card className="rounded-xl border-none shadow-sm ring-1 ring-slate-200/60">
-              <CardHeader className="py-3 px-4 border-b border-slate-50">
-                <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Employment Metadata</CardTitle>
+                <div className="space-y-2">
+                  <Label>New Password</Label>
+                  <div className="relative">
+                    <Input 
+                      type={showNewPassword ? "text" : "password"} 
+                      value={passwordData.newPassword} 
+                      onChange={(e) => handlePasswordChange("newPassword", e.target.value)} 
+                      placeholder="Enter new password (min 6 characters)" 
+                      className="pr-10" 
+                      disabled={changingPassword}
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => setShowNewPassword(!showNewPassword)} 
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                    >
+                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Confirm New Password</Label>
+                  <div className="relative">
+                    <Input 
+                      type={showConfirmPassword ? "text" : "password"} 
+                      value={passwordData.confirmPassword} 
+                      onChange={(e) => handlePasswordChange("confirmPassword", e.target.value)} 
+                      placeholder="Confirm new password" 
+                      className="pr-10" 
+                      disabled={changingPassword}
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)} 
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button type="submit" disabled={changingPassword} className="bg-[#0B2E4F] hover:bg-[#1a5a92]">
+                    {changingPassword ? "Updating..." : "Update Password"}
+                  </Button>
+                  <Button type="button" variant="outline" onClick={handleCancel} disabled={changingPassword}>Cancel</Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="pb-3 border-b border-slate-100">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <Briefcase className="h-4 w-4 text-[#0B2E4F]" />
+                  Employment Information
+                </CardTitle>
               </CardHeader>
-              <CardContent className="p-4 space-y-3">
+              <CardContent className="space-y-4 pt-4">
                 <div>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase">Employee ID</p>
-                  <p className="font-mono text-xs font-semibold text-slate-700">{employee.employeeId}</p>
+                  <p className="text-xs text-slate-600 font-semibold">CID Number</p>
+                  <p className="text-sm font-mono bg-slate-50 p-2 rounded">{getCidNo()}</p>
                 </div>
                 <div>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase">Department</p>
-                  <p className="text-xs font-semibold text-slate-700">{employee.department}</p>
+                  <p className="text-xs text-slate-600 font-semibold">Employee ID</p>
+                  <p className="text-sm font-mono bg-slate-50 p-2 rounded">{getEmployeeId()}</p>
                 </div>
                 <div>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase">Joining Date</p>
-                  <p className="text-xs font-semibold text-slate-700">
-                    {new Date(employee.joiningDate).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric"
-                    })}
+                  <p className="text-xs text-slate-600 font-semibold">Employment Type</p>
+                  <p className="text-sm bg-slate-50 p-2 rounded">{getEmploymentType()}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-600 font-semibold">Joining Date</p>
+                  <p className="text-sm bg-slate-50 p-2 rounded flex items-center gap-2">
+                    <Calendar className="h-3 w-3" />
+                    {getJoinDate()}
                   </p>
                 </div>
-                <div>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase">Gender</p>
-                  <p className="text-xs font-semibold text-slate-700">{employee.gender}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Column: Account Info */}
-          <div className="lg:col-span-8">
-            <Card className="rounded-xl border-none shadow-sm ring-1 ring-slate-200/60 h-full bg-white flex flex-col">
-              <CardHeader className="py-5 px-8 border-b border-slate-50">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-sm font-bold text-slate-800 tracking-tight">Account Details</CardTitle>
-                    <p className="text-[10px] text-slate-400 font-medium uppercase tracking-tight">Primary Contact Records</p>
-                  </div>
-                  <Badge className="bg-slate-50 text-slate-500 border-slate-200 text-[9px] font-bold px-2 py-0.5">
-                    VERIFIED
-                  </Badge>
-                </div>
-              </CardHeader>
-
-              <CardContent className="p-8 flex-1">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-
-                  {/* Name Field - Read-only */}
-                  <div className="space-y-2.5">
-                    <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em]">
-                      Full Name
-                    </Label>
-                    <div className="flex items-center gap-3 border-b border-slate-100 pb-1">
-                      <User className="h-4 w-4 text-slate-400" />
-                      <span className="text-sm font-semibold text-slate-700">{formData.name}</span>
-                    </div>
-                  </div>
-
-                  {/* Department Field - Read-only */}
-                  <div className="space-y-2.5">
-                    <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em]">
-                      Department
-                    </Label>
-                    <div className="flex items-center gap-3 border-b border-slate-100 pb-1">
-                      <Building2 className="h-4 w-4 text-slate-400" />
-                      <span className="text-sm font-semibold text-slate-700">{formData.department}</span>
-                    </div>
-                  </div>
-
-                  {/* Email Field */}
-                  <div className="space-y-2.5 group">
-                    <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] ml-0.5 group-focus-within:text-indigo-500 transition-colors">
-                      Email Address
-                    </Label>
-                    <div className="flex items-center gap-3 border-b border-slate-100 pb-1 group-focus-within:border-indigo-500 transition-all">
-                      <Mail className={cn(
-                        "h-4 w-4 flex-shrink-0 transition-colors duration-300",
-                        isEditing ? "text-indigo-500" : "text-slate-400"
-                      )} />
-                      <input
-                        readOnly={!isEditing}
-                        value={formData.email}
-                        onChange={(e) => handleChange("email", e.target.value)}
-                        className={cn(
-                          "w-full bg-transparent text-sm font-semibold outline-none border-none p-0 h-7",
-                          isEditing ? "text-slate-900" : "text-slate-600 cursor-default"
-                        )}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Phone Field */}
-                  <div className="space-y-2.5 group">
-                    <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] ml-0.5 group-focus-within:text-indigo-500 transition-colors">
-                      Contact Phone
-                    </Label>
-                    <div className="flex items-center gap-3 border-b border-slate-100 pb-1 group-focus-within:border-indigo-500 transition-all">
-                      <Phone className={cn(
-                        "h-4 w-4 flex-shrink-0 transition-colors duration-300",
-                        isEditing ? "text-indigo-500" : "text-slate-400"
-                      )} />
-                      <input
-                        readOnly={!isEditing}
-                        value={formData.phone}
-                        onChange={(e) => handleChange("phone", e.target.value)}
-                        placeholder="Not provided"
-                        className={cn(
-                          "w-full bg-transparent text-sm font-semibold outline-none border-none p-0 h-7",
-                          isEditing ? "text-slate-900" : "text-slate-600 cursor-default"
-                        )}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Designation Field - Read-only */}
-                  <div className="space-y-2.5">
-                    <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em]">
-                      Designation
-                    </Label>
-                    <div className="flex items-center gap-3 border-b border-slate-100 pb-1">
-                      <Briefcase className="h-4 w-4 text-slate-400" />
-                      <span className="text-sm font-semibold text-slate-700">{formData.designation}</span>
-                    </div>
-                  </div>
-
-                  {/* Address Field */}
-                  <div className="space-y-2.5 group md:col-span-2">
-                    <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] ml-0.5 group-focus-within:text-indigo-500 transition-colors">
-                      Residential Address
-                    </Label>
-                    <div className="flex items-center gap-3 border-b border-slate-100 pb-1 group-focus-within:border-indigo-500 transition-all">
-                      <MapPin className={cn(
-                        "h-4 w-4 flex-shrink-0 transition-colors duration-300",
-                        isEditing ? "text-indigo-500" : "text-slate-400"
-                      )} />
-                      <input
-                        readOnly={!isEditing}
-                        value={formData.address}
-                        onChange={(e) => handleChange("address", e.target.value)}
-                        placeholder="Not provided"
-                        className={cn(
-                          "w-full bg-transparent text-sm font-semibold outline-none border-none p-0 h-7",
-                          isEditing ? "text-slate-900" : "text-slate-600 cursor-default"
-                        )}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-
-              {isEditing && (
-                <div className="px-8 pb-8 animate-in fade-in slide-in-from-bottom-2">
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-indigo-50/50 border border-indigo-100/50">
-                    <div className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
-                    <p className="text-[11px] text-indigo-700 font-medium">
-                      You are currently modifying sensitive personnel data. Click save to confirm changes.
+                {employee.last_login_at && (
+                  <div>
+                    <p className="text-xs text-slate-600 font-semibold">Last Login</p>
+                    <p className="text-sm bg-slate-50 p-2 rounded flex items-center gap-2">
+                      <Clock className="h-3 w-3" />
+                      {new Date(employee.last_login_at).toLocaleString()}
                     </p>
                   </div>
-                </div>
-              )}
+                )}
+              </CardContent>
             </Card>
+
+            <div className="lg:col-span-2 space-y-6">
+              <Card className="border-0 shadow-lg">
+                <CardHeader className="pb-3 border-b border-slate-100">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                    <User className="h-4 w-4 text-[#0B2E4F]" />
+                    Contact Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-5 pt-4">
+                  <div>
+                    <p className="text-xs text-slate-600 font-semibold flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      Email Address
+                    </p>
+                    <div className="bg-slate-50 p-3 rounded border">
+                      <p className="text-sm">{employee.email || "Not provided"}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-600 font-semibold flex items-center gap-2">
+                      <Phone className="h-4 w-4" />
+                      Contact Number
+                    </p>
+                    <div className="bg-slate-50 p-3 rounded border">
+                      <p className="text-sm">{employee.contact_no || "Not provided"}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-600 font-semibold flex items-center gap-2">
+                      <MapPin className="h-4 w-4" />
+                      Residential Address
+                    </p>
+                    <div className="bg-slate-50 p-3 rounded border">
+                      <p className="text-sm whitespace-pre-wrap">{employee.address || "Not provided"}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg">
+                <CardHeader className="pb-3 border-b border-slate-100">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                    <Key className="h-4 w-4 text-[#0B2E4F]" />
+                    Security
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <Button onClick={() => setShowPasswordForm(true)} variant="outline" className="border-[#0B2E4F] text-[#0B2E4F] hover:bg-[#0B2E4F] hover:text-white">
+                    Change Password
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </div>
+        )}
       </main>
     </div>
   )

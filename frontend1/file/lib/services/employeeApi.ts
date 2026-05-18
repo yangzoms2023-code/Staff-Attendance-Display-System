@@ -54,6 +54,12 @@ async function staffRequest<T>(
 	method: string,
 	data?: any,
 ): Promise<T> {
+	const token = getAccessToken();
+	if (!token && method === "GET") {
+		console.warn(`No access token available for ${method} ${endpoint}`);
+		throw new Error("Authentication required. Please log in.");
+	}
+	
 	return request<T>(endpoint, {
 		method,
 		body: data ? JSON.stringify(data) : undefined,
@@ -61,29 +67,51 @@ async function staffRequest<T>(
 }
 
 export async function fetchEmployees(): Promise<Employee[]> {
-	const data = await staffRequest<{ data: Employee[]; total: number }>(
-		"/staff",
-		"GET",
-	);
-	return data.data.map((emp) => ({
-		...emp,
-		photo: getPhotoUrl(emp.photo), // use the filename from backend
-	}));
+	try {
+		const token = getAccessToken();
+		if (!token) {
+			console.warn("No access token available for fetchEmployees, returning empty list");
+			return [];
+		}
+		
+		const data = await staffRequest<{ data: Employee[]; total: number }>(
+			"/staff",
+			"GET",
+		);
+		return data.data.map((emp) => ({
+			...emp,
+			photo: getPhotoUrl(emp.photo), // use the filename from backend
+		}));
+	} catch (error) {
+		console.error("Error fetching employees:", error);
+		throw error;
+	}
 }
 
 export async function fetchEmployeesByOffice(
 	officeId: string,
 ): Promise<Employee[]> {
-	const data = await staffRequest<any>(`/staff/office/${officeId}`, "GET");
-	const employees = Array.isArray(data?.data)
-		? data.data
-		: Array.isArray(data)
-			? data
-			: [];
-	return employees.map((emp: any) => ({
-		...emp,
-		photo: getPhotoUrl(emp.photo),
-	}));
+	try {
+		const token = getAccessToken();
+		if (!token) {
+			console.warn("No access token available for fetchEmployeesByOffice, returning empty list");
+			return [];
+		}
+		
+		const data = await staffRequest<any>(`/staff/office/${officeId}`, "GET");
+		const employees = Array.isArray(data?.data)
+			? data.data
+			: Array.isArray(data)
+				? data
+				: [];
+		return employees.map((emp: any) => ({
+			...emp,
+			photo: getPhotoUrl(emp.photo),
+		}));
+	} catch (error) {
+		console.error("Error fetching employees by office:", error);
+		throw error;
+	}
 }
 
 export async function createEmployee(

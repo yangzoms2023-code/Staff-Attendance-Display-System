@@ -1,13 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
-import { SessionProvider } from "@/lib/session-provider";
+import { AuthProvider } from "@/lib/auth-context";
 import { BackgroundPattern } from "@/components/background-pattern";
 import { Toaster } from "sonner"; // 👈 import
 import "./globals.css";
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
+const _geist = Geist({ subsets: ["latin"], display: "swap" });
+const _geistMono = Geist_Mono({ subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
 	title: "Thimphu Dzongkhag Attendance System",
@@ -35,12 +35,12 @@ export default function RootLayout({
 		<html lang="en" className="bg-background">
 			<body className="font-sans antialiased">
 				<BackgroundPattern />
-				<SessionProvider>
+				<AuthProvider>
 					<div className="bg-pattern-container min-h-screen">
 						{children}
 					</div>
 					<Toaster richColors position="top-right" /> {/* 👈 added */}
-				</SessionProvider>
+				</AuthProvider>
 				{process.env.NODE_ENV === "production" && <Analytics />}
 			</body>
 		</html>

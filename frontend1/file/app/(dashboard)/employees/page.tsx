@@ -132,10 +132,15 @@ export default function EmployeesPage() {
 			setEmployees(emps);
 			setApiError(null);
 		} catch (err) {
-			setApiError(
-				err instanceof Error ? err.message : "Failed to load employees",
-			);
-			toast.error("Failed to load employees");
+			const errorMsg = err instanceof Error ? err.message : "Failed to load employees";
+			setApiError(errorMsg);
+			console.error("Error loading employees:", err);
+			if (errorMsg.includes("Authentication required")) {
+				// Silently fail if auth is not ready yet
+				setEmployees([]);
+			} else {
+				toast.error(errorMsg);
+			}
 		} finally {
 			setLoading(false);
 		}
