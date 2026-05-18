@@ -42,10 +42,10 @@ const DEFAULT_USERS: User[] = [
 	{
 		id: "1",
 		username: "admin",
-		password: "admin123",
+		password: "P@ssw0rd123",
 		role: "admin",
 		name: "System Administrator",
-		email: "admin@thimphu.gov.bt",
+		email: "admin@gmail.com",
 	},
 	{
 		id: "2",
@@ -72,6 +72,7 @@ const SAMPLE_EMPLOYEES: Employee[] = [
 	{
 		id: "1",
 		employeeId: "TDA001",
+		CID: "10607002234",
 		name: "Minjur Dorji",
 		gender: "Male",
 		designation: "Dzongdag",
@@ -87,6 +88,7 @@ const SAMPLE_EMPLOYEES: Employee[] = [
 	{
 		id: "2",
 		employeeId: "TDA002",
+		CID: "10607002235",
 		name: "Pema Wangmo",
 		gender: "Female",
 		designation: "Finance Officer",
@@ -102,6 +104,7 @@ const SAMPLE_EMPLOYEES: Employee[] = [
 	{
 		id: "3",
 		employeeId: "TDA003",
+		CID: "10607002236",
 		name: "Karma Tenzin",
 		gender: "Male",
 		designation: "IT Officer",
@@ -117,6 +120,7 @@ const SAMPLE_EMPLOYEES: Employee[] = [
 	{
 		id: "4",
 		employeeId: "TDA004",
+		CID: "10607002237",
 		name: "Sonam Deki",
 		gender: "Female",
 		designation: "HR Officer",
@@ -132,6 +136,7 @@ const SAMPLE_EMPLOYEES: Employee[] = [
 	{
 		id: "5",
 		employeeId: "TDA005",
+		CID: "10607002238",
 		name: "Dorji Wangchuk",
 		gender: "Male",
 		designation: "Engineer",
@@ -147,6 +152,7 @@ const SAMPLE_EMPLOYEES: Employee[] = [
 	{
 		id: "6",
 		employeeId: "TDA006",
+		CID: "10607002239",
 		name: "Dechen Yangzom",
 		gender: "Female",
 		designation: "Planning Officer",
@@ -162,6 +168,7 @@ const SAMPLE_EMPLOYEES: Employee[] = [
 	{
 		id: "7",
 		employeeId: "TDA007",
+		CID: "10607002240",
 		name: "Kinley Namgay",
 		gender: "Male",
 		designation: "Accountant",
@@ -177,6 +184,7 @@ const SAMPLE_EMPLOYEES: Employee[] = [
 	{
 		id: "8",
 		employeeId: "TDA008",
+		CID: "10607002241",
 		name: "Chimi Dema",
 		gender: "Female",
 		designation: "Receptionist",
@@ -192,6 +200,7 @@ const SAMPLE_EMPLOYEES: Employee[] = [
 	{
 		id: "9",
 		employeeId: "TDA009",
+		CID: "10607002242",
 		name: "Ugyen Tshomo",
 		gender: "Female",
 		designation: "Administrative Officer",
@@ -207,6 +216,7 @@ const SAMPLE_EMPLOYEES: Employee[] = [
 	{
 		id: "10",
 		employeeId: "TDA010",
+		CID: "10607002243",
 		name: "Sangay Dorji",
 		gender: "Male",
 		designation: "Driver",
@@ -214,6 +224,22 @@ const SAMPLE_EMPLOYEES: Employee[] = [
 		email: "sangay.dorji@thimphu.gov.bt",
 		address: "Thimphu, Bhutan",
 		department: "Administration",
+		joiningDate: "2019-05-20",
+		status: "Active",
+		createdAt: "2024-01-01T00:00:00Z",
+		updatedAt: "2024-01-01T00:00:00Z",
+	},
+	{
+		id: "11",
+		employeeId: "TDA011",
+		CID: "10607002244",
+		name: "Jigme Choden",
+		gender: "Female",
+		designation: "ICT Officer",
+		contactNumber: "17112345",
+		email: "jigme.choden@thimphu.gov.bt",
+		address: "Thimphu, Bhutan",
+		department: "ICT",
 		joiningDate: "2019-05-20",
 		status: "Active",
 		createdAt: "2024-01-01T00:00:00Z",
@@ -345,11 +371,35 @@ export const dataStore = {
 		return data ? JSON.parse(data) : DEFAULT_USERS;
 	},
 
-	validateUser(username: string, password: string): User | null {
+	// MODIFIED: validateUser now supports role-based login
+	validateUser(
+		identifier: string,
+		password: string,
+		role?: string,
+	): User | null {
 		const users = this.getUsers();
+
+		// Employee login: identifier is CID
+		if (role === "employee") {
+			const employee = this.getEmployeeByCID(identifier);
+			if (!employee) return null;
+
+			// Find the associated user account (by employeeId)
+			const user = users.find(
+				(u) =>
+					u.employeeId === employee.employeeId &&
+					u.password === password,
+			);
+			return user || null;
+		}
+
+		// Admin / Operator login: identifier is email
 		return (
 			users.find(
-				(u) => u.username === username && u.password === password,
+				(u) =>
+					u.email === identifier &&
+					u.password === password &&
+					u.role === role,
 			) || null
 		);
 	},
@@ -363,6 +413,11 @@ export const dataStore = {
 
 	getEmployeeById(id: string): Employee | undefined {
 		return this.getEmployees().find((e) => e.id === id);
+	},
+
+	// NEW: Get employee by CID
+	getEmployeeByCID(cid: string): Employee | undefined {
+		return this.getEmployees().find((e) => e.CID === cid);
 	},
 
 	addEmployee(
